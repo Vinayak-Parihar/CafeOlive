@@ -1,0 +1,160 @@
+/* 1. Google Fonts Import (Playfair Display & Montserrat) */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+/* 2. Tailwind Directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    overflow-x: clip;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Montserrat', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    @apply bg-background text-on-background transition-colors duration-300 ease-in-out;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    outline: 3px solid theme('colors.soft-gold');
+    outline-offset: 3px;
+  }
+}
+
+/* Buttons like .btn-stitch-primary carry `transition-all`, which — since it sits
+   outside any @layer and therefore beats the layered :focus-visible rule above —
+   would otherwise fade the focus ring in instead of showing it instantly. */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  transition-property: color, background-color, border-color, box-shadow, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer utilities {
+  .animate-scroll-left {
+    animation: scroll-left 40s linear infinite;
+  }
+
+  .animate-scroll-right {
+    animation: scroll-right 40s linear infinite;
+  }
+
+  .pause-on-hover:hover {
+    animation-play-state: paused;
+  }
+
+  /* Arch shape motif */
+  .arch-frame {
+    border-radius: 9999px 9999px 1rem 1rem;
+    overflow: hidden;
+  }
+
+  /* Stitch glass panel */
+  .glass-panel {
+    /* background: rgba(255, 248, 245, 0.75); */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(233, 225, 220, 0.5);
+  }
+
+  .glass-panel-dark {
+    background: rgba(30, 27, 24, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .soft-shadow {
+    box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.04);
+  }
+}
+
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes scroll-right {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+/* 3. Button Styles */
+.btn-stitch-primary {
+  @apply bg-primary-container text-white font-medium px-8 py-3 rounded-full transition-all duration-300 hover:bg-primary shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none;
+}
+
+.btn-stitch-outline {
+  @apply border border-outline text-primary font-medium px-8 py-3 rounded-full transition-all duration-300 hover:bg-primary hover:text-white hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none;
+}
+
+.btn-stitch-gold {
+  @apply bg-soft-gold text-primary font-medium px-8 py-3 rounded-full transition-all duration-300 hover:brightness-110 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none;
+}
+
+/* Maintain backward compatibility for existing dashboards */
+.btn-premium {
+  @apply bg-deep-olive text-white font-medium px-8 py-3 rounded-full transition-all duration-300 shadow-md hover:shadow-lg hover:bg-primary hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm;
+}
+
+.btn-outline-premium {
+  @apply border border-soft-gold text-on-surface font-medium px-8 py-3 rounded-full transition-all duration-300 hover:bg-soft-gold hover:text-primary hover:-translate-y-0.5 active:translate-y-0;
+}
+
+.btn-outline-white {
+  @apply border border-white text-white font-medium px-8 py-3 rounded-full transition-all duration-300 hover:bg-white hover:text-primary hover:-translate-y-0.5 active:translate-y-0;
+}
+
+.glass-card {
+  @apply glass-panel;
+}
+
+.glass-card-dark {
+  @apply glass-panel-dark;
+}
+
+/* Premium Card Hover */
+.premium-hover {
+  @apply transition-all duration-500 hover:shadow-xl hover:-translate-y-2;
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 1s ease-in-out forwards;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
