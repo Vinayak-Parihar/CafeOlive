@@ -1,0 +1,20 @@
+[
+  {
+    "date": "2026-09-06",
+    "scope": "single-page",
+    "target": "frontend/src/MenuPage.jsx",
+    "macrostructure": "N/A — existing product-grid + order-rail app page, not a landing-page shape from the 21-macro catalog",
+    "theme": "brand-preserved (Olive Cafe existing tokens: primary #004435, soft-gold #e7c17a, ivory-surface #fff8f5; Playfair Display + Montserrat)",
+    "genre": "editorial (silent default — no modern-minimal/atmospheric/playful signal)",
+    "enrichment": "none (typography + existing product photography only)",
+    "adaptation_note": "Catalog/custom theme routes were intentionally skipped to avoid breaking sitewide brand consistency with Navbar/Footer/LandingPage/BillPage, which are out of this run's scope and already share the preserved tokens. Hallmark's structural/interaction/motion/honest-copy disciplines were applied as an audit-and-fix pass instead of a full theme swap.",
+    "fixes_applied": [
+      "Focus-visible ring was animating in over 300ms on buttons (unlayered .btn-stitch-* transition-all beat the layered :focus-visible rule) - now instant",
+      "Added global prefers-reduced-motion collapse (was entirely absent)",
+      "Replaced native alert() error handling in MenuPage.jsx with the codebase's existing toast.error() convention (already used in ReviewsManagement.jsx)",
+      "Added active:scale press feedback to quantity +/- buttons and category filter chips",
+      "Fixed a real Navbar.jsx crowding bug found while tablet-testing this page: desktop nav activated at md: (768px) with 0px gap between nav links and the centered logo; moved the breakpoint to lg: (1024px), verified clean gaps at 900px/1024px/1440px"
+    ],
+    "brief": "Cafe Olive - enhance Menu page UI/UX (premium cafe ordering experience)"
+  }
+]
