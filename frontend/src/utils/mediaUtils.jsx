@@ -1,12 +1,26 @@
 import { useEffect, useState } from 'react';
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '';
+
+const safeFetchMedia = async () => {
+    try {
+        const response = await fetch(`${API_BASE}/api/home/media`);
+        const contentType = response.headers.get('content-type') || '';
+        if (!response.ok || !contentType.includes('application/json')) {
+            return null;
+        }
+        return await response.json();
+    } catch {
+        return null;
+    }
+};
+
 export const usePublicMedia = () => {
     const [media, setMedia] = useState({});
 
     useEffect(() => {
         let cancelled = false;
-        fetch('/api/home/media')
-            .then((response) => response.ok ? response.json() : null)
+        safeFetchMedia()
             .then((payload) => {
                 if (cancelled || !payload?.data?.media) return;
                 const map = payload.data.media.reduce((acc, item) => {
@@ -16,7 +30,7 @@ export const usePublicMedia = () => {
                 map._list = payload.data.media;
                 setMedia(map);
             })
-            .catch((error) => console.error('Failed to fetch website media:', error));
+            .catch(() => {});
 
         return () => { cancelled = true; };
     }, []);
@@ -30,15 +44,13 @@ export const usePublicMediaList = () => {
 
     useEffect(() => {
         let cancelled = false;
-        fetch('/api/home/media')
-            .then((response) => response.ok ? response.json() : null)
+        safeFetchMedia()
             .then((payload) => {
                 if (cancelled) return;
                 setMediaList(payload?.data?.media || []);
                 setLoading(false);
             })
-            .catch((error) => {
-                console.error('Failed to fetch website media list:', error);
+            .catch(() => {
                 if (!cancelled) setLoading(false);
             });
 
