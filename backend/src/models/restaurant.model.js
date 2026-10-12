@@ -28,6 +28,16 @@ const restaurantSchema = new Schema(
                 default: "Gallery image",
                 trim: true
             },
+            capacity: {
+                type: String,
+                default: "",
+                trim: true
+            },
+            description: {
+                type: String,
+                default: "",
+                trim: true
+            },
             imageUrl: {
                 type: String,
                 default: ""
@@ -43,6 +53,10 @@ const restaurantSchema = new Schema(
             isEnabled: {
                 type: Boolean,
                 default: true
+            },
+            isDeleted: {
+                type: Boolean,
+                default: false
             }
         }]
     },

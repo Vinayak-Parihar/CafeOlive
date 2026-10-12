@@ -20,6 +20,14 @@ const RATES = {
     partyHall2: 1200
 };
 
+// Helper: format Date object to YYYY-MM-DD local calendar date string
+const toLocalDateStr = (d) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+};
+
 // Helper to convert time format (e.g. "14:00" or "02:00 PM") to numeric hour
 const parseTimeToHour = (timeStr) => {
     if (!timeStr) return 12;
@@ -28,12 +36,55 @@ const parseTimeToHour = (timeStr) => {
         return parseInt(timeStr.split(':')[0], 10);
     }
     // If it's "07:00 PM" format
-    let [time, period] = timeStr.split(' ');
-    let [hour] = time.split(':');
+    let [time, period] = timeStr.trim().split(/\s+/);
+    let [hour] = (time || "").split(':');
     let h = parseInt(hour, 10);
     if (period?.toUpperCase() === 'PM' && h !== 12) h += 12;
     if (period?.toUpperCase() === 'AM' && h === 12) h = 0;
     return h;
+};
+
+// Helper to parse time format into hour and minute
+const parseTimeToHourMinute = (timeStr) => {
+    if (!timeStr) return { hour: 12, minute: 0 };
+    const trimmed = timeStr.trim();
+    if (trimmed.includes(':') && !trimmed.toLowerCase().includes('pm') && !trimmed.toLowerCase().includes('am')) {
+        const [h, m] = trimmed.split(':');
+        return { hour: parseInt(h, 10) || 0, minute: parseInt(m, 10) || 0 };
+    }
+    const [time, period] = trimmed.split(/\s+/);
+    const [h, m] = (time || "").split(':');
+    let hour = parseInt(h, 10) || 0;
+    const minute = parseInt(m, 10) || 0;
+    if (period?.toUpperCase() === 'PM' && hour !== 12) hour += 12;
+    if (period?.toUpperCase() === 'AM' && hour === 12) hour = 0;
+    return { hour, minute };
+};
+
+// 30-minute buffer required between consecutive reservations for cleaning and turnover
+const CLEANING_BUFFER_MS = 30 * 60 * 1000;
+
+// Helper to get start and end epoch milliseconds for a reservation
+const getReservationTimeRange = (dateStr, timeStr, duration) => {
+    const [year, month, day] = dateStr.split('-').map(num => parseInt(num, 10));
+    const { hour, minute } = parseTimeToHourMinute(timeStr);
+    const start = new Date(year, month - 1, day, hour, minute, 0, 0);
+    const durHours = Math.max(0.5, Number(duration) || 1);
+    const end = new Date(start.getTime() + Math.round(durHours * 60 * 60 * 1000));
+    return { startMs: start.getTime(), endMs: end.getTime() };
+};
+
+// Helper to get calendar date strings for adjacent days to catch rollover bookings
+const getAdjacentDateStrings = (dateStr, duration) => {
+    const [year, month, day] = dateStr.split('-').map(num => parseInt(num, 10));
+    const durHours = Math.max(1, Number(duration) || 1);
+    const daysForward = Math.ceil(durHours / 24) + 1;
+    const dates = new Set();
+    for (let offset = -1; offset <= daysForward; offset++) {
+        const d = new Date(year, month - 1, day + offset);
+        dates.add(toLocalDateStr(d));
+    }
+    return Array.from(dates);
 };
 
 // Expose the hourly rates so the frontend reads them instead of hardcoding its own copy.
@@ -51,47 +102,60 @@ const getAvailability = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Type and Date are required query parameters.");
     }
 
-    // Get all confirmed reservations for this space on this date
+    // Get all confirmed reservations and recently initiated pending reservations (last 15 mins)
+    const relevantDates = getAdjacentDateStrings(date, 24);
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
     const bookings = await Reservation.find({
         type,
-        date,
-        status: 'confirmed'
+        date: { $in: relevantDates },
+        $or: [
+            { status: 'confirmed' },
+            { status: 'pending', createdAt: { $gte: fifteenMinutesAgo } }
+        ]
     });
 
-    // We will return a list of standard hours and indicate which ones are booked
-    // Available hours: 08:00 AM (8) to 11:00 PM (23)
+    // Available half-hour slots from 08:00 AM to 11:30 PM
     const allSlots = [
-        "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
-        "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM",
-        "05:00 PM", "06:00 PM", "07:00 PM", "08:00 PM", "09:00 PM",
-        "10:00 PM", "11:00 PM"
+        "08:00 AM", "08:30 AM", "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
+        "12:00 PM", "12:30 PM", "01:00 PM", "01:30 PM", "02:00 PM", "02:30 PM", "03:00 PM", "03:30 PM",
+        "04:00 PM", "04:30 PM", "05:00 PM", "05:30 PM", "06:00 PM", "06:30 PM", "07:00 PM", "07:30 PM",
+        "08:00 PM", "08:30 PM", "09:00 PM", "09:30 PM", "10:00 PM", "10:30 PM", "11:00 PM", "11:30 PM"
     ];
 
-    const bookedHours = new Set();
-
-    bookings.forEach(booking => {
-        const startH = parseTimeToHour(booking.startTime);
-        const duration = booking.duration || 1;
-        for (let i = 0; i < duration; i++) {
-            bookedHours.add(startH + i);
-        }
+    const bookedRanges = bookings.map(booking => {
+        const { startMs, endMs } = getReservationTimeRange(booking.date, booking.startTime, booking.duration);
+        return {
+            id: booking._id,
+            date: booking.date,
+            startTime: booking.startTime,
+            duration: booking.duration,
+            startMs,
+            endMs,
+            bufferEndMs: endMs + CLEANING_BUFFER_MS
+        };
     });
 
     const slots = allSlots.map(slot => {
-        const h = parseTimeToHour(slot);
+        const { startMs: slotStart, endMs: slotEnd } = getReservationTimeRange(date, slot, 0.5);
+        // A slot conflicts if it overlaps an existing booking or its 30-minute turnover window
+        const isBooked = bookedRanges.some(b => {
+            return slotStart < (b.endMs + CLEANING_BUFFER_MS) && b.startMs < (slotEnd + CLEANING_BUFFER_MS);
+        });
+
+        const { hour, minute } = parseTimeToHourMinute(slot);
         return {
             time: slot,
-            hourValue: h,
-            isBooked: bookedHours.has(h)
+            hourValue: hour + minute / 60,
+            isBooked
         };
     });
 
     return res.status(200).json(
-        new ApiResponce(200, slots, "Slot availability fetched successfully")
+        new ApiResponce(200, { slots, bookedRanges, bufferMinutes: 30 }, "Slot availability fetched successfully")
     );
 });
 
-// 2. Create Razorpay Payment Order for Booking
+// 2. Create Razorpay Payment Order for Booking (POST /api/reservations/book / /create-payment-order)
 const createPaymentOrder = asyncHandler(async (req, res) => {
     const { type, name, phone, email, date, startTime, duration, guests, occasion, specialRequests } = req.body;
 
@@ -102,31 +166,27 @@ const createPaymentOrder = asyncHandler(async (req, res) => {
     const hourlyRate = RATES[type] || 1000;
     const totalAmount = hourlyRate * duration;
 
-    // Check if slot is already double booked in DB
-    const startH = parseTimeToHour(startTime);
+    // Check if slot is already double booked in DB (including midnight rollover across adjacent days + 30m buffer)
+    const { startMs: reqStart, endMs: reqEnd } = getReservationTimeRange(date, startTime, duration);
+    const relevantDates = getAdjacentDateStrings(date, duration);
+
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
     const bookings = await Reservation.find({
         type,
-        date,
-        status: 'confirmed'
+        date: { $in: relevantDates },
+        $or: [
+            { status: 'confirmed' },
+            { status: 'pending', createdAt: { $gte: fifteenMinutesAgo } }
+        ]
     });
 
-    const requestedHours = [];
-    for (let i = 0; i < duration; i++) {
-        requestedHours.push(startH + i);
-    }
-
     const isDoubleBooked = bookings.some(booking => {
-        const bStart = parseTimeToHour(booking.startTime);
-        const bDuration = booking.duration || 1;
-        const bHours = [];
-        for (let i = 0; i < bDuration; i++) {
-            bHours.push(bStart + i);
-        }
-        return requestedHours.some(h => bHours.includes(h));
+        const { startMs: bStart, endMs: bEnd } = getReservationTimeRange(booking.date, booking.startTime, booking.duration);
+        return reqStart < (bEnd + CLEANING_BUFFER_MS) && bStart < (reqEnd + CLEANING_BUFFER_MS);
     });
 
     if (isDoubleBooked) {
-        throw new ApiError(400, "The selected slot conflicts with an existing reservation. Please select a different time.");
+        throw new ApiError(400, "The selected slot conflicts with an existing reservation (including required 30-minute preparation buffer). Please select a different time.");
     }
 
     // Create Razorpay Order
@@ -297,4 +357,14 @@ const lookupReservation = asyncHandler(async (req, res) => {
     );
 });
 
-export { getRates, getAvailability, createPaymentOrder, verifyAndConfirm, getAllReservations, updateReservationStatus, reservationInquiry, lookupReservation };
+export {
+    getRates,
+    getAvailability,
+    createPaymentOrder,
+    createPaymentOrder as book,
+    verifyAndConfirm,
+    getAllReservations,
+    updateReservationStatus,
+    reservationInquiry,
+    lookupReservation
+};

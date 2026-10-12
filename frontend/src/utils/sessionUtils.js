@@ -63,21 +63,31 @@ export function getBillSession() {
     if (!sessionId) return null;
 
     const customerName = localStorage.getItem(SESSION_NAME_KEY) || null;
+    const customerPhone = localStorage.getItem('cafeolive_customer_phone') || null;
+    const customerEmail = localStorage.getItem('cafeolive_customer_email') || null;
 
     return {
         billSessionId: sessionId,
-        customerName
+        customerName,
+        customerPhone,
+        customerEmail
     };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Create and store a new bill session
-// Stores the session ID in a cookie (5h expiry) and name in localStorage.
+// Stores the session ID in a cookie (5h expiry) and details in localStorage.
 // ─────────────────────────────────────────────────────────────────────────────
-export function setBillSession(billSessionId, customerName) {
+export function setBillSession(billSessionId, customerName, customerPhone, customerEmail) {
     setCookie(SESSION_COOKIE_NAME, billSessionId, SESSION_DURATION_HOURS);
     if (customerName) {
         localStorage.setItem(SESSION_NAME_KEY, customerName);
+    }
+    if (customerPhone) {
+        localStorage.setItem('cafeolive_customer_phone', customerPhone);
+    }
+    if (customerEmail) {
+        localStorage.setItem('cafeolive_customer_email', customerEmail);
     }
 }
 
@@ -87,6 +97,28 @@ export function setBillSession(billSessionId, customerName) {
 export function clearBillSession() {
     deleteCookie(SESSION_COOKIE_NAME);
     localStorage.removeItem(SESSION_NAME_KEY);
+    localStorage.removeItem('cafeolive_customer_phone');
+    localStorage.removeItem('cafeolive_customer_email');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Clear only the active bill session cookie (leaves customer details in localStorage)
+// ─────────────────────────────────────────────────────────────────────────────
+export function clearBillSessionCookie() {
+    deleteCookie(SESSION_COOKIE_NAME);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Rotate the bill session: creates a fresh billSessionId while preserving
+// customer details (name, phone, email) from localStorage.
+// ─────────────────────────────────────────────────────────────────────────────
+export function rotateBillSession() {
+    const newSessionId = generateSessionId();
+    const existingName = localStorage.getItem(SESSION_NAME_KEY);
+    const existingPhone = localStorage.getItem('cafeolive_customer_phone');
+    const existingEmail = localStorage.getItem('cafeolive_customer_email');
+    setBillSession(newSessionId, existingName, existingPhone, existingEmail);
+    return getBillSession();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import {
     Coffee, CheckCircle, AlertCircle, ArrowLeft,
     ShoppingBag, CreditCard, Loader2, Receipt,
-    ChevronDown, ChevronUp
+    ChevronDown, ChevronUp, ChefHat, Clock, Bell,
+    Utensils, RefreshCw, Flame, Sparkles, Timer, Banknote
 } from 'lucide-react';
-import { getBillSession, clearBillSession } from '../../utils/sessionUtils';
+import { getBillSession, clearBillSession, clearBillSessionCookie, rotateBillSession } from '../../utils/sessionUtils';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Razorpay SDK loader
@@ -24,6 +26,83 @@ const loadRazorpayScript = () =>
     });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Preparation time constants
+// ─────────────────────────────────────────────────────────────────────────────
+const MAX_PREP_MINUTES = 25;
+
+// Helper to calculate countdown time and progress percentage
+const calculateOrderProgress = (order, now) => {
+    if (!order) {
+        return {
+            remainingText: `${MAX_PREP_MINUTES} mins max`,
+            progressPercent: 20,
+            activeStep: 1,
+            isOvertime: false,
+            headline: 'Order Placed',
+            subline: 'Your order has been sent to the kitchen.'
+        };
+    }
+
+    const createdAt = new Date(order.createdAt).getTime();
+    const elapsedSec = Math.max(0, Math.floor((now - createdAt) / 1000));
+    const totalSec = MAX_PREP_MINUTES * 60;
+    const remainingSec = Math.max(0, totalSec - elapsedSec);
+    const remainingMins = Math.floor(remainingSec / 60);
+    const remainingSecs = remainingSec % 60;
+
+    const status = order.status || 'placed';
+
+    if (status === 'served' || status === 'completed') {
+        return {
+            remainingText: 'Served · Complete',
+            progressPercent: 100,
+            activeStep: 4,
+            isOvertime: false,
+            headline: 'Served · Bon Appétit!',
+            subline: 'All dishes delivered to your table. Enjoy your feast!'
+        };
+    }
+
+    if (status === 'ready') {
+        return {
+            remainingText: 'Ready Now! Coming to table',
+            progressPercent: 92,
+            activeStep: 3,
+            isOvertime: false,
+            headline: 'Order Confirmed & Ready!',
+            subline: 'Chef has plated your order! Service team is bringing it over.'
+        };
+    }
+
+    if (status === 'preparing') {
+        const timeFraction = Math.min(1, elapsedSec / totalSec);
+        const dynamicPercent = Math.min(85, Math.round(35 + timeFraction * 50));
+        const isOvertime = remainingSec <= 0;
+        const remainingText = isOvertime
+            ? 'Final Touches · Plating now'
+            : `${remainingMins}m ${remainingSecs < 10 ? '0' : ''}${remainingSecs}s remaining`;
+        return {
+            remainingText,
+            progressPercent: dynamicPercent,
+            activeStep: 2,
+            isOvertime,
+            headline: 'Chef Is Preparing Your Food',
+            subline: 'Freshly crafting your culinary dishes in the kitchen.'
+        };
+    }
+
+    // Default 'placed'
+    return {
+        remainingText: `~${MAX_PREP_MINUTES} mins max prep window`,
+        progressPercent: 20,
+        activeStep: 1,
+        isOvertime: false,
+        headline: 'Order Received · Queued',
+        subline: 'Kitchen has received your order and is queuing ingredients.'
+    };
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // BillPage Component
 // ─────────────────────────────────────────────────────────────────────────────
 const BillPage = () => {
@@ -34,37 +113,103 @@ const BillPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [expandedOrders, setExpandedOrders] = useState({});
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [now, setNow] = useState(Date.now());
 
     // Payment state
     const [paymentState, setPaymentState] = useState('idle'); // idle | processing | success | failed
     const [paymentMessage, setPaymentMessage] = useState('');
+    const [selectedMethod, setSelectedMethod] = useState('online'); // 'online' | 'cash'
+    const [cashRequested, setCashRequested] = useState(false);
+    const [isUpdatingMethod, setIsUpdatingMethod] = useState(false);
 
     // ── Fetch the current bill ──────────────────────────────────────────────
-    const fetchBill = useCallback(async () => {
+    const fetchBill = useCallback(async (isManual = false) => {
         if (!session?.billSessionId) {
             setLoading(false);
             return;
         }
+        if (isManual) setIsRefreshing(true);
         try {
             const res = await axios.get(`/api/order/bill/${session.billSessionId}`);
             if (res.data.success) {
                 setBillData(res.data.data);
+                if (res.data.data?.paymentMethod === 'Cash') {
+                    setCashRequested(true);
+                    setSelectedMethod('cash');
+                } else if (res.data.data?.paymentMethod === 'Online') {
+                    setCashRequested(false);
+                    setSelectedMethod('online');
+                }
+                if (res.data.data?.sessionPaid) {
+                    clearBillSessionCookie();
+                }
             }
         } catch (err) {
             setError('Failed to load your bill. Please try again.');
             console.error('Bill fetch error:', err);
         } finally {
             setLoading(false);
+            if (isManual) {
+                setTimeout(() => setIsRefreshing(false), 500);
+            }
         }
     }, [session?.billSessionId]);
 
+    // Initial fetch + real-time polling every 4 seconds to sync with admin panel
     useEffect(() => {
         fetchBill();
+        const pollInterval = setInterval(() => {
+            fetchBill();
+        }, 4000);
+        return () => clearInterval(pollInterval);
     }, [fetchBill]);
+
+    // Local 1-second ticker for smooth countdown clock
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setNow(Date.now());
+        }, 1000);
+        return () => clearInterval(timer);
+    }, []);
 
     // ── Toggle order item accordion ─────────────────────────────────────────
     const toggleOrder = (orderId) => {
         setExpandedOrders(prev => ({ ...prev, [orderId]: !prev[orderId] }));
+    };
+
+    // ── Cash / Online Selection Handlers ────────────────────────────────────
+    const handleSelectCash = async () => {
+        if (!session?.billSessionId) return;
+        setIsUpdatingMethod(true);
+        try {
+            await axios.patch(`/api/order/bill/${session.billSessionId}/payment-method`, {
+                paymentMethod: 'Cash'
+            });
+            setCashRequested(true);
+            setSelectedMethod('cash');
+            toast.success("Cash payment selected. Please hand over cash to staff after dining.");
+        } catch (err) {
+            toast.error("Failed to select cash payment. Please try again.");
+        } finally {
+            setIsUpdatingMethod(false);
+        }
+    };
+
+    const handleSelectOnline = async () => {
+        if (!session?.billSessionId) return;
+        setIsUpdatingMethod(true);
+        try {
+            await axios.patch(`/api/order/bill/${session.billSessionId}/payment-method`, {
+                paymentMethod: 'Online'
+            });
+            setCashRequested(false);
+            setSelectedMethod('online');
+        } catch (err) {
+            console.error("Failed to update payment method:", err);
+        } finally {
+            setIsUpdatingMethod(false);
+        }
     };
 
     // ── Pay Bill ────────────────────────────────────────────────────────────
@@ -109,7 +254,7 @@ const BillPage = () => {
 
                         if (verifyRes.data.success) {
                             // 5. Clear the session cookie — bill is settled
-                            clearBillSession();
+                            clearBillSessionCookie();
                             setPaymentState('success');
                             setPaymentMessage(
                                 `Payment of ₹${billData.grandTotal} received. Thank you, ${billData.customerName || 'valued guest'}!`
@@ -240,7 +385,13 @@ const BillPage = () => {
                     <p className="text-on-surface-variant text-sm">
                         This bill session has been settled. Thank you for visiting Café Olive!
                     </p>
-                    <Link to="/menu" className="inline-flex items-center gap-2 btn-stitch-primary px-6 py-3 text-xs font-bold uppercase tracking-wider">
+                    <Link
+                        to="/menu"
+                        onClick={() => {
+                            rotateBillSession();
+                        }}
+                        className="inline-flex items-center gap-2 btn-stitch-primary px-6 py-3 text-xs font-bold uppercase tracking-wider"
+                    >
                         <Coffee size={16} /> Order Again
                     </Link>
                 </div>
@@ -278,6 +429,60 @@ const BillPage = () => {
                     </p>
                 </div>
 
+                {/* Small Clean Order Process & Prep Bar */}
+                {orders && orders.length > 0 && (() => {
+                    const active = orders.slice().reverse().find(o => o.status !== 'served' && o.status !== 'completed') || orders[orders.length - 1];
+                    const { remainingText, progressPercent, activeStep, headline, subline } = calculateOrderProgress(active, now);
+
+                    return (
+                        <div className="bg-white border border-surface-border rounded-xl p-5 shadow-sm mb-6">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                    <span className="text-sm font-bold text-primary">{headline}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 text-xs text-primary font-semibold bg-primary/5 px-2.5 py-1 rounded-full border border-primary/10">
+                                    <Timer size={13} className={activeStep === 2 ? "animate-spin text-orange-500" : ""} />
+                                    <span>{remainingText}</span>
+                                </div>
+                            </div>
+
+                            <p className="text-xs text-on-surface-variant mb-3">{subline}</p>
+
+                            {/* Small Bar */}
+                            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden mb-3">
+                                <div
+                                    className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-amber-500 via-orange-500 to-emerald-600"
+                                    style={{ width: `${progressPercent}%` }}
+                                />
+                            </div>
+
+                            {/* 4 Steps */}
+                            <div className="grid grid-cols-4 text-center text-[11px] gap-1 pt-1 border-t border-gray-100">
+                                {[
+                                    { label: 'Placed', step: 1 },
+                                    { label: 'Making', step: 2 },
+                                    { label: 'Ready', step: 3 },
+                                    { label: 'Served', step: 4 },
+                                ].map(({ label, step }) => (
+                                    <div
+                                        key={step}
+                                        className={`py-1 rounded font-semibold transition-colors ${
+                                            activeStep === step
+                                                ? 'text-orange-600 font-bold bg-orange-50'
+                                                : activeStep > step
+                                                ? 'text-emerald-700'
+                                                : 'text-gray-400'
+                                        }`}
+                                    >
+                                        {activeStep > step ? '✓ ' : activeStep === step ? '● ' : ''}{step}. {label}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                })()}
+
                 {/* Orders List */}
                 {!orders || orders.length === 0 ? (
                     <div className="text-center py-16 space-y-4">
@@ -306,10 +511,23 @@ const BillPage = () => {
                                                 {idx + 1}
                                             </div>
                                             <div>
-                                                <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
-                                                    {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                </p>
-                                                <p className="text-sm font-semibold text-primary">
+                                                <div className="flex items-center gap-2">
+                                                    <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
+                                                        {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </p>
+                                                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                                        order.status === 'ready'
+                                                            ? 'bg-emerald-100 text-emerald-800'
+                                                            : order.status === 'preparing'
+                                                            ? 'bg-orange-100 text-orange-800'
+                                                            : order.status === 'served'
+                                                            ? 'bg-green-100 text-green-800'
+                                                            : 'bg-blue-100 text-blue-800'
+                                                    }`}>
+                                                        {order.status === 'preparing' ? 'Chef Making' : order.status === 'ready' ? 'Ready' : order.status === 'served' ? 'Served' : 'Placed'}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm font-semibold text-primary mt-0.5">
                                                     {order.items.length} item{order.items.length !== 1 ? 's' : ''}
                                                 </p>
                                             </div>
@@ -352,7 +570,7 @@ const BillPage = () => {
                     </div>
                 )}
 
-                {/* Grand Total & Pay Button */}
+                {/* Grand Total & Payment Section */}
                 {orders && orders.length > 0 && (
                     <div className="bg-white border border-surface-border rounded-xl p-6 shadow-sm space-y-6">
                         {/* Breakdown */}
@@ -374,6 +592,58 @@ const BillPage = () => {
                             </span>
                         </div>
 
+                        {/* Payment Method Selector */}
+                        <div className="space-y-3">
+                            <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant block">
+                                Select Payment Method
+                            </span>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={handleSelectOnline}
+                                    disabled={isUpdatingMethod}
+                                    className={`p-3.5 rounded-xl border-2 text-left transition flex flex-col justify-between gap-2 ${
+                                        selectedMethod === 'online' && !cashRequested
+                                            ? 'border-primary bg-primary/5 text-primary shadow-sm'
+                                            : 'border-surface-border hover:border-gray-300 text-on-surface-variant bg-white'
+                                    }`}
+                                >
+                                    <div className="flex items-center justify-between w-full">
+                                        <CreditCard size={20} className={selectedMethod === 'online' && !cashRequested ? 'text-primary' : 'text-gray-400'} />
+                                        {selectedMethod === 'online' && !cashRequested && (
+                                            <span className="w-2.5 h-2.5 rounded-full bg-primary" />
+                                        )}
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-xs">Pay Online</p>
+                                        <p className="text-[10px] opacity-75">UPI, Cards, NetBanking</p>
+                                    </div>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={handleSelectCash}
+                                    disabled={isUpdatingMethod}
+                                    className={`p-3.5 rounded-xl border-2 text-left transition flex flex-col justify-between gap-2 ${
+                                        selectedMethod === 'cash' || cashRequested
+                                            ? 'border-emerald-600 bg-emerald-50 text-emerald-900 shadow-sm'
+                                            : 'border-surface-border hover:border-gray-300 text-on-surface-variant bg-white'
+                                    }`}
+                                >
+                                    <div className="flex items-center justify-between w-full">
+                                        <Banknote size={20} className={selectedMethod === 'cash' || cashRequested ? 'text-emerald-700' : 'text-gray-400'} />
+                                        {(selectedMethod === 'cash' || cashRequested) && (
+                                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
+                                        )}
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-xs">Pay by Cash</p>
+                                        <p className="text-[10px] opacity-75">Pay to waiter after dining</p>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+
                         {/* Payment failed notice */}
                         {paymentState === 'failed' && paymentMessage && (
                             <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -382,27 +652,49 @@ const BillPage = () => {
                             </div>
                         )}
 
-                        <button
-                            onClick={handlePayBill}
-                            disabled={paymentState === 'processing'}
-                            className="w-full btn-stitch-primary py-4 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-                        >
-                            {paymentState === 'processing' ? (
-                                <>
-                                    <Loader2 size={16} className="animate-spin" />
-                                    Processing...
-                                </>
-                            ) : (
-                                <>
-                                    <CreditCard size={16} />
-                                    Pay ₹{grandTotal}
-                                </>
-                            )}
-                        </button>
-
-                        <p className="text-center text-[10px] text-gray-400">
-                            Secured by Razorpay · All orders in this session will be settled.
-                        </p>
+                        {/* Action buttons based on choice */}
+                        {cashRequested ? (
+                            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center space-y-3">
+                                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-700">
+                                    <Banknote size={22} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-emerald-900 text-sm">Cash Payment Selected</h3>
+                                    <p className="text-xs text-emerald-800 mt-1">
+                                        Please pay <strong>₹{grandTotal}</strong> in cash to your waiter or at the counter after your meal. Staff will update your bill once received.
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={handleSelectOnline}
+                                    className="text-xs font-semibold text-primary underline hover:opacity-80 transition block mx-auto"
+                                >
+                                    Switch to Online Payment instead
+                                </button>
+                            </div>
+                        ) : (
+                            <div>
+                                <button
+                                    onClick={handlePayBill}
+                                    disabled={paymentState === 'processing'}
+                                    className="w-full btn-stitch-primary py-4 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                                >
+                                    {paymentState === 'processing' ? (
+                                        <>
+                                            <Loader2 size={16} className="animate-spin" />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CreditCard size={16} />
+                                            Pay ₹{grandTotal} via Razorpay
+                                        </>
+                                    )}
+                                </button>
+                                <p className="text-center text-[10px] text-gray-400 mt-2">
+                                    Secured by Razorpay · All orders in this session will be settled.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

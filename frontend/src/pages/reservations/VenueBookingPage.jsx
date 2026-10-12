@@ -1,20 +1,36 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ManagedImage, mediaUrl, usePublicMedia } from '../../utils/mediaUtils';
-import { Film, PartyPopper, ArrowLeft, ArrowRight, Minus, Plus, CalendarDays, Clock } from 'lucide-react';
+import { Film, PartyPopper, ArrowLeft, ArrowRight, Minus, Plus, CalendarDays, Clock, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 const GUEST_LIMITS = {
     theatre: { min: 2, max: 8 },
-    partyHall1: { min: 10, max: 35 },
-    partyHall2: { min: 5, max: 15 }
+    partyHall1: { min: 5, max: 50 },
+    partyHall2: { min: 5, max: 100 }
 };
 
 const ZONE_LABELS = {
     theatre: 'Mini Theatre',
     partyHall1: 'Party Hall 1',
     partyHall2: 'Party Hall 2'
+};
+
+const parseCapacity = (capStr, defaultMin, defaultMax) => {
+    if (!capStr) return { min: defaultMin, max: defaultMax, text: `Up to ${defaultMax} guests` };
+    const numbers = String(capStr).match(/\d+/g)?.map(Number) || [];
+    if (!numbers.length) {
+        return { min: defaultMin, max: defaultMax, text: String(capStr) };
+    }
+    if (numbers.length === 1) {
+        const val = numbers[0];
+        const hasUnit = /guests?|capacity|people/i.test(capStr);
+        return { min: defaultMin, max: val, text: hasUnit ? String(capStr) : `Up to ${val} guests` };
+    }
+    const min = Math.min(...numbers);
+    const max = Math.max(...numbers);
+    return { min: min > 0 ? min : defaultMin, max: max > 0 ? max : defaultMax, text: String(capStr) };
 };
 
 // ─── Helpers ────────────────────────────────────────────────────────────────────
@@ -34,22 +50,48 @@ const toLocalDateStr = (d) => {
 const todayLocal = () => toLocalDateStr(new Date());
 
 /**
- * Compute end time given a "HH:00 AM/PM" startTime string and duration in hours.
- * Handles wrap-around past midnight.
+ * Parse time string (e.g. "09:00 PM" or "11:30 PM") into numeric hour (0-23) and minute (0-59)
+ */
+const parseTimeToHourMinute = (timeStr) => {
+    if (!timeStr) return { hour: 12, minute: 0 };
+    const trimmed = timeStr.trim();
+    if (trimmed.includes(':') && !trimmed.toLowerCase().includes('pm') && !trimmed.toLowerCase().includes('am')) {
+        const [h, m] = trimmed.split(':');
+        return { hour: parseInt(h, 10) || 0, minute: parseInt(m, 10) || 0 };
+    }
+    const [time, period] = trimmed.split(/\s+/);
+    const [h, m] = (time || "").split(':');
+    let hour = parseInt(h, 10) || 0;
+    const minute = parseInt(m, 10) || 0;
+    if (period?.toUpperCase() === 'PM' && hour !== 12) hour += 12;
+    if (period?.toUpperCase() === 'AM' && hour === 12) hour = 0;
+    return { hour, minute };
+};
+
+/**
+ * Compute end time given a startTime string and duration in hours.
+ * Handles exact minutes and wrap-around past midnight.
  */
 const getEndTime = (startTime, dur) => {
     if (!startTime) return '';
-    const [timePart, period] = startTime.split(' ');
-    let h = parseInt(timePart.split(':')[0], 10);
-    // Convert to 24h
-    if (period?.toUpperCase() === 'PM' && h !== 12) h += 12;
-    if (period?.toUpperCase() === 'AM' && h === 12) h = 0;
-    let endH = (h + dur) % 24;
-    // Convert back to 12h
+    const { hour, minute } = parseTimeToHourMinute(startTime);
+    const durHours = Number(dur) || 1;
+    const totalMinutes = hour * 60 + minute + Math.round(durHours * 60);
+    let endH = Math.floor(totalMinutes / 60) % 24;
+    let endM = totalMinutes % 60;
     const endPeriod = endH >= 12 ? 'PM' : 'AM';
     if (endH > 12) endH -= 12;
     if (endH === 0) endH = 12;
-    return `${String(endH).padStart(2, '0')}:00 ${endPeriod}`;
+    return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')} ${endPeriod}`;
+};
+
+/**
+ * Compute when the hall is available for the NEXT customer after the 30-minute buffer.
+ * If ending time is 11:00 PM, next available slot is 11:30 PM.
+ */
+const getBufferAvailableTime = (endTimeStr) => {
+    if (!endTimeStr) return '';
+    return getEndTime(endTimeStr, 0.5);
 };
 
 const loadRazorpayScript = () =>
@@ -85,22 +127,28 @@ const VenueBookingPage = () => {
     // ── Date ────────────────────────────────────────────────────────────────────
     const [useCustomDate, setUseCustomDate] = useState(false);
     const [selectedDate, setSelectedDate] = useState(todayLocal);   // always YYYY-MM-DD local
+    const [weekOffset, setWeekOffset] = useState(0);                // 0 = this week, 1 = next week, etc.
     const [daysList, setDaysList] = useState([]);
 
     useEffect(() => {
         const list = [];
         const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+        const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        const base = new Date();
+        base.setDate(base.getDate() + weekOffset * 7);
+
         for (let i = 0; i < 7; i++) {
-            const d = new Date();
-            d.setDate(d.getDate() + i);
+            const d = new Date(base);
+            d.setDate(base.getDate() + i);
             list.push({
-                dateString: toLocalDateStr(d),        // ← local time, not UTC
+                dateString: toLocalDateStr(d),
                 dayLabel: days[d.getDay()],
-                dayNum: d.getDate()
+                dayNum: d.getDate(),
+                monthLabel: months[d.getMonth()]
             });
         }
         setDaysList(list);
-    }, []);
+    }, [weekOffset]);
 
     // ── Duration ────────────────────────────────────────────────────────────────
     const [useCustomDuration, setUseCustomDuration] = useState(false);
@@ -115,6 +163,7 @@ const VenueBookingPage = () => {
     const [amPm, setAmPm] = useState('PM');   // default PM (existing behaviour)
     const [startTime, setStartTime] = useState('');
     const [slots, setSlots] = useState([]);
+    const [bookedRanges, setBookedRanges] = useState([]);
     const [loadingSlots, setLoadingSlots] = useState(false);
 
     // ── Guests ──────────────────────────────────────────────────────────────────
@@ -129,11 +178,84 @@ const VenueBookingPage = () => {
 
     const [placingBooking, setPlacingBooking] = useState(false);
 
+    // ── Dynamic Limits & Labels from Admin Content Studio ─────────────────────────
+    const reservationMediaItems = useMemo(() => {
+        const raw = media._list || Object.values(media).filter(x => x && typeof x === 'object' && x.section);
+        return raw.filter(
+            item => item.section === 'reservations' &&
+                    item.imageKey !== 'reservation-confirmation' &&
+                    item.imageKey !== 'reservation-venue-booking' &&
+                    item.isEnabled !== false
+        );
+    }, [media]);
+
+    const theatreItem = useMemo(() => {
+        return reservationMediaItems.find(x => x.imageKey.includes('theatre') || (x.label || '').toLowerCase().includes('theatre'))
+            || media['reservation-theatre'];
+    }, [reservationMediaItems, media]);
+
+    const hall1Item = useMemo(() => {
+        const nonTheatre = reservationMediaItems.filter(x => !x.imageKey.includes('theatre') && !(x.label || '').toLowerCase().includes('theatre'));
+        return nonTheatre.find(x => x.imageKey.includes('party-hall-1') || (x.label || '').toLowerCase().includes('hall 1') || (x.label || '').toLowerCase().includes('hall-1'))
+            || nonTheatre[0]
+            || media['reservation-party-hall-1'];
+    }, [reservationMediaItems, media]);
+
+    const hall2Item = useMemo(() => {
+        const nonTheatre = reservationMediaItems.filter(x => !x.imageKey.includes('theatre') && !(x.label || '').toLowerCase().includes('theatre'));
+        return nonTheatre.find(x => x.imageKey.includes('party-hall-2') || (x.label || '').toLowerCase().includes('hall 2') || (x.label || '').toLowerCase().includes('hall-2'))
+            || (nonTheatre.length > 1 ? nonTheatre[1] : null)
+            || media['reservation-party-hall-2'];
+    }, [reservationMediaItems, media]);
+
+    const dynamicLimits = useMemo(() => {
+        const theatreCap = parseCapacity(theatreItem?.capacity, 2, 8);
+        const hall1Cap = parseCapacity(hall1Item?.capacity, 5, 50);
+        const hall2Cap = parseCapacity(hall2Item?.capacity, 5, 100);
+
+        return {
+            theatre: { min: theatreCap.min, max: theatreCap.max, sub: theatreCap.text },
+            partyHall1: { min: hall1Cap.min, max: hall1Cap.max, sub: hall1Cap.text },
+            partyHall2: { min: hall2Cap.min, max: hall2Cap.max, sub: hall2Cap.text }
+        };
+    }, [theatreItem, hall1Item, hall2Item]);
+
+    const zoneLabels = useMemo(() => {
+        const cleanTheatre = theatreItem?.label ? theatreItem.label.replace(/^Reservation:\s*/i, '').trim() : 'Mini Theatre';
+        const cleanHall1 = hall1Item?.label ? hall1Item.label.replace(/^Reservation:\s*/i, '').trim() : 'Hall 1';
+        const cleanHall2 = hall2Item?.label ? hall2Item.label.replace(/^Reservation:\s*/i, '').trim() : 'HAll 2';
+
+        return {
+            theatre: cleanTheatre,
+            partyHall1: cleanHall1,
+            partyHall2: cleanHall2
+        };
+    }, [theatreItem, hall1Item, hall2Item]);
+
+    useEffect(() => {
+        const venueParam = searchParams.get('venue');
+        if (venueParam) {
+            const lower = venueParam.toLowerCase();
+            if (lower.includes('theatre')) {
+                setSelectedZone('theatre');
+            } else if (lower.includes('hall 2') || lower.includes('hall-2') || (hall2Item?.label && hall2Item.label.toLowerCase().includes(lower))) {
+                setSelectedZone('partyHall2');
+            } else if (lower.includes('hall 1') || lower.includes('hall-1') || (hall1Item?.label && hall1Item.label.toLowerCase().includes(lower))) {
+                setSelectedZone('partyHall1');
+            }
+        }
+    }, [searchParams, hall1Item, hall2Item]);
+
     // ── Reset guests & time when zone changes ───────────────────────────────────
     useEffect(() => {
-        setGuests(GUEST_LIMITS[selectedZone].min);
+        const limit = dynamicLimits[selectedZone] || GUEST_LIMITS[selectedZone] || { min: 2, max: 100 };
+        setGuests(prev => {
+            if (prev < limit.min) return limit.min;
+            if (prev > limit.max) return limit.max;
+            return prev;
+        });
         setStartTime('');
-    }, [selectedZone]);
+    }, [selectedZone, dynamicLimits]);
 
     // ── Reset selected start time on date / amPm change ─────────────────────────
     useEffect(() => {
@@ -148,7 +270,12 @@ const VenueBookingPage = () => {
                 const res = await axios.get(
                     `/api/reservations/availability?type=${selectedZone}&date=${selectedDate}`
                 );
-                if (res.data.success) setSlots(res.data.data);
+                if (res.data.success) {
+                    const slotData = Array.isArray(res.data.data) ? res.data.data : (res.data.data?.slots || []);
+                    const ranges = res.data.data?.bookedRanges || [];
+                    setSlots(slotData);
+                    setBookedRanges(ranges);
+                }
             } catch (err) {
                 console.error('Error fetching availability:', err);
             } finally {
@@ -164,22 +291,42 @@ const VenueBookingPage = () => {
         return period === amPm;
     });
 
-    // ── Check if slot range is fully available ───────────────────────────────────
+    // ── Check if slot range is fully available (including 30-min buffer) ────────
     const isSlotRangeBooked = useCallback((startSlot) => {
         if (!startSlot) return true;
-        const startHour = startSlot.hourValue;
-        for (let i = 0; i < activeDuration; i++) {
-            const currentHour = startHour + i;
-            const match = slots.find(s => s.hourValue === currentHour);
-            if (!match || match.isBooked) return true;
-        }
-        // Disable past hours for today
+        if (startSlot.isBooked) return true;
+
+        // Parse candidate start & end times
+        const { hour, minute } = parseTimeToHourMinute(startSlot.time);
+        const [y, m, d] = selectedDate.split('-').map(Number);
+        const candStartMs = new Date(y, m - 1, d, hour, minute, 0, 0).getTime();
+        const candEndMs = candStartMs + activeDuration * 60 * 60 * 1000;
+
+        // Disable past slots for today
         if (selectedDate === todayLocal()) {
-            const currentHour = new Date().getHours();
-            if (startHour <= currentHour) return true;
+            if (candStartMs <= Date.now()) return true;
         }
+
+        // Check 30-minute cleaning buffer against booked ranges
+        const BUFFER_MS = 30 * 60 * 1000;
+        const conflicts = bookedRanges.some(b => {
+            return candStartMs < (b.endMs + BUFFER_MS) && b.startMs < (candEndMs + BUFFER_MS);
+        });
+        if (conflicts) return true;
+
+        // Check if all intermediate half-hour blocks are free
+        const numBlocks = Math.round(activeDuration * 2);
+        for (let i = 0; i < numBlocks; i++) {
+            const blockStartMs = candStartMs + i * 30 * 60 * 1000;
+            const blockEndMs = blockStartMs + 30 * 60 * 1000;
+            const blockConflict = bookedRanges.some(b => {
+                return blockStartMs < (b.endMs + BUFFER_MS) && b.startMs < (blockEndMs + BUFFER_MS);
+            });
+            if (blockConflict) return true;
+        }
+
         return false;
-    }, [slots, activeDuration, selectedDate]);
+    }, [slots, bookedRanges, activeDuration, selectedDate]);
 
     // ── Price ────────────────────────────────────────────────────────────────────
     const hourlyRate = rates[selectedZone] || 0;
@@ -187,7 +334,7 @@ const VenueBookingPage = () => {
 
     // ── Guests controls ──────────────────────────────────────────────────────────
     const handleGuestsChange = (val) => {
-        const limit = GUEST_LIMITS[selectedZone];
+        const limit = dynamicLimits[selectedZone] || GUEST_LIMITS[selectedZone] || { min: 2, max: 100 };
         setGuests(prev => {
             const next = prev + val;
             if (next < limit.min) return limit.min;
@@ -311,9 +458,9 @@ const VenueBookingPage = () => {
                             </label>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {[
-                                    { key: 'theatre', label: 'Mini Theatre', sub: 'Plush Recliners', Icon: Film },
-                                    { key: 'partyHall1', label: 'Party Hall 1', sub: 'Up to 35 guests', Icon: PartyPopper },
-                                    { key: 'partyHall2', label: 'Party Hall 2', sub: 'Up to 15 guests', Icon: PartyPopper }
+                                    { key: 'theatre', label: zoneLabels.theatre, sub: dynamicLimits.theatre.sub, Icon: Film },
+                                    { key: 'partyHall1', label: zoneLabels.partyHall1, sub: dynamicLimits.partyHall1.sub, Icon: PartyPopper },
+                                    { key: 'partyHall2', label: zoneLabels.partyHall2, sub: dynamicLimits.partyHall2.sub, Icon: PartyPopper }
                                 ].map(({ key, label, sub, Icon }) => (
                                     <button
                                         key={key}
@@ -342,30 +489,103 @@ const VenueBookingPage = () => {
 
                             {/* ── 2. Date ─────────────────────────────────────── */}
                             <div className="space-y-4">
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
-                                    <label className="text-xs font-semibold uppercase tracking-wider text-primary whitespace-nowrap">
-                                        2. Choose Date
-                                    </label>
-                                    {/* Custom date toggle */}
-                                    <label className="flex items-center gap-2 cursor-pointer select-none text-xs font-semibold text-on-surface-variant">
-                                        <div
-                                            role="checkbox"
-                                            aria-checked={useCustomDate}
-                                            onClick={() => {
-                                                setUseCustomDate(v => !v);
-                                                setStartTime('');
-                                                // Reset to today if switching back
-                                                if (useCustomDate) setSelectedDate(todayLocal());
-                                            }}
-                                            className={`w-10 h-5 rounded-full flex items-center px-0.5 transition-colors duration-300 cursor-pointer ${
-                                                useCustomDate ? 'bg-primary justify-end' : 'bg-surface-border justify-start'
-                                            }`}
-                                        >
-                                            <div className="w-4 h-4 rounded-full bg-white shadow-sm transition-all duration-300" />
-                                        </div>
-                                        <CalendarDays size={13} className="text-primary" />
-                                        Choose Custom Date
-                                    </label>
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                        <label className="text-xs font-semibold uppercase tracking-wider text-primary whitespace-nowrap">
+                                            2. Choose Date
+                                        </label>
+                                        {/* Quick Jump: This Week / Next Week */}
+                                        {!useCustomDate && (
+                                            <div className="flex items-center gap-1.5">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setWeekOffset(0);
+                                                        setSelectedDate(todayLocal());
+                                                        setStartTime('');
+                                                    }}
+                                                    className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition ${
+                                                        weekOffset === 0
+                                                            ? 'bg-primary text-white shadow-xs'
+                                                            : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-border'
+                                                    }`}
+                                                >
+                                                    This Week
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setWeekOffset(1);
+                                                        const nextMon = new Date();
+                                                        nextMon.setDate(nextMon.getDate() + 7);
+                                                        setSelectedDate(toLocalDateStr(nextMon));
+                                                        setStartTime('');
+                                                    }}
+                                                    className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition ${
+                                                        weekOffset === 1
+                                                            ? 'bg-primary text-white shadow-xs'
+                                                            : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-border'
+                                                    }`}
+                                                >
+                                                    Next Week (Next Mon)
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Week Navigator & Custom Date Toggle */}
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                        {!useCustomDate && (
+                                            <div className="flex items-center gap-1 bg-surface-container-low border border-surface-border rounded-lg p-0.5">
+                                                <button
+                                                    type="button"
+                                                    disabled={weekOffset <= 0}
+                                                    onClick={() => {
+                                                        setWeekOffset(w => Math.max(0, w - 1));
+                                                        setStartTime('');
+                                                    }}
+                                                    className="p-1 rounded text-primary hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition"
+                                                    title="Previous Week"
+                                                >
+                                                    <ChevronLeft size={16} />
+                                                </button>
+                                                <span className="text-[10px] font-bold text-primary px-2 uppercase tracking-wider">
+                                                    {weekOffset === 0 ? 'Current Week' : `Week +${weekOffset}`}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setWeekOffset(w => w + 1);
+                                                        setStartTime('');
+                                                    }}
+                                                    className="p-1 rounded text-primary hover:bg-white transition"
+                                                    title="Next Week"
+                                                >
+                                                    <ChevronRight size={16} />
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {/* Custom date toggle */}
+                                        <label className="flex items-center gap-2 cursor-pointer select-none text-xs font-semibold text-on-surface-variant">
+                                            <div
+                                                role="checkbox"
+                                                aria-checked={useCustomDate}
+                                                onClick={() => {
+                                                    setUseCustomDate(v => !v);
+                                                    setStartTime('');
+                                                    if (useCustomDate) setSelectedDate(todayLocal());
+                                                }}
+                                                className={`w-10 h-5 rounded-full flex items-center px-0.5 transition-colors duration-300 cursor-pointer ${
+                                                    useCustomDate ? 'bg-primary justify-end' : 'bg-surface-border justify-start'
+                                                }`}
+                                            >
+                                                <div className="w-4 h-4 rounded-full bg-white shadow-sm transition-all duration-300" />
+                                            </div>
+                                            <CalendarDays size={13} className="text-primary" />
+                                            Custom Date
+                                        </label>
+                                    </div>
                                 </div>
 
                                 {/* Predefined 7-day cards */}
@@ -375,17 +595,23 @@ const VenueBookingPage = () => {
                                             <button
                                                 type="button"
                                                 key={item.dateString}
-                                                onClick={() => setSelectedDate(item.dateString)}
-                                                className={`flex-none flex flex-col items-center p-3 w-16 rounded-lg border transition ${
+                                                onClick={() => {
+                                                    setSelectedDate(item.dateString);
+                                                    setStartTime('');
+                                                }}
+                                                className={`flex-none flex flex-col items-center p-3 w-18 rounded-lg border transition ${
                                                     selectedDate === item.dateString
-                                                        ? 'bg-primary text-white border-primary'
+                                                        ? 'bg-primary text-white border-primary shadow-xs'
                                                         : 'bg-white border-surface-border hover:border-soft-gold text-on-surface-variant'
                                                 }`}
                                             >
-                                                <span className="text-[9px] font-bold tracking-widest uppercase opacity-75">
+                                                <span className="text-[8px] font-bold tracking-widest uppercase opacity-70">
+                                                    {item.monthLabel}
+                                                </span>
+                                                <span className="text-[10px] font-bold tracking-widest uppercase mt-0.5">
                                                     {item.dayLabel}
                                                 </span>
-                                                <span className="font-[Playfair_Display] text-lg font-bold mt-1">
+                                                <span className="font-[Playfair_Display] text-lg font-bold mt-0.5">
                                                     {item.dayNum}
                                                 </span>
                                             </button>
@@ -405,7 +631,7 @@ const VenueBookingPage = () => {
                                             className="bg-white border border-surface-border rounded-lg px-4 py-3 text-sm font-semibold text-primary focus:border-primary focus:ring-1 focus:ring-primary outline-none transition w-full sm:w-56"
                                         />
                                         <span className="text-[10px] text-on-surface-variant italic">
-                                            Select any future date (including months ahead)
+                                            Select any future date across months and years
                                         </span>
                                     </div>
                                 )}
@@ -481,31 +707,39 @@ const VenueBookingPage = () => {
 
                             {/* ── 4. Start Time ────────────────────────────────── */}
                             <div className="space-y-4 pt-4 border-t border-surface-border/50">
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 flex-wrap">
-                                    <label className="text-xs font-semibold uppercase tracking-wider text-primary whitespace-nowrap">
-                                        4. Select Start Time
-                                    </label>
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap">
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                        <label className="text-xs font-semibold uppercase tracking-wider text-primary whitespace-nowrap">
+                                            4. Select In-Time (Start Time)
+                                        </label>
 
-                                    {/* AM / PM toggle */}
-                                    <div className="flex items-center gap-2">
-                                        <span className={`text-xs font-bold transition-colors ${amPm === 'AM' ? 'text-primary' : 'text-on-surface-variant/50'}`}>
-                                            AM
-                                        </span>
-                                        <button
-                                            type="button"
-                                            aria-label="Toggle AM/PM"
-                                            onClick={() => setAmPm(a => a === 'AM' ? 'PM' : 'AM')}
-                                            className={`relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none ${
-                                                amPm === 'PM' ? 'bg-primary' : 'bg-soft-gold/50'
-                                            }`}
-                                        >
-                                            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-300 ${
-                                                amPm === 'PM' ? 'translate-x-6' : 'translate-x-0'
-                                            }`} />
-                                        </button>
-                                        <span className={`text-xs font-bold transition-colors ${amPm === 'PM' ? 'text-primary' : 'text-on-surface-variant/50'}`}>
-                                            PM
-                                        </span>
+                                        {/* AM / PM toggle */}
+                                        <div className="flex items-center gap-2">
+                                            <span className={`text-xs font-bold transition-colors ${amPm === 'AM' ? 'text-primary' : 'text-on-surface-variant/50'}`}>
+                                                AM
+                                            </span>
+                                            <button
+                                                type="button"
+                                                aria-label="Toggle AM/PM"
+                                                onClick={() => setAmPm(a => a === 'AM' ? 'PM' : 'AM')}
+                                                className={`relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none ${
+                                                    amPm === 'PM' ? 'bg-primary' : 'bg-soft-gold/50'
+                                                }`}
+                                            >
+                                                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-300 ${
+                                                    amPm === 'PM' ? 'translate-x-6' : 'translate-x-0'
+                                                }`} />
+                                            </button>
+                                            <span className={`text-xs font-bold transition-colors ${amPm === 'PM' ? 'text-primary' : 'text-on-surface-variant/50'}`}>
+                                                PM
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* 30-min buffer explanation */}
+                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-soft-gold/10 text-primary text-[10px] font-semibold border border-soft-gold/20">
+                                        <Sparkles size={12} className="text-soft-gold" />
+                                        <span>30-min sanitization buffer after booking</span>
                                     </div>
                                 </div>
 
@@ -520,7 +754,7 @@ const VenueBookingPage = () => {
                                                 No {amPm} time slots available. Switch to {amPm === 'AM' ? 'PM' : 'AM'} or choose a different date.
                                             </p>
                                         ) : (
-                                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5">
                                                 {visibleSlots.map(slot => {
                                                     const disabled = isSlotRangeBooked(slot);
                                                     const isSelected = startTime === slot.time;
@@ -530,7 +764,7 @@ const VenueBookingPage = () => {
                                                             key={slot.time}
                                                             disabled={disabled}
                                                             onClick={() => setStartTime(slot.time)}
-                                                            className={`p-3 rounded-lg border text-xs font-semibold transition ${
+                                                            className={`p-2.5 rounded-lg border text-xs font-semibold transition text-center ${
                                                                 disabled
                                                                     ? 'bg-surface-container-highest/20 border-surface-border/40 text-gray-300 cursor-not-allowed line-through'
                                                                     : isSelected
@@ -544,7 +778,24 @@ const VenueBookingPage = () => {
                                                 })}
                                             </div>
                                         )}
-                                        <div className="flex gap-4 pt-2 text-[10px] font-bold tracking-widest text-on-surface-variant">
+
+                                        {/* Real-time In-Time and Ending Time live status */}
+                                        {startTime && (
+                                            <div className="p-3.5 rounded-lg bg-primary/5 border border-primary/20 flex flex-wrap items-center justify-between gap-3 text-xs">
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <span className="font-semibold text-primary">In-Time:</span>
+                                                    <span className="bg-primary text-white font-bold px-2 py-0.5 rounded text-[11px]">{startTime}</span>
+                                                    <span className="text-on-surface-variant font-bold">→</span>
+                                                    <span className="font-semibold text-primary">Ending Time:</span>
+                                                    <span className="bg-primary text-white font-bold px-2 py-0.5 rounded text-[11px]">{endTime}</span>
+                                                </div>
+                                                <div className="text-[11px] text-on-surface-variant">
+                                                    Next available slot for others: <strong className="text-primary font-bold">{getBufferAvailableTime(endTime)}</strong> (after 30-min cleaning buffer)
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="flex gap-4 pt-1 text-[10px] font-bold tracking-widest text-on-surface-variant">
                                             <span className="flex items-center gap-1.5">
                                                 <span className="w-2.5 h-2.5 bg-white border border-surface-border rounded-xs" />
                                                 AVAILABLE
@@ -584,7 +835,7 @@ const VenueBookingPage = () => {
                                     </button>
                                 </div>
                                 <p className="text-[10px] text-on-surface-variant italic">
-                                    Allowed range for this zone: {GUEST_LIMITS[selectedZone].min} – {GUEST_LIMITS[selectedZone].max} people.
+                                    Allowed range for this zone: {dynamicLimits[selectedZone]?.min ?? GUEST_LIMITS[selectedZone].min} – {dynamicLimits[selectedZone]?.max ?? GUEST_LIMITS[selectedZone].max} people.
                                 </p>
                             </div>
                         </section>
@@ -678,14 +929,14 @@ const VenueBookingPage = () => {
                             <div className="space-y-4 font-[Montserrat] text-sm font-light">
                                 <div className="flex justify-between">
                                     <span className="opacity-60 text-[10px] font-bold tracking-wider uppercase">Sanctuary</span>
-                                    <span className="font-semibold">{ZONE_LABELS[selectedZone]}</span>
+                                    <span className="font-semibold">{zoneLabels[selectedZone] || ZONE_LABELS[selectedZone]}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="opacity-60 text-[10px] font-bold tracking-wider uppercase">Selected Date</span>
                                     <span className="font-semibold">{selectedDate}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="opacity-60 text-[10px] font-bold tracking-wider uppercase">Start Time</span>
+                                    <span className="opacity-60 text-[10px] font-bold tracking-wider uppercase">In-Time (Start)</span>
                                     <span className="font-semibold">{startTime || '— Select a slot'}</span>
                                 </div>
                                 <div className="flex justify-between">
@@ -693,9 +944,15 @@ const VenueBookingPage = () => {
                                     <span className="font-semibold">{activeDuration} {activeDuration === 1 ? 'hour' : 'hours'}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="opacity-60 text-[10px] font-bold tracking-wider uppercase">End Time</span>
+                                    <span className="opacity-60 text-[10px] font-bold tracking-wider uppercase">Ending Time</span>
                                     <span className="font-semibold">{startTime ? endTime : '—'}</span>
                                 </div>
+                                {startTime && (
+                                    <div className="flex justify-between text-soft-gold text-[11px]">
+                                        <span className="opacity-80 text-[10px] font-bold tracking-wider uppercase">Next Guest Available</span>
+                                        <span className="font-semibold">{getBufferAvailableTime(endTime)} (+30m buffer)</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between">
                                     <span className="opacity-60 text-[10px] font-bold tracking-wider uppercase">Guests</span>
                                     <span className="font-semibold">{guests} Guests</span>

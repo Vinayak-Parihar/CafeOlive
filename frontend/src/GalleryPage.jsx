@@ -1,27 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Camera, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AnimatePresence, motion as Motion } from 'motion/react';
-import { ManagedImage, mediaUrl, usePublicMedia } from './utils/mediaUtils';
+import { ManagedImage, usePublicMediaList } from './utils/mediaUtils';
 import Reveal from './components/motion/Reveal';
 import { StaggerGrid, StaggerItem } from './components/motion/StaggerGrid';
 
 const GalleryPage = () => {
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [lightboxIndex, setLightboxIndex] = useState(null);
-    const media = usePublicMedia();
+    const { mediaList } = usePublicMediaList();
 
     const categories = ["All", "Ambience", "Food & Drinks", "Mini Theatre", "Party Halls", "Gallery"];
 
-    const managedImages = Object.values(media).filter((item) => item.section === 'gallery' && item.isEnabled !== false).map((item) => ({
-        id: item.imageKey,
-        imageKey: item.imageKey,
-        url: mediaUrl(media, item.imageKey),
-        category: item.category || 'Gallery',
-        title: item.label
-    }));
-    const filteredImages = managedImages.filter(img =>
-        selectedCategory === "All" || img.category === selectedCategory
-    );
+    const managedImages = useMemo(() => {
+        return (mediaList || [])
+            .filter((item) => (item.section === 'gallery' || item.section === 'reservations' || item.isGallery === true) && item.isEnabled !== false && item.imageUrl)
+            .map((item) => {
+                const category = item.category || (item.section === 'reservations' ? 'Party Halls' : 'Gallery');
+                const cleanTitle = item.label ? item.label.replace(/^Reservation:\s*/i, '').trim() : 'Olive Sanctuary';
+                return {
+                    id: item.imageKey,
+                    imageKey: item.imageKey,
+                    url: item.imageUrl,
+                    category,
+                    title: cleanTitle
+                };
+            });
+    }, [mediaList]);
+
+    const filteredImages = useMemo(() => {
+        return managedImages.filter(img =>
+            selectedCategory === "All" || img.category === selectedCategory
+        );
+    }, [managedImages, selectedCategory]);
 
     const handlePrev = (e) => {
         e.stopPropagation();

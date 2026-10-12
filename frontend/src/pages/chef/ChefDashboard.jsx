@@ -69,18 +69,26 @@ const ChefDashboard = () => {
                                     <div className="text-2xl font-bold">
                                         {(() => {
                                             const table = order.tableNumber;
-                                            const customer = order.customerName;
+                                            const customer = order.customerName || order.guestDetails?.name;
                                             const invalidValues = ['n/a', 'null', 'undefined', 'walk-in', 'unknown', 'takeaway'];
                                             const isValidTable = table && !invalidValues.includes(String(table).toLowerCase().trim());
-                                            if (isValidTable) {
-                                                return `Table #${table}`;
+                                            if (customer && isValidTable) {
+                                                return `${customer} (Table #${table})`;
                                             }
                                             if (customer) {
-                                                return `Customer: ${customer}`;
+                                                return customer;
+                                            }
+                                            if (isValidTable) {
+                                                return `Table #${table}`;
                                             }
                                             return 'Customer';
                                         })()}
                                     </div>
+                                    {(order.customerPhone || order.guestDetails?.phone) && (
+                                        <div className="text-xs font-semibold opacity-85 mt-0.5">
+                                            📞 {order.customerPhone || order.guestDetails?.phone}
+                                        </div>
+                                    )}
                                     {/* Order Source & Payment Info */}
                                     <div className="flex flex-wrap gap-1 mt-2">
                                         {order.orderSource === 'waiter' ? (
@@ -92,8 +100,14 @@ const ChefDashboard = () => {
                                                 Customer
                                             </span>
                                         )}
-                                        <span className={`text-[10px] px-2 py-0.5 rounded-full inline-block font-semibold ${order.paymentStatus === 'paid' ? 'bg-green-600 text-white' : 'bg-yellow-600 text-black'}`}>
-                                            💳 {order.paymentStatus === 'paid' ? `Paid (${order.paymentMethod || 'Online'})` : 'Pending'}
+                                        <span className={`text-[10px] px-2 py-0.5 rounded-full inline-block font-semibold ${
+                                            order.paymentStatus === 'paid'
+                                                ? 'bg-green-600 text-white'
+                                                : (order.paymentMethod === 'Cash' ? 'bg-amber-400 text-black font-bold' : 'bg-yellow-600 text-black')
+                                        }`}>
+                                            {order.paymentStatus === 'paid'
+                                                ? `✓ Paid (${order.paymentMethod || 'Online'})`
+                                                : (order.paymentMethod === 'Cash' ? '💵 Cash Pending' : '💳 Online Pending')}
                                         </span>
                                     </div>
                                 </div>

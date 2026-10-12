@@ -93,37 +93,53 @@ import { getHomeMediaDefinition, HOME_MEDIA } from "../constants/homeMedia.js";
 const toHomeMediaResponse = (restaurant) => {
     const storedMedia = restaurant?.homeMedia || [];
     const definitions = [...HOME_MEDIA];
+
+    // Include custom dynamic items (gallery images or reservation halls)
     storedMedia
-        .filter((media) => media.section === "gallery" && !definitions.some((definition) => definition.imageKey === media.imageKey))
+        .filter((media) => (media.section === "gallery" || media.section === "reservations") && !definitions.some((definition) => definition.imageKey === media.imageKey))
         .forEach((media) => definitions.push({
             section: media.section,
             imageKey: media.imageKey,
-            label: media.label || "Gallery image",
-            category: media.category || "Gallery",
+            label: media.label || (media.section === "reservations" ? "Reservation: Party Hall" : "Gallery image"),
+            capacity: media.capacity || "",
+            description: media.description || "",
+            category: media.category || (media.section === "reservations" ? "Party Halls" : "Gallery"),
             defaultUrl: "",
             order: media.order || 0,
-            isGallery: true
+            isGallery: media.section === "gallery",
+            isCustom: true
         }));
 
-    return definitions.sort((first, second) => {
-        if (first.section === second.section) return first.order - second.order;
-        return first.section.localeCompare(second.section);
-    }).map((definition) => {
-        const stored = storedMedia.find((media) => media.imageKey === definition.imageKey);
+    return definitions
+        .filter((definition) => {
+            const stored = storedMedia.find((media) => media.imageKey === definition.imageKey);
+            // Hide items that have been explicitly deleted
+            if (stored?.isDeleted) return false;
+            return true;
+        })
+        .sort((first, second) => {
+            if (first.section === second.section) return first.order - second.order;
+            return first.section.localeCompare(second.section);
+        })
+        .map((definition) => {
+            const stored = storedMedia.find((media) => media.imageKey === definition.imageKey);
 
-        return {
-        section: definition.section,
-        imageKey: definition.imageKey,
-        label: definition.label,
-        category: definition.category || "Gallery",
-        imageUrl: stored?.isEnabled === false ? "" : (stored?.imageUrl || definition.defaultUrl),
-        cloudinaryPublicId: stored?.cloudinaryPublicId || "",
-        order: stored?.order ?? definition.order,
-        isEnabled: stored?.isEnabled !== false,
-        isDefault: !stored,
-        isGallery: Boolean(definition.isGallery)
-        };
-    });
+            return {
+                section: definition.section,
+                imageKey: definition.imageKey,
+                label: stored?.label || definition.label,
+                capacity: stored?.capacity || definition.capacity || "",
+                description: stored?.description || definition.description || "",
+                category: definition.category || (definition.section === "reservations" ? "Party Halls" : "Gallery"),
+                imageUrl: stored?.isEnabled === false ? "" : (stored?.imageUrl || definition.defaultUrl),
+                cloudinaryPublicId: stored?.cloudinaryPublicId || "",
+                order: stored?.order ?? definition.order,
+                isEnabled: stored?.isEnabled !== false,
+                isDefault: !stored,
+                isGallery: Boolean(definition.isGallery),
+                isCustom: Boolean(definition.isCustom)
+            };
+        });
 };
 
 const getHomeMedia = asyncHandler(async (req, res) => {
@@ -138,13 +154,14 @@ const uploadHomeMedia = asyncHandler(async (req, res) => {
     const imageKey = req.params.imageKey;
     let restaurant = await Restaurant.findOne();
     const storedMedia = restaurant?.homeMedia?.find((media) => media.imageKey === imageKey);
-    const definition = getHomeMediaDefinition(imageKey) || (storedMedia?.section === "gallery" ? {
-        section: "gallery",
+    const definition = getHomeMediaDefinition(imageKey) || (storedMedia ? {
+        section: storedMedia.section,
         imageKey,
-        label: storedMedia.label || "Gallery image",
+        label: storedMedia.label || (storedMedia.section === "reservations" ? "Reservation: Party Hall" : "Media image"),
         defaultUrl: "",
         order: storedMedia.order || 0,
-        isGallery: true
+        isGallery: storedMedia.section === "gallery",
+        isCustom: true
     } : null);
 
     if (!definition) {
@@ -170,7 +187,9 @@ const uploadHomeMedia = asyncHandler(async (req, res) => {
         imageUrl: uploadResult.secure_url,
         cloudinaryPublicId: uploadResult.public_id,
         order: current?.order ?? definition.order,
-        isEnabled: true
+        isEnabled: true,
+        isDeleted: false,
+        label: current?.label || definition.label
     };
 
     if (current) {
@@ -181,78 +200,129 @@ const uploadHomeMedia = asyncHandler(async (req, res) => {
 
     await restaurant.save();
     if (previousPublicId && previousPublicId !== uploadResult.public_id) {
-        await deleteFileFromCloudinary(previousPublicId);
+        await deleteFileFromCloudinary(previousPublicId).catch(() => {});
     }
 
     return res.status(200).json(
-        new ApiResponce(200, { media: toHomeMediaResponse(restaurant) }, "Home image updated successfully")
+        new ApiResponce(200, { media: toHomeMediaResponse(restaurant) }, "Image updated successfully")
     );
 });
 
 const addGalleryMedia = asyncHandler(async (req, res) => {
-    const label = String(req.body.label || "Gallery image").trim().slice(0, 80);
-    if (!req.file) throw new ApiError(400, "An image file is required.");
+    const section = req.body.section || "gallery";
+    const defaultLabel = section === "reservations" ? "Reservation: Party Hall" : "Gallery image";
+    const label = String(req.body.label || defaultLabel).trim().slice(0, 100);
 
-    const uploadResult = await uploadFilesOnCloudinary(req.file.path);
-    if (!uploadResult) throw new ApiError(500, "Failed to upload image to Cloudinary.");
+    let imageUrl = "";
+    let cloudinaryPublicId = "";
+
+    if (req.file) {
+        const uploadResult = await uploadFilesOnCloudinary(req.file.path);
+        if (!uploadResult) throw new ApiError(500, "Failed to upload image to Cloudinary.");
+        imageUrl = uploadResult.secure_url;
+        cloudinaryPublicId = uploadResult.public_id;
+    } else if (section === "gallery") {
+        throw new ApiError(400, "An image file is required.");
+    }
 
     let restaurant = await Restaurant.findOne();
     if (!restaurant) restaurant = new Restaurant();
-    const galleryItems = restaurant.homeMedia.filter((media) => media.section === "gallery");
-    const imageKey = `gallery-image-${Date.now()}`;
+    const sectionItems = restaurant.homeMedia.filter((media) => media.section === section);
+    const prefix = section === "reservations" ? "reservation-hall" : "gallery-image";
+    const imageKey = `${prefix}-${Date.now()}`;
+
+    const capacity = String(req.body.capacity || "").trim().slice(0, 100);
+    const description = String(req.body.description || "").trim().slice(0, 1000);
+
     restaurant.homeMedia.push({
-        section: "gallery",
+        section,
         imageKey,
-        imageUrl: uploadResult.secure_url,
-        cloudinaryPublicId: uploadResult.public_id,
-        order: galleryItems.length,
+        imageUrl,
+        cloudinaryPublicId,
+        order: sectionItems.length + 10,
         isEnabled: true,
-        label
+        isDeleted: false,
+        label,
+        capacity,
+        description
     });
     await restaurant.save();
 
     return res.status(201).json(
-        new ApiResponce(201, { media: toHomeMediaResponse(restaurant) }, "Gallery image added successfully")
+        new ApiResponce(201, { media: toHomeMediaResponse(restaurant) }, section === "reservations" ? "Hall added successfully" : "Gallery image added successfully")
     );
 });
 
 const removeHomeMedia = asyncHandler(async (req, res) => {
-    const restaurant = await Restaurant.findOne();
-    const storedMedia = restaurant?.homeMedia?.find((media) => media.imageKey === req.params.imageKey);
-    const definition = getHomeMediaDefinition(req.params.imageKey) || (storedMedia?.section === "gallery" ? storedMedia : null);
-    if (!definition) {
-        throw new ApiError(400, "Invalid home media image key.");
+    const imageKey = req.params.imageKey;
+    let restaurant = await Restaurant.findOne();
+    if (!restaurant) restaurant = new Restaurant();
+
+    const storedIndex = restaurant.homeMedia.findIndex((media) => media.imageKey === imageKey);
+    const storedMedia = storedIndex !== -1 ? restaurant.homeMedia[storedIndex] : null;
+    const builtInDef = getHomeMediaDefinition(imageKey);
+
+    if (!storedMedia && !builtInDef) {
+        throw new ApiError(404, "Invalid home media image key.");
     }
 
-    if (!restaurant) {
-        return res.status(200).json(
-            new ApiResponce(200, { media: toHomeMediaResponse(null) }, "Home image removed successfully")
-        );
+    // Delete image from Cloudinary if stored
+    const previousPublicId = storedMedia?.cloudinaryPublicId;
+    if (previousPublicId) {
+        await deleteFileFromCloudinary(previousPublicId).catch(() => {});
     }
 
-    const current = restaurant.homeMedia.find((media) => media.imageKey === definition.imageKey);
-    if (current) {
-        const previousPublicId = current.cloudinaryPublicId;
-        current.imageUrl = "";
-        current.cloudinaryPublicId = "";
-        current.isEnabled = false;
-        await restaurant.save();
-        if (previousPublicId) await deleteFileFromCloudinary(previousPublicId);
+    if (!builtInDef) {
+        // Custom dynamic item (custom hall or custom gallery image): completely remove from database
+        if (storedIndex !== -1) {
+            restaurant.homeMedia.splice(storedIndex, 1);
+            await restaurant.save();
+        }
     } else {
-        restaurant.homeMedia.push({
-            section: definition.section,
-            imageKey: definition.imageKey,
-            label: definition.label,
-            imageUrl: "",
-            cloudinaryPublicId: "",
-            order: definition.order,
-            isEnabled: false
-        });
+        // Built-in item: mark deleted and disable
+        if (storedMedia) {
+            storedMedia.imageUrl = "";
+            storedMedia.cloudinaryPublicId = "";
+            storedMedia.isEnabled = false;
+            storedMedia.isDeleted = true;
+        } else {
+            restaurant.homeMedia.push({
+                section: builtInDef.section,
+                imageKey: builtInDef.imageKey,
+                label: builtInDef.label,
+                imageUrl: "",
+                cloudinaryPublicId: "",
+                order: builtInDef.order,
+                isEnabled: false,
+                isDeleted: true
+            });
+        }
         await restaurant.save();
     }
 
     return res.status(200).json(
-        new ApiResponce(200, { media: toHomeMediaResponse(restaurant) }, "Home image removed successfully")
+        new ApiResponce(200, { media: toHomeMediaResponse(restaurant) }, "Item removed successfully")
+    );
+});
+
+const restoreDefaultMedia = asyncHandler(async (req, res) => {
+    const section = req.body.section || "reservations";
+    let restaurant = await Restaurant.findOne();
+    if (!restaurant) restaurant = new Restaurant();
+
+    if (section) {
+        restaurant.homeMedia = restaurant.homeMedia.filter((m) => {
+            const def = getHomeMediaDefinition(m.imageKey);
+            if (def && def.section === section) return false;
+            return true;
+        });
+    } else {
+        restaurant.homeMedia = [];
+    }
+    await restaurant.save();
+
+    return res.status(200).json(
+        new ApiResponce(200, { media: toHomeMediaResponse(restaurant) }, `${section} defaults restored successfully`)
     );
 });
 
@@ -288,5 +358,6 @@ export {
     addGalleryMedia,
     removeHomeMedia,
     getSiteSettings,
-    updateSiteSettings
+    updateSiteSettings,
+    restoreDefaultMedia
 };

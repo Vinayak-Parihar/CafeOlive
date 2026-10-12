@@ -7,7 +7,8 @@ import {
 	addGalleryMedia,
 	removeHomeMedia,
 	getSiteSettings,
-	updateSiteSettings
+	updateSiteSettings,
+	restoreDefaultMedia
 } from "../controllers/admin.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { verifyAdmin, verifyAdminOrManager } from "../middlewares/admin.middleware.js";
@@ -24,6 +25,7 @@ router.route("/stats").get(verifyAdmin, getDashboardStats);
 router.route("/pending-orders").get(verifyAdmin, getPendingOrders);
 router.route("/home-media").get(verifyAdminOrManager, getHomeMedia);
 router.route("/home-media").post(verifyAdminOrManager, imageUpload.single("image"), addGalleryMedia);
+router.route("/home-media/restore-defaults").post(verifyAdminOrManager, restoreDefaultMedia);
 router.route("/home-media/:imageKey").post(verifyAdminOrManager, imageUpload.single("image"), uploadHomeMedia);
 router.route("/home-media/:imageKey").delete(verifyAdminOrManager, removeHomeMedia);
 router.route("/settings").get(verifyAdminOrManager, getSiteSettings).put(verifyAdminOrManager, updateSiteSettings);

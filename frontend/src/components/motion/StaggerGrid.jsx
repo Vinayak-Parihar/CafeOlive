@@ -31,11 +31,15 @@ export const StaggerGrid = ({ children, as = 'div', className = '', amount = 0.1
         );
     }
 
+    const count = React.Children.count(children);
+
     return (
         <Component
+            key={rest.key !== undefined ? rest.key : count}
             className={className}
             variants={containerVariants}
             initial="hidden"
+            animate="show"
             whileInView="show"
             viewport={{ once: true, amount }}
             {...rest}
@@ -59,7 +63,13 @@ export const StaggerItem = ({ children, as = 'div', className = '', ...rest }) =
     }
 
     return (
-        <Component className={className} variants={itemVariants} {...rest}>
+        <Component
+            className={className}
+            variants={itemVariants}
+            initial="hidden"
+            animate="show"
+            {...rest}
+        >
             {children}
         </Component>
     );

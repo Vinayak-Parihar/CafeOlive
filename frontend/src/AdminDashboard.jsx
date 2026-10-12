@@ -30,6 +30,19 @@ const AdminDashboard = () => {
         return () => clearInterval(interval);
     }, []);
 
+    const handleAdminSettle = async (order, method) => {
+        try {
+            await axios.patch(`/api/order/status/${order._id}`, {
+                status: 'completed',
+                paymentStatus: 'paid',
+                paymentMethod: method
+            });
+            fetchData();
+        } catch (error) {
+            console.error("Error settling payment:", error);
+        }
+    };
+
     if (loading) return <div className="text-oliv-dark dark:text-oliv-cream text-center mt-10">Loading dashboard...</div>;
 
     return (
@@ -101,33 +114,68 @@ const AdminDashboard = () => {
                     {pendingOrders.map(order => (
                         <div key={order._id} className="bg-oliv-cream dark:bg-white/10 p-3 rounded border-l-4 border-oliv-gold transition-colors">
                             <div className="flex justify-between items-start mb-1">
-                                <span className="font-bold text-oliv-dark dark:text-white">
-                                    {(() => {
-                                        const table = order.tableNumber;
-                                        const customer = order.customerName;
-                                        const invalidValues = ['n/a', 'null', 'undefined', 'walk-in', 'unknown', 'takeaway'];
-                                        const isValidTable = table && !invalidValues.includes(String(table).toLowerCase().trim());
-                                        if (isValidTable) {
-                                            return `Table #${table}`;
-                                        }
-                                        if (customer) {
-                                            return `Customer: ${customer}`;
-                                        }
-                                        return 'Customer';
-                                    })()}
-                                </span>
+                                <div>
+                                    <span className="font-bold text-oliv-dark dark:text-white">
+                                        {(() => {
+                                            const table = order.tableNumber;
+                                            const customer = order.customerName || order.guestDetails?.name;
+                                            const invalidValues = ['n/a', 'null', 'undefined', 'walk-in', 'unknown', 'takeaway'];
+                                            const isValidTable = table && !invalidValues.includes(String(table).toLowerCase().trim());
+                                            if (customer && isValidTable) {
+                                                return `${customer} (Table #${table})`;
+                                            }
+                                            if (customer) {
+                                                return customer;
+                                            }
+                                            if (isValidTable) {
+                                                return `Table #${table}`;
+                                            }
+                                            return 'Customer';
+                                        })()}
+                                    </span>
+                                    {(order.customerPhone || order.guestDetails?.phone) && (
+                                        <div className="text-xs text-oliv-dark/70 dark:text-oliv-cream/70 font-medium">
+                                            📞 {order.customerPhone || order.guestDetails?.phone}
+                                        </div>
+                                    )}
+                                </div>
                                 <span className="text-xs bg-soft-gold text-primary px-2 py-0.5 rounded capitalize">{order.status}</span>
                             </div>
                             <p className="text-sm text-oliv-dark/70 dark:text-oliv-cream/70">Total: ₹{order.totalAmount}</p>
                             <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 space-y-0.5">
-                                <div>Payment: <span className={`font-semibold capitalize ${order.paymentStatus === 'paid' ? 'text-green-500' : 'text-yellow-500'}`}>{order.paymentStatus || 'Pending'}</span></div>
-                                {order.paymentMethod && <div>Method: {order.paymentMethod}</div>}
+                                <div>
+                                    Payment: <span className={`font-semibold capitalize ${
+                                        order.paymentStatus === 'paid'
+                                            ? 'text-green-500'
+                                            : (order.paymentMethod === 'Cash' ? 'text-amber-500 font-bold' : 'text-yellow-500')
+                                    }`}>
+                                        {order.paymentStatus === 'paid'
+                                            ? `✓ Paid (${order.paymentMethod || 'Online'})`
+                                            : (order.paymentMethod === 'Cash' ? '💵 Cash Requested (Pay after meal)' : '💳 Online Pending')}
+                                    </span>
+                                </div>
+                                {order.paymentMethod && <div>Method: <strong>{order.paymentMethod}</strong></div>}
                                 {order.paymentTimestamp && <div>Paid At: {new Date(order.paymentTimestamp).toLocaleTimeString()}</div>}
                             </div>
                             <div className="text-xs text-gray-400 mt-2">
                                 Created: {new Date(order.createdAt).toLocaleTimeString()}
                             </div>
-                            {/* Potential Action Buttons could go here */}
+                            {order.paymentStatus !== 'paid' && (
+                                <div className="flex gap-2 mt-2 pt-2 border-t border-oliv-gold/20">
+                                    <button
+                                        onClick={() => handleAdminSettle(order, 'Cash')}
+                                        className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded transition"
+                                    >
+                                        ✓ Mark Paid (Cash)
+                                    </button>
+                                    <button
+                                        onClick={() => handleAdminSettle(order, 'Online')}
+                                        className="flex-1 py-1.5 px-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded transition"
+                                    >
+                                        ✓ Mark Paid (Online)
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     ))}
                     {pendingOrders.length === 0 && (

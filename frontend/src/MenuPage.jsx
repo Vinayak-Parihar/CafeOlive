@@ -1,17 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { Link, useSearchParams } from 'react-router-dom';
-import { Coffee, CheckCircle, Search, X, Receipt, Plus, Minus, Loader2, SearchX } from 'lucide-react';
+import { Link, useSearchParams, useLocation } from 'react-router-dom';
+import { Coffee, CheckCircle, Search, X, Receipt, Plus, Minus, Loader2, SearchX, User, Phone, Mail, Compass } from 'lucide-react';
 import { AnimatePresence, motion as Motion } from 'motion/react';
 import {
     getBillSession,
     setBillSession,
-    generateSessionId
+    generateSessionId,
+    rotateBillSession
 } from './utils/sessionUtils';
 
 const MenuPage = () => {
     const [searchParams] = useSearchParams();
+    const location = useLocation();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [menuItems, setMenuItems] = useState([]);
@@ -42,10 +44,24 @@ const MenuPage = () => {
         }
     }, [searchParams]);
 
-    // Read active bill session from cookie on mount
+    // Read active bill session from cookie on mount & detect if already paid
     useEffect(() => {
-        const session = getBillSession();
-        setBillSessionState(session);
+        const checkSessionStatus = async () => {
+            const session = getBillSession();
+            setBillSessionState(session);
+            if (session?.billSessionId) {
+                try {
+                    const res = await axios.get(`/api/order/bill/${session.billSessionId}`);
+                    if (res.data?.data?.sessionPaid) {
+                        const newSession = rotateBillSession();
+                        setBillSessionState(newSession);
+                    }
+                } catch {
+                    // Ignore session check errors on initial mount
+                }
+            }
+        };
+        checkSessionStatus();
     }, []);
 
     // Fetch menu
@@ -117,7 +133,7 @@ const MenuPage = () => {
             }
             return [...prev, { ...item, quantity: 1 }];
         });
-        setIsCartOpen(true);
+        // Note: Do not auto-open the cart drawer so customers can freely select multiple items.
     };
 
     const updateQuantity = (itemId, change) => {
@@ -140,9 +156,11 @@ const MenuPage = () => {
     // never hides the already-loaded menu grid behind a spinner.
     const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
-    // Customer Name Prompt (only for first order when no active session)
+    // Customer Details Prompt (required for first order when no active session)
     const [showNamePromptModal, setShowNamePromptModal] = useState(false);
     const [customerNameInput, setCustomerNameInput] = useState('');
+    const [customerPhoneInput, setCustomerPhoneInput] = useState('');
+    const [customerEmailInput, setCustomerEmailInput] = useState('');
     const [namePromptError, setNamePromptError] = useState('');
     const [placedCustomerName, setPlacedCustomerName] = useState('');
 
@@ -172,16 +190,16 @@ const MenuPage = () => {
     }, [isCartOpen, showNamePromptModal]);
 
     // ─── Place Order (Session-Based) ───────────────────────────────────────────
-    const placeOrder = useCallback(async (sessionId, custName) => {
-        console.log("🔔 [Frontend] placeOrder called with:", { sessionId, custName });
+    const placeOrder = useCallback(async (sessionId, custName, custPhone, custEmail) => {
         setIsPlacingOrder(true);
         setShowOrderModal(true);
         setOrderSuccess(false);
 
         try {
+            const isAdminRoute = location.pathname.startsWith('/admin');
             const adminUserStr = localStorage.getItem('adminUser');
             const adminUser = JSON.parse(adminUserStr || 'null');
-            const isWaiterOrder = adminUser && (adminUser.role === 'waiter' || adminUser.role === 'admin');
+            const isWaiterOrder = isAdminRoute && adminUser && (adminUser.role === 'waiter' || adminUser.role === 'admin');
 
             const orderPayload = {
                 items: cart.map(item => ({
@@ -192,11 +210,10 @@ const MenuPage = () => {
                 totalAmount: cartTotal,
             };
 
-            if (tableNumber) {
-                orderPayload.tableNumber = tableNumber;
-            } else {
-                orderPayload.customerName = custName;
-            }
+            if (tableNumber) orderPayload.tableNumber = tableNumber;
+            if (custName) orderPayload.customerName = custName;
+            if (custPhone) orderPayload.customerPhone = custPhone;
+            if (custEmail) orderPayload.customerEmail = custEmail;
 
             if (isWaiterOrder) {
                 orderPayload.orderSource = 'waiter';
@@ -207,102 +224,146 @@ const MenuPage = () => {
                 orderPayload.billSessionId = sessionId;
             }
 
-            console.log("🔔 [Frontend] Sending order request payload:", orderPayload);
             const response = await axios.post('/api/order/place', orderPayload);
-            console.log("🔔 [Frontend] Order request response received:", response);
 
             if (response.data.success) {
-                console.log("✅ [Frontend] Order place success!");
                 setOrderSuccess(true);
                 setCart([]);
                 setCustomerNameInput('');
+                setCustomerPhoneInput('');
+                setCustomerEmailInput('');
                 setPlacedCustomerName(custName);
-
-                console.log("🔔 [Frontend] Refreshing session state from cookie");
                 setBillSessionState(getBillSession());
 
                 setTimeout(() => {
-                    console.log("🔔 [Frontend] Closing order modal");
                     setShowOrderModal(false);
                     setIsCartOpen(false);
                     setOrderSuccess(false);
                 }, 3000);
             } else {
-                console.log("❌ [Frontend] Order place failed: response.data.success is false");
                 toast.error(response.data?.message || "We couldn't place your order. Please try again.");
                 setShowOrderModal(false);
             }
         } catch (error) {
-            console.error("❌ [Frontend] Place order error caught:", error);
+            const errorMsg = error.response?.data?.message || '';
+
+            // Handle scenario where previous bill session was already paid (e.g. cash settlement or previous visit)
+            if (
+                error.response?.status === 400 &&
+                (errorMsg.includes("already been paid") || errorMsg.includes("session"))
+            ) {
+                const newSession = rotateBillSession();
+                setBillSessionState(newSession);
+
+                try {
+                    const retryPayload = {
+                        items: cart.map(item => ({
+                            _id: item._id,
+                            quantity: item.quantity,
+                            name: item.name
+                        })),
+                        totalAmount: cartTotal,
+                        orderSource: 'customer',
+                        billSessionId: newSession.billSessionId,
+                        customerName: newSession.customerName || custName,
+                        customerPhone: newSession.customerPhone || custPhone,
+                        customerEmail: newSession.customerEmail || custEmail
+                    };
+                    if (tableNumber) retryPayload.tableNumber = tableNumber;
+
+                    const retryResponse = await axios.post('/api/order/place', retryPayload);
+
+                    if (retryResponse.data.success) {
+                        setOrderSuccess(true);
+                        setCart([]);
+                        setCustomerNameInput('');
+                        setCustomerPhoneInput('');
+                        setCustomerEmailInput('');
+                        setPlacedCustomerName(retryPayload.customerName);
+                        setBillSessionState(getBillSession());
+
+                        setTimeout(() => {
+                            setShowOrderModal(false);
+                            setIsCartOpen(false);
+                            setOrderSuccess(false);
+                        }, 3000);
+                        return;
+                    }
+                } catch {
+                    // Fall through to generic error toast below
+                }
+            }
+
             setShowOrderModal(false);
             toast.error(error.response?.data?.message || "We couldn't place your order. Please try again.");
         } finally {
-            console.log("🔔 [Frontend] placeOrder finally block executed");
             setIsPlacingOrder(false);
         }
-    }, [cart, cartTotal, tableNumber]);
+    }, [cart, cartTotal, tableNumber, location.pathname]);
 
     // ─── Handle "Confirm Order" click ──────────────────────────────────────────
     const handlePlaceOrderClick = () => {
-        console.log("🔔 [Frontend] Confirm Order clicked");
-        if (cart.length === 0) {
-            console.log("⚠️ [Frontend] Cart is empty, ignoring click");
-            return;
-        }
+        if (cart.length === 0) return;
 
+        const isAdminRoute = location.pathname.startsWith('/admin');
         const adminUserStr = localStorage.getItem('adminUser');
         const adminUser = JSON.parse(adminUserStr || 'null');
-        const isWaiterOrder = adminUser && (adminUser.role === 'waiter' || adminUser.role === 'admin');
+        const isWaiterOrder = isAdminRoute && adminUser && (adminUser.role === 'waiter' || adminUser.role === 'admin');
 
         if (isWaiterOrder) {
-            console.log("🔔 [Frontend] Staff/waiter order, bypassing session");
             placeOrder(null, '');
             return;
         }
 
         const existingSession = getBillSession();
-        console.log("🔔 [Frontend] Existing session check:", existingSession);
 
-        if (existingSession) {
-            console.log("🔔 [Frontend] Session exists, placing order directly");
-            placeOrder(existingSession.billSessionId, existingSession.customerName || '');
+        if (existingSession?.billSessionId) {
+            placeOrder(
+                existingSession.billSessionId,
+                existingSession.customerName || '',
+                existingSession.customerPhone || '',
+                existingSession.customerEmail || ''
+            );
         } else {
-            if (tableNumber) {
-                console.log("🔔 [Frontend] No session but tableNumber exists. Generating silent table session.");
-                const newSessionId = generateSessionId();
-                setBillSession(newSessionId, `Table ${tableNumber}`);
-                setBillSessionState(getBillSession());
-                placeOrder(newSessionId, '');
-            } else {
-                console.log("🔔 [Frontend] Walk-in without session. Showing name prompt modal.");
-                setShowNamePromptModal(true);
-            }
+            setShowNamePromptModal(true);
         }
     };
 
-    // ─── Handle Name Submission (first walk-in order) ──────────────────────────
+    // ─── Handle Customer Details Submission (first customer order) ────────────
     const handleNameSubmit = () => {
-        console.log("🔔 [Frontend] Start My Bill clicked");
-        const trimmed = customerNameInput.trim();
-        console.log("🔔 [Frontend] Input customer name:", trimmed);
-        if (!trimmed) {
-            setNamePromptError('Please enter your name to continue.');
+        const trimmedName = customerNameInput.trim();
+        const trimmedPhone = customerPhoneInput.trim();
+        const trimmedEmail = customerEmailInput.trim();
+
+        if (!trimmedName) {
+            setNamePromptError('Please enter your full name.');
             return;
         }
-        if (trimmed.length > 50) {
+        if (trimmedName.length > 50) {
             setNamePromptError('Name must be 50 characters or less.');
             return;
         }
+        if (!trimmedPhone) {
+            setNamePromptError('Please enter your phone number.');
+            return;
+        }
+        const cleanPhone = trimmedPhone.replace(/[\s\-\(\)\+]/g, '');
+        if (cleanPhone.length < 10) {
+            setNamePromptError('Please enter a valid 10-digit phone number.');
+            return;
+        }
+        if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+            setNamePromptError('Please enter a valid email address or leave it empty.');
+            return;
+        }
 
-        console.log("🔔 [Frontend] Generating new Bill Session ID...");
+        setNamePromptError('');
         const newSessionId = generateSessionId();
-        console.log("🔔 [Frontend] Saving session cookie with ID:", newSessionId);
-        setBillSession(newSessionId, trimmed);
+        setBillSession(newSessionId, trimmedName, trimmedPhone, trimmedEmail);
         setBillSessionState(getBillSession());
 
-        console.log("🔔 [Frontend] Closing name prompt modal");
         setShowNamePromptModal(false);
-        placeOrder(newSessionId, trimmed);
+        placeOrder(newSessionId, trimmedName, trimmedPhone, trimmedEmail);
     };
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -455,19 +516,36 @@ const MenuPage = () => {
                 </div>
             </div>
 
-            {/* ── Floating Order Button ───────────────────────────────────── */}
+            {/* ── Floating Order Summary Bar (multi-item selection) ──────── */}
             {!isCartOpen && cart.length > 0 && (
-                <button
-                    onClick={() => setIsCartOpen(true)}
-                    className="fixed right-6 md:right-8 bg-primary text-white p-4 px-6 rounded-full shadow-xl z-30 flex items-center gap-3 hover:brightness-110 transition-transform duration-300 transform hover:scale-105"
-                    style={{ bottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
+                <div
+                    className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[94%] max-w-lg bg-primary text-white p-3 px-5 rounded-2xl shadow-2xl flex items-center justify-between border border-soft-gold/30 backdrop-blur-md transition-all duration-300"
+                    style={{ bottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}
                 >
-                    <Coffee size={20} className="text-soft-gold" />
-                    <span className="font-bold text-xs uppercase tracking-wider">{cartItemCount} Item{cartItemCount !== 1 ? 's' : ''} · ₹{cartTotal}</span>
-                </button>
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center font-bold text-soft-gold shrink-0">
+                            <Coffee size={20} />
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-wider text-white">
+                                {cartItemCount} {cartItemCount === 1 ? 'Item' : 'Items'} Selected
+                            </p>
+                            <p className="text-base font-bold text-soft-gold font-[Playfair_Display]">
+                                ₹{cartTotal}
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => setIsCartOpen(true)}
+                        className="bg-white text-primary hover:bg-soft-gold/20 hover:text-white py-2.5 px-5 text-xs font-bold uppercase tracking-wider rounded-xl shadow transition active:scale-95 flex items-center gap-2 shrink-0"
+                    >
+                        <span>View Order</span>
+                        <span>→</span>
+                    </button>
+                </div>
             )}
 
-            {/* ── Floating "View Bill" button (when order is empty but session active) */}
+            {/* ── Floating "View Bill" button (when cart is empty but active session exists) */}
             {!isCartOpen && cart.length === 0 && billSession && (
                 <Link
                     to="/bill"
@@ -618,15 +696,43 @@ const MenuPage = () => {
                                             </div>
                                             <div className="menu-card-footer flex justify-between items-center mt-6 pt-4 border-t border-surface-border/50">
                                                 <span className="text-lg font-bold text-primary">₹{item.price}</span>
-                                                <button
-                                                    onClick={() => addToCart(item)}
-                                                    title="Add to Order"
-                                                    aria-label="Add to Order"
-                                                    className="btn-stitch-outline !px-4 !py-2 text-xs font-semibold tracking-wider uppercase whitespace-nowrap bg-white/50 flex items-center justify-center shrink-0"
-                                                >
-                                                    <Plus size={14} className="add-to-order-icon shrink-0" />
-                                                    <span className="add-to-order-label">Add to Order</span>
-                                                </button>
+                                                {(() => {
+                                                    const cartItem = cart.find(c => c._id === item._id);
+                                                    if (cartItem && cartItem.quantity > 0) {
+                                                        return (
+                                                            <div className="flex items-center gap-1.5 bg-primary/5 border border-primary/20 rounded-full p-1 shrink-0">
+                                                                <button
+                                                                    onClick={() => updateQuantity(item._id, -1)}
+                                                                    className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-primary shadow-sm hover:bg-surface-container active:scale-90 transition"
+                                                                    aria-label="Decrease quantity"
+                                                                >
+                                                                    <Minus size={13} />
+                                                                </button>
+                                                                <span className="font-bold text-xs text-primary px-1.5 min-w-[20px] text-center">
+                                                                    {cartItem.quantity}
+                                                                </span>
+                                                                <button
+                                                                    onClick={() => updateQuantity(item._id, 1)}
+                                                                    className="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center shadow-sm hover:brightness-110 active:scale-90 transition"
+                                                                    aria-label="Increase quantity"
+                                                                >
+                                                                    <Plus size={13} />
+                                                                </button>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return (
+                                                        <button
+                                                            onClick={() => addToCart(item)}
+                                                            title="Add to Order"
+                                                            aria-label="Add to Order"
+                                                            className="btn-stitch-outline !px-4 !py-2 text-xs font-semibold tracking-wider uppercase whitespace-nowrap bg-white/50 flex items-center justify-center shrink-0 hover:bg-primary hover:text-white transition"
+                                                        >
+                                                            <Plus size={14} className="shrink-0 mr-1" />
+                                                            <span>Add</span>
+                                                        </button>
+                                                    );
+                                                })()}
                                             </div>
                                         </div>
                                     </div>
@@ -643,13 +749,20 @@ const MenuPage = () => {
                 <Motion.div
                     className="fixed inset-0 bg-primary/20 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
                     role="dialog" aria-modal="true" aria-live="polite"
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget && orderSuccess) {
+                            setShowOrderModal(false);
+                            setIsCartOpen(false);
+                            setOrderSuccess(false);
+                        }
+                    }}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
                 >
                     <Motion.div
-                        className="bg-white rounded-lg border border-surface-border w-full max-w-sm p-8 text-center shadow-2xl"
+                        className="bg-white rounded-lg border border-surface-border w-full max-w-sm p-8 text-center shadow-2xl relative"
                         initial={{ opacity: 0, y: 16, scale: 0.97 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 8, scale: 0.98 }}
@@ -657,6 +770,14 @@ const MenuPage = () => {
                     >
                         {orderSuccess ? (
                             <div className="space-y-4">
+                                <button
+                                    type="button"
+                                    onClick={() => { setShowOrderModal(false); setIsCartOpen(false); setOrderSuccess(false); }}
+                                    className="absolute top-4 right-4 text-on-surface-variant/60 hover:text-primary transition p-1.5 rounded-full hover:bg-surface-container"
+                                    aria-label="Close modal"
+                                >
+                                    <X size={16} />
+                                </button>
                                 <div className="mx-auto w-16 h-16 bg-primary/5 border border-primary/20 rounded-full flex items-center justify-center">
                                     <CheckCircle className="text-primary w-8 h-8" />
                                 </div>
@@ -669,13 +790,31 @@ const MenuPage = () => {
                                 ) : placedCustomerName ? (
                                     <span className="inline-block bg-primary/5 text-primary text-xs font-semibold px-3 py-1 rounded-full">Bill: {placedCustomerName}</span>
                                 ) : null}
-                                <Link
-                                    to="/bill"
+
+                                <div className="space-y-2 pt-2">
+                                    <Link
+                                        to="/bill"
+                                        onClick={() => { setShowOrderModal(false); setIsCartOpen(false); setOrderSuccess(false); }}
+                                        className="flex items-center justify-center gap-2 w-full py-2.5 border border-primary/30 text-primary hover:bg-primary/5 font-semibold text-xs uppercase tracking-wider rounded-lg transition"
+                                    >
+                                        <Receipt size={14} /> View My Bill
+                                    </Link>
+                                    <Link
+                                        to="/"
+                                        onClick={() => { setShowOrderModal(false); setIsCartOpen(false); setOrderSuccess(false); }}
+                                        className="flex items-center justify-center gap-2 w-full py-2.5 bg-primary text-white hover:bg-primary/90 font-semibold text-xs uppercase tracking-wider rounded-lg transition shadow-xs"
+                                    >
+                                        <Compass size={14} /> Explore More About Olive Cafe
+                                    </Link>
+                                </div>
+
+                                <button
+                                    type="button"
                                     onClick={() => { setShowOrderModal(false); setIsCartOpen(false); setOrderSuccess(false); }}
-                                    className="flex items-center justify-center gap-2 w-full py-2 border border-primary/30 text-primary hover:bg-primary/5 font-semibold text-xs uppercase tracking-wider rounded-lg transition"
+                                    className="block w-full text-center text-[11px] font-medium text-on-surface-variant hover:text-primary transition pt-0.5"
                                 >
-                                    <Receipt size={13} /> View My Bill
-                                </Link>
+                                    Continue Browsing Menu
+                                </button>
                             </div>
                         ) : (
                             <div className="space-y-4">
@@ -715,28 +854,72 @@ const MenuPage = () => {
                             </div>
                             <h3 className="text-2xl font-[Playfair_Display] font-bold text-primary">Welcome to OLIV</h3>
                             <p className="text-xs text-on-surface-variant">
-                                Tell us your name to start your bill — we won't ask again during this visit.
+                                Please share your details to place your order — we won't ask again during this visit.
                             </p>
                         </div>
 
-                        <div className="space-y-1">
-                            <label htmlFor="customer-name" className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant block">Your Name</label>
-                            <input
-                                id="customer-name"
-                                type="text"
-                                placeholder="Enter your name"
-                                value={customerNameInput}
-                                onChange={(e) => {
-                                    setCustomerNameInput(e.target.value);
-                                    if (namePromptError) setNamePromptError('');
-                                }}
-                                onKeyDown={(e) => { if (e.key === 'Enter') handleNameSubmit(); }}
-                                className="w-full px-4 py-3 rounded-lg bg-surface-container-low border border-surface-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition text-sm"
-                                maxLength={50}
-                                autoFocus
-                            />
+                        <div className="space-y-4">
+                            {/* Full Name */}
+                            <div className="space-y-1">
+                                <label htmlFor="customer-name" className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant flex items-center gap-1.5">
+                                    <User size={13} className="text-primary" /> Full Name <span className="text-error">*</span>
+                                </label>
+                                <input
+                                    id="customer-name"
+                                    type="text"
+                                    placeholder="Enter your full name"
+                                    value={customerNameInput}
+                                    onChange={(e) => {
+                                        setCustomerNameInput(e.target.value);
+                                        if (namePromptError) setNamePromptError('');
+                                    }}
+                                    className="w-full px-4 py-2.5 rounded-lg bg-surface-container-low border border-surface-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition text-sm"
+                                    maxLength={50}
+                                    autoFocus
+                                />
+                            </div>
+
+                            {/* Phone Number */}
+                            <div className="space-y-1">
+                                <label htmlFor="customer-phone" className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant flex items-center gap-1.5">
+                                    <Phone size={13} className="text-primary" /> Phone Number <span className="text-error">*</span>
+                                </label>
+                                <input
+                                    id="customer-phone"
+                                    type="tel"
+                                    placeholder="Enter 10-digit phone number"
+                                    value={customerPhoneInput}
+                                    onChange={(e) => {
+                                        setCustomerPhoneInput(e.target.value);
+                                        if (namePromptError) setNamePromptError('');
+                                    }}
+                                    className="w-full px-4 py-2.5 rounded-lg bg-surface-container-low border border-surface-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition text-sm"
+                                    maxLength={15}
+                                />
+                            </div>
+
+                            {/* Email ID (Optional) */}
+                            <div className="space-y-1">
+                                <label htmlFor="customer-email" className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant flex items-center gap-1.5">
+                                    <Mail size={13} className="text-primary" /> Email ID <span className="text-xs font-normal opacity-70 normal-case">(Optional)</span>
+                                </label>
+                                <input
+                                    id="customer-email"
+                                    type="email"
+                                    placeholder="Enter email address (optional)"
+                                    value={customerEmailInput}
+                                    onChange={(e) => {
+                                        setCustomerEmailInput(e.target.value);
+                                        if (namePromptError) setNamePromptError('');
+                                    }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') handleNameSubmit(); }}
+                                    className="w-full px-4 py-2.5 rounded-lg bg-surface-container-low border border-surface-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition text-sm"
+                                    maxLength={80}
+                                />
+                            </div>
+
                             {namePromptError && (
-                                <p className="text-error text-xs mt-1">{namePromptError}</p>
+                                <p className="text-error text-xs font-medium">{namePromptError}</p>
                             )}
                         </div>
 
@@ -745,6 +928,8 @@ const MenuPage = () => {
                                 onClick={() => {
                                     setShowNamePromptModal(false);
                                     setCustomerNameInput('');
+                                    setCustomerPhoneInput('');
+                                    setCustomerEmailInput('');
                                     setNamePromptError('');
                                 }}
                                 className="flex-1 py-3 border border-surface-border text-on-surface-variant hover:bg-surface-container-low font-semibold text-xs uppercase tracking-wider rounded-lg transition"
@@ -755,7 +940,7 @@ const MenuPage = () => {
                                 onClick={handleNameSubmit}
                                 className="flex-1 py-3 btn-stitch-primary text-xs font-bold uppercase tracking-wider"
                             >
-                                Start My Bill
+                                Confirm & Order
                             </button>
                         </div>
                     </Motion.div>

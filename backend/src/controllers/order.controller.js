@@ -18,26 +18,36 @@ const razorpay = new Razorpay({
 //    They carry a billSessionId and go straight to the kitchen.
 // ─────────────────────────────────────────────────────────────────────────────
 const placeOrder = asyncHandler(async (req, res) => {
-    console.log("🔔 [Backend] Request Received in placeOrder");
     const {
         items,
         tableNumber,
         customerName,
+        customerPhone,
+        customerEmail,
         orderSource,
         waiterName,
         waiterId,
-        billSessionId   // NEW: session identifier sent from frontend cookie
+        billSessionId   // session identifier sent from frontend cookie
     } = req.body;
 
-    console.log("🔔 [Backend] Payload details:", { itemsCount: items?.length, tableNumber, customerName, orderSource, billSessionId });
-
     if (!items || items.length === 0) {
-        console.log("❌ [Backend] Validation failed: items array is empty");
         throw new ApiError(400, "Order must contain at least one item.");
     }
 
     let finalTableNumber = tableNumber ? String(tableNumber).trim() : '';
     let finalCustomerName = customerName ? String(customerName).trim() : '';
+    let finalCustomerPhone = customerPhone ? String(customerPhone).trim() : '';
+    let finalCustomerEmail = customerEmail ? String(customerEmail).trim() : '';
+
+    // If customerName or phone is omitted on a follow-up order within an existing session, inherit it
+    if (billSessionId && (!finalCustomerName || !finalCustomerPhone)) {
+        const prevOrder = await Order.findOne({ billSessionId, customerName: { $exists: true, $ne: '' } });
+        if (prevOrder) {
+            if (!finalCustomerName && prevOrder.customerName) finalCustomerName = prevOrder.customerName;
+            if (!finalCustomerPhone && prevOrder.customerPhone) finalCustomerPhone = prevOrder.customerPhone;
+            if (!finalCustomerEmail && prevOrder.customerEmail) finalCustomerEmail = prevOrder.customerEmail;
+        }
+    }
 
     const INVALID_TABLE_VALUES = ['n/a', 'walk-in', 'null', 'undefined', 'unknown'];
     const isTableMissing = !finalTableNumber || INVALID_TABLE_VALUES.includes(finalTableNumber.toLowerCase());
@@ -46,11 +56,9 @@ const placeOrder = asyncHandler(async (req, res) => {
         // Walk-in customer: name required unless it's a waiter order
         const isWaiterOrder = orderSource === 'waiter';
         if (!isWaiterOrder && !finalCustomerName) {
-            console.log("❌ [Backend] Validation failed: customer name missing for walk-in");
             throw new ApiError(400, "Customer name is required when no table number exists.");
         }
         if (finalCustomerName && finalCustomerName.length > 50) {
-            console.log("❌ [Backend] Validation failed: customer name too long");
             throw new ApiError(400, "Customer name is too long (maximum 50 characters).");
         }
         finalTableNumber = undefined;
@@ -64,26 +72,22 @@ const placeOrder = asyncHandler(async (req, res) => {
     const isWaiterOrder = orderSource === 'waiter';
 
     if (!isWaiterOrder && billSessionId) {
-        console.log("🔔 [Backend] Checking if session is already paid:", billSessionId);
         const paidSessionOrder = await Order.findOne({
             billSessionId,
             paymentStatus: 'paid'
         });
         if (paidSessionOrder) {
-            console.log("❌ [Backend] Validation failed: session is already paid");
             throw new ApiError(400, "This bill session has already been paid. Please start a new session.");
         }
     }
 
     // ── Validate items and compute total ──────────────────────────────────────
-    console.log("🔔 [Backend] Validating menu items...");
     let calculatedTotal = 0;
     const orderItems = [];
 
     for (const item of items) {
         const menuItem = await Menu.findById(item._id);
         if (!menuItem) {
-            console.log("❌ [Backend] Menu item not found:", item.name);
             throw new ApiError(404, `Item not found: ${item.name}`);
         }
         calculatedTotal += menuItem.price * item.quantity;
@@ -101,16 +105,20 @@ const placeOrder = asyncHandler(async (req, res) => {
         totalAmount: calculatedTotal,
         tableNumber: finalTableNumber,
         customerName: finalCustomerName,
+        customerPhone: finalCustomerPhone || undefined,
+        customerEmail: finalCustomerEmail || undefined,
         status: 'placed',
         paymentStatus: 'pending',
         isPaid: false,
         guestDetails: {
             name: finalCustomerName,
+            phone: finalCustomerPhone || undefined,
+            email: finalCustomerEmail || undefined
         },
         orderSource: orderSource || 'customer'
     };
 
-    if (!isWaiterOrder && billSessionId) {
+    if (billSessionId) {
         orderData.billSessionId = billSessionId;
     }
 
@@ -119,9 +127,7 @@ const placeOrder = asyncHandler(async (req, res) => {
         orderData.placedBy = waiterId || null;
     }
 
-    console.log("🔔 [Backend] Creating order in database...");
     const order = await Order.create(orderData);
-    console.log("✅ [Backend] Order saved successfully. ID:", order._id);
 
     return res.status(201).json(
         new ApiResponce(201, { order }, "Order placed successfully")
@@ -159,19 +165,23 @@ const getWaiterOrders = asyncHandler(async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 const updateOrderStatus = asyncHandler(async (req, res) => {
     const { orderId } = req.params;
-    const { status, paymentMethod } = req.body;
+    const { status, paymentMethod, paymentStatus } = req.body;
 
     const validStatuses = ['placed', 'preparing', 'ready', 'served', 'completed', 'cancelled'];
-    if (!validStatuses.includes(status)) {
+    if (status && !validStatuses.includes(status)) {
         throw new ApiError(400, "Invalid status");
     }
 
-    const updateData = { status };
-    if (status === 'completed') {
+    const updateData = {};
+    if (status) updateData.status = status;
+
+    if (status === 'completed' || paymentStatus === 'paid') {
         updateData.paymentStatus = 'paid';
         updateData.isPaid = true;
         updateData.paymentMethod = paymentMethod || 'Cash';
         updateData.paymentTimestamp = new Date();
+    } else if (paymentMethod) {
+        updateData.paymentMethod = paymentMethod;
     }
 
     const order = await Order.findByIdAndUpdate(
@@ -184,8 +194,24 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Order not found");
     }
 
+    // When an order in a bill session is settled, settle all orders in that customer's session
+    if (order.billSessionId && (status === 'completed' || paymentStatus === 'paid')) {
+        await Order.updateMany(
+            { billSessionId: order.billSessionId, paymentStatus: { $ne: 'paid' } },
+            {
+                $set: {
+                    paymentStatus: 'paid',
+                    isPaid: true,
+                    status: 'completed',
+                    paymentMethod: updateData.paymentMethod,
+                    paymentTimestamp: updateData.paymentTimestamp
+                }
+            }
+        );
+    }
+
     return res.status(200).json(
-        new ApiResponce(200, order, `Order status updated to ${status}`)
+        new ApiResponce(200, order, `Order updated successfully`)
     );
 });
 
@@ -290,6 +316,8 @@ const getSessionBill = asyncHandler(async (req, res) => {
     const grandTotal = orders.reduce((sum, o) => sum + o.totalAmount, 0);
     const customerName = orders[0]?.customerName || orders[0]?.guestDetails?.name || null;
     const tableNumber = orders[0]?.tableNumber || null;
+    const paymentMethod = orders[0]?.paymentMethod || null;
+    const paymentStatus = orders[0]?.paymentStatus || 'pending';
 
     return res.status(200).json(
         new ApiResponce(200, {
@@ -297,7 +325,9 @@ const getSessionBill = asyncHandler(async (req, res) => {
             grandTotal,
             sessionPaid: false,
             customerName,
-            tableNumber
+            tableNumber,
+            paymentMethod,
+            paymentStatus
         }, "Session bill fetched successfully")
     );
 });
@@ -453,6 +483,66 @@ const verifyBillPayment = asyncHandler(async (req, res) => {
     );
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 9. Update Bill Payment Method (Customer chooses Cash or Online)
+//    PATCH /api/order/bill/:billSessionId/payment-method
+// ─────────────────────────────────────────────────────────────────────────────
+const updateBillPaymentMethod = asyncHandler(async (req, res) => {
+    const { billSessionId } = req.params;
+    const { paymentMethod } = req.body;
+
+    if (!billSessionId) {
+        throw new ApiError(400, "Bill session ID is required.");
+    }
+
+    const finalMethod = paymentMethod === 'Cash' ? 'Cash' : 'Online';
+
+    const result = await Order.updateMany(
+        { billSessionId, paymentStatus: { $ne: 'paid' } },
+        { $set: { paymentMethod: finalMethod } }
+    );
+
+    return res.status(200).json(
+        new ApiResponce(200, { billSessionId, paymentMethod: finalMethod, modifiedCount: result.modifiedCount }, `Payment method updated to ${finalMethod}`)
+    );
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 10. Settle Bill Session (Staff marks Cash or Online payment directly)
+//     POST /api/order/bill/:billSessionId/settle
+// ─────────────────────────────────────────────────────────────────────────────
+const settleBillSession = asyncHandler(async (req, res) => {
+    const { billSessionId } = req.params;
+    const { paymentMethod } = req.body;
+
+    if (!billSessionId) {
+        throw new ApiError(400, "Bill session ID is required.");
+    }
+
+    const finalMethod = paymentMethod === 'Online' ? 'Online' : 'Cash';
+
+    const updateResult = await Order.updateMany(
+        { billSessionId, paymentStatus: { $ne: 'paid' } },
+        {
+            $set: {
+                paymentStatus: 'paid',
+                isPaid: true,
+                status: 'completed',
+                paymentMethod: finalMethod,
+                paymentTimestamp: new Date()
+            }
+        }
+    );
+
+    return res.status(200).json(
+        new ApiResponce(200, {
+            billSessionId,
+            ordersSettled: updateResult.modifiedCount,
+            paymentMethod: finalMethod
+        }, `Bill session marked as paid via ${finalMethod}`)
+    );
+});
+
 export {
     placeOrder,
     getKitchenOrders,
@@ -462,5 +552,7 @@ export {
     // Session bill endpoints
     getSessionBill,
     createBillPayment,
-    verifyBillPayment
+    verifyBillPayment,
+    updateBillPaymentMethod,
+    settleBillSession
 };

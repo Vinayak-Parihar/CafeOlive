@@ -7,7 +7,9 @@ import {
     verifyPayment,
     getSessionBill,
     createBillPayment,
-    verifyBillPayment
+    verifyBillPayment,
+    updateBillPaymentMethod,
+    settleBillSession
 } from "../controllers/order.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -31,6 +33,7 @@ router.route("/verify-payment").post(verifyPayment);
 router.route("/bill/:billSessionId").get(getSessionBill);
 router.route("/bill/:billSessionId/pay").post(createBillPayment);
 router.route("/bill/:billSessionId/verify").post(verifyBillPayment);
+router.route("/bill/:billSessionId/payment-method").patch(updateBillPaymentMethod);
 
 // ─── Protected Routes (Chef / Waiter / Admin) ─────────────────────────────
 router.use(verifyJWT);
@@ -43,5 +46,8 @@ router.route("/waiter").get(getWaiterOrders);
 
 // Update Status (All staff)
 router.route("/status/:orderId").patch(updateOrderStatus);
+
+// Settle full bill session (Waiter / Admin)
+router.route("/bill/:billSessionId/settle").post(settleBillSession);
 
 export default router;

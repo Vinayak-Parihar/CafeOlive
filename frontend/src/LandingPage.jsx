@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Coffee, PartyPopper, ArrowRight, MapPin, Camera, Film, Clock, Tag, Users, Gift, Star, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion as Motion } from 'motion/react';
@@ -19,6 +19,7 @@ const LandingPage = () => {
     const [loading, setLoading] = useState(true);
     const [showContent, setShowContent] = useState(false);
     const [homeMedia, setHomeMedia] = useState({});
+    const [mediaList, setMediaList] = useState([]);
 
     const handleAnimationDone = () => {
         setLoading(false);
@@ -54,7 +55,9 @@ const LandingPage = () => {
                 const response = await fetch('/api/home/media');
                 if (!response.ok) return;
                 const data = await response.json();
-                const mediaMap = (data.data?.media || []).reduce((map, media) => {
+                const rawList = data.data?.media || [];
+                setMediaList(rawList);
+                const mediaMap = rawList.reduce((map, media) => {
                     map[media.imageKey] = media;
                     return map;
                 }, {});
@@ -70,6 +73,81 @@ const LandingPage = () => {
     const homeImage = (imageKey) => homeMedia[imageKey]?.isEnabled === false
         ? ''
         : homeMedia[imageKey]?.imageUrl || '';
+
+    const venueHalls = useMemo(() => {
+        const items = mediaList.filter(
+            (item) => item.section === 'reservations' &&
+                      item.imageKey !== 'reservation-confirmation' &&
+                      item.imageKey !== 'reservation-venue-booking' &&
+                      item.isEnabled !== false
+        );
+
+        if (!items.length) {
+            return [
+                {
+                    id: 'theatre',
+                    title: 'Private Mini Theatre',
+                    desc: 'Experience your private cinema. Screen movies, stream live games, and dine in luxury. Complete premium sound setup and cozy reclining lounges.',
+                    imageUrl: homeImage('mini-theatre'),
+                    url: '/reservations/booking?zone=theatre',
+                    icon: Film,
+                    buttonText: 'Book Mini Theatre',
+                    features: ['3-Hour Booking', 'Screen/Stream ready', 'Complimentary Popcorn', 'Seat service menu']
+                },
+                {
+                    id: 'partyHalls',
+                    title: 'Bespoke Party Halls',
+                    desc: 'Host elegant gatherings. Perfect for birthday parties, anniversaries, corporate seminars, and private dining events.',
+                    imageUrl: homeImage('party-halls'),
+                    url: '/reservations/booking?zone=partyHall1',
+                    icon: PartyPopper,
+                    buttonText: 'Book Party Halls',
+                    features: ['Customizable decor', 'Dedicated hosts', 'Custom banquet menu', 'Ambient illumination']
+                }
+            ];
+        }
+
+        return items.map((item) => {
+            const cleanTitle = item.label ? item.label.replace(/^Reservation:\s*/i, '').trim() : 'Bespoke Venue Hall';
+            const isTheatre = item.imageKey.includes('theatre') || cleanTitle.toLowerCase().includes('theatre');
+            const isHall2 = item.imageKey.includes('party-hall-2') || cleanTitle.toLowerCase().includes('hall 2') || cleanTitle.toLowerCase().includes('hall-2');
+
+            let bookingUrl = '/reservations/inquiry';
+            if (isTheatre) {
+                bookingUrl = '/reservations/booking?zone=theatre';
+            } else if (isHall2) {
+                bookingUrl = `/reservations/booking?zone=partyHall2&venue=${encodeURIComponent(cleanTitle)}`;
+            } else {
+                bookingUrl = `/reservations/booking?zone=partyHall1&venue=${encodeURIComponent(cleanTitle)}`;
+            }
+
+            const desc = item.description || (isTheatre
+                ? 'Experience your private cinema. Screen movies, stream live games, and dine in luxury. Complete premium sound setup and cozy reclining lounges.'
+                : 'Host elegant gatherings. Perfect for birthday parties, anniversaries, corporate seminars, and private dining events.');
+
+            let features = isTheatre
+                ? ['3-Hour Booking', 'Screen/Stream ready', 'Complimentary Popcorn', 'Seat service menu']
+                : ['Customizable decor', 'Dedicated hosts', 'Custom banquet menu', 'Ambient illumination'];
+
+            if (item.capacity) {
+                const capStr = String(item.capacity).trim();
+                const capText = /guests?|people/i.test(capStr) ? capStr : `Up to ${capStr} guests`;
+                features = [capText, ...features.slice(1)];
+            }
+
+            return {
+                id: item.imageKey,
+                title: cleanTitle,
+                desc,
+                imageUrl: item.imageUrl,
+                url: bookingUrl,
+                icon: isTheatre ? Film : PartyPopper,
+                capacity: item.capacity,
+                buttonText: `Book ${cleanTitle}`,
+                features
+            };
+        });
+    }, [mediaList, homeMedia]);
 
     // Review State
     const [showReviewModal, setShowReviewModal] = useState(false);
@@ -255,67 +333,45 @@ const LandingPage = () => {
                         <div className="h-[2px] w-24 bg-soft-gold mx-auto opacity-70"></div>
                     </Reveal>
 
-                    <StaggerGrid className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                        {/* Card 1: Theatre */}
-                        <StaggerItem className="glass-panel p-8 md:p-12 rounded-lg flex flex-col justify-between border border-surface-border">
-                            <div className="space-y-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="bg-primary/5 p-4 rounded-full">
-                                        <Film className="text-primary" size={28} />
+                    <StaggerGrid className={`grid grid-cols-1 ${venueHalls.length > 2 ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-2'} gap-8 md:gap-12`}>
+                        {venueHalls.map((hall) => {
+                            const Icon = hall.icon;
+                            return (
+                                <StaggerItem key={hall.id} className="glass-panel p-8 md:p-10 rounded-lg flex flex-col justify-between border border-surface-border">
+                                    <div className="space-y-6">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="bg-primary/5 p-3 rounded-full text-primary">
+                                                    <Icon size={24} />
+                                                </div>
+                                                <h3 className="text-2xl font-[Playfair_Display] font-semibold text-primary">{hall.title}</h3>
+                                            </div>
+                                            {hall.capacity && (
+                                                <span className="text-[11px] font-semibold bg-white px-2.5 py-1 rounded-full border border-surface-border text-primary shrink-0 flex items-center gap-1 shadow-2xs">
+                                                    <Users size={12} className="text-soft-gold" /> {String(hall.capacity).toLowerCase().includes('guest') ? hall.capacity : `${hall.capacity} Guests`}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="aspect-video w-full rounded-lg overflow-hidden border border-surface-border">
+                                            <HomeMediaImage src={hall.imageUrl} alt={hall.title} className="w-full h-full object-cover" />
+                                        </div>
+                                        <p className="text-on-surface-variant font-light text-sm leading-relaxed line-clamp-3">
+                                            {hall.desc}
+                                        </p>
+                                        <div className="grid grid-cols-2 gap-2 text-xs font-medium text-on-surface-variant">
+                                            {hall.features.map((feat, i) => (
+                                                <span key={i} className="flex items-center gap-1.5">✓ {feat}</span>
+                                            ))}
+                                        </div>
                                     </div>
-                                    <h3 className="text-2xl md:text-3xl font-[Playfair_Display] font-semibold text-primary">Private Mini Theatre</h3>
-                                </div>
-                                <div className="aspect-video w-full rounded-lg overflow-hidden border border-surface-border">
-                                    <HomeMediaImage src={homeImage('mini-theatre')} alt="Mini Theatre" className="w-full h-full object-cover" />
-                                </div>
-                                <p className="text-on-surface-variant font-light leading-relaxed">
-                                    Experience your private cinema. Screen movies, stream live games, and dine in luxury. Complete premium sound setup and cozy reclining lounges.
-                                </p>
-                                <div className="grid grid-cols-2 gap-4 text-sm font-medium text-on-surface-variant">
-                                    <span className="flex items-center gap-2">✓ 3-Hour Booking</span>
-                                    <span className="flex items-center gap-2">✓ Screen/Stream ready</span>
-                                    <span className="flex items-center gap-2">✓ Complimentary Popcorn</span>
-                                    <span className="flex items-center gap-2">✓ Seat service menu</span>
-                                </div>
-                            </div>
-                            <div className="pt-8">
-                                <Link to="/reservations/booking?zone=theatre" className="btn-stitch-primary w-full text-center inline-block text-sm">
-                                    Book Mini Theatre
-                                </Link>
-                            </div>
-                        </StaggerItem>
-
-                        {/* Card 2: Party Halls */}
-                        <StaggerItem className="glass-panel p-8 md:p-12 rounded-lg flex flex-col justify-between border border-surface-border">
-                            <div className="space-y-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="bg-primary/5 p-4 rounded-full">
-                                        <PartyPopper className="text-primary" size={28} />
+                                    <div className="pt-6">
+                                        <Link to={hall.url} className="btn-stitch-primary w-full text-center inline-block text-xs font-bold uppercase tracking-wider">
+                                            {hall.buttonText}
+                                        </Link>
                                     </div>
-                                    <h3 className="text-2xl md:text-3xl font-[Playfair_Display] font-semibold text-primary">Bespoke Party Halls</h3>
-                                </div>
-                                <div className="aspect-video w-full rounded-lg overflow-hidden border border-surface-border">
-                                    <HomeMediaImage src={homeImage('party-halls')} alt="Party Halls" className="w-full h-full object-cover" />
-                                </div>
-                                <p className="text-on-surface-variant font-light leading-relaxed">
-                                    Host elegant gatherings. Perfect for birthday parties, anniversaries, corporate seminars, and private dining events. Up to 40 guests.
-                                </p>
-                                <div className="grid grid-cols-2 gap-4 text-sm font-medium text-on-surface-variant">
-                                    <span className="flex items-center gap-2">✓ 2 Halls (differing sizes)</span>
-                                    <span className="flex items-center gap-2">✓ Customizable decor</span>
-                                    <span className="flex items-center gap-2">✓ Dedicated hosts</span>
-                                    <span className="flex items-center gap-2">✓ Custom banquet menu</span>
-                                </div>
-                            </div>
-                            <div className="pt-8 flex gap-4">
-                                <Link to="/reservations/booking?zone=partyHall1" className="btn-stitch-outline flex-1 text-center text-xs px-2 py-3">
-                                    Book Hall 1
-                                </Link>
-                                <Link to="/reservations/booking?zone=partyHall2" className="btn-stitch-outline flex-1 text-center text-xs px-2 py-3">
-                                    Book Hall 2
-                                </Link>
-                            </div>
-                        </StaggerItem>
+                                </StaggerItem>
+                            );
+                        })}
                     </StaggerGrid>
                 </div>
 

@@ -5,6 +5,8 @@ import {
     updateInquiryStatus,
     deleteInquiry,
 } from "../controllers/inquiry.controller.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { verifyAdmin } from "../middlewares/admin.middleware.js";
 
 const router = express.Router();
 
@@ -12,12 +14,12 @@ const router = express.Router();
 router.post("/", createInquiry);
 
 // Admin — fetch all inquiries (with optional ?status= filter)
-router.get("/", getAllInquiries);
+router.get("/", verifyJWT, verifyAdmin, getAllInquiries);
 
 // Admin — update inquiry status
-router.patch("/:id/status", updateInquiryStatus);
+router.patch("/:id/status", verifyJWT, verifyAdmin, updateInquiryStatus);
 
 // Admin — delete inquiry
-router.delete("/:id", deleteInquiry);
+router.delete("/:id", verifyJWT, verifyAdmin, deleteInquiry);
 
 export default router;

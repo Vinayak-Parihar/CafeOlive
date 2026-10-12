@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
+import { getBillSession } from '../utils/sessionUtils';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const location = useLocation();
+    const hasActiveSession = !!getBillSession()?.billSessionId;
 
     const getLinkClass = (path) => {
         const isActive = location.pathname === path;
@@ -20,9 +22,17 @@ const Navbar = () => {
 
                     {/* Left Links */}
                     <div className="hidden lg:flex flex-1 items-center justify-start space-x-8">
-                        <Link to="/reservations" className={getLinkClass('/reservations')}>RESERVE NOW</Link>
-                        <Link to="/gallery" className={getLinkClass('/gallery')}>GALLERY</Link>
-                        <Link to="/reservations/inquiry" className={getLinkClass('/reservations/inquiry')}>INQUIRY</Link>
+                        <Link to="/" className={getLinkClass('/')}>HOME</Link>
+                        <Link to="/menu" className={getLinkClass('/menu')}>MENU</Link>
+                        <Link to="/bill" className={`${getLinkClass('/bill')} inline-flex items-center gap-1.5`}>
+                            YOUR ORDER
+                            {hasActiveSession && (
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                </span>
+                            )}
+                        </Link>
                     </div>
 
                     {/* Logo (Center) */}
@@ -36,9 +46,9 @@ const Navbar = () => {
 
                     {/* Right Links & CTA */}
                     <div className="hidden lg:flex flex-1 items-center justify-end space-x-8">
-                        <Link to="/" className={getLinkClass('/')}>HOME</Link>
-                        <Link to="/menu" className={getLinkClass('/menu')}>MENU</Link>
-                        <Link to="/celebrate" className={getLinkClass('/celebrate')}>CELEBRATE</Link>
+                        <Link to="/reservations" className={getLinkClass('/reservations')}>RESERVE NOW</Link>
+                        <Link to="/gallery" className={getLinkClass('/gallery')}>GALLERY</Link>
+                        <Link to="/reservations/inquiry" className={getLinkClass('/reservations/inquiry')}>INQUIRY</Link>
                     </div>
 
                     {/* Mobile menu button */}
@@ -90,13 +100,13 @@ const Navbar = () => {
                         INQUIRY
                     </Link>
 
-                    {/* <Link
-                        to="/celebrate"
+                    <Link
+                        to="/bill"
                         onClick={() => setIsOpen(false)}
-                        className={`block w-full py-2 rounded-full text-sm font-semibold tracking-widest transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 ${location.pathname === '/celebrate' ? 'text-primary bg-primary/10' : 'text-on-surface-variant'}`}
+                        className={`block w-full py-2 rounded-full text-sm font-semibold tracking-widest transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 ${location.pathname === '/bill' ? 'text-primary bg-primary/10' : 'text-on-surface-variant'}`}
                     >
-                        CELEBRATE
-                    </Link> */}
+                        YOUR ORDER
+                    </Link>
 
                     <Link
                         to="/reservations"

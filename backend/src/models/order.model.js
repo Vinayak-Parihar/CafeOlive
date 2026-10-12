@@ -92,7 +92,13 @@ const orderSchema = new Schema(
             type: String  // Stores waiter's name when order is placed by waiter
         },
         customerName: {
-            type: String  // Stores customer's name when order has no table number
+            type: String  // Stores customer's name
+        },
+        customerPhone: {
+            type: String  // Stores customer's phone number
+        },
+        customerEmail: {
+            type: String  // Optional customer email
         },
         billSessionId: {
             type: String,

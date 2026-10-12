@@ -24,7 +24,7 @@ export const HOME_MEDIA = [
         section: "venue-ambience",
         imageKey: "ambience-garden",
         label: "Garden Patio",
-        defaultUrl: "https://images.unsplash.com/photo-1576014131795-d4c61dfd81af?q=80&w=1000&auto=format&fit=crop",
+        defaultUrl: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1000&auto=format&fit=crop",
         order: 3
     },
     {
@@ -38,14 +38,14 @@ export const HOME_MEDIA = [
         section: "experiences",
         imageKey: "mini-theatre",
         label: "Private Mini Theatre",
-        defaultUrl: "https://images.unsplash.com/photo-1517604931442-010e42f613e7?q=80&w=800&auto=format&fit=crop",
+        defaultUrl: "https://images.unsplash.com/photo-1586899028174-e7098604235b?q=80&w=800&auto=format&fit=crop",
         order: 5
     },
     {
         section: "experiences",
         imageKey: "party-halls",
         label: "Party Halls",
-        defaultUrl: "https://images.unsplash.com/photo-1530103862676-de3c9a59af57?q=80&w=800&auto=format&fit=crop",
+        defaultUrl: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1000&auto=format&fit=crop",
         order: 6
     },
     {
@@ -66,14 +66,14 @@ export const HOME_MEDIA = [
         section: "gallery-preview",
         imageKey: "gallery-3",
         label: "Captured Moment 3",
-        defaultUrl: "https://images.unsplash.com/photo-1517604931442-010e42f613e7?q=80&w=600&auto=format&fit=crop",
+        defaultUrl: "https://images.unsplash.com/photo-1586899028174-e7098604235b?q=80&w=600&auto=format&fit=crop",
         order: 9
     },
     {
         section: "gallery-preview",
         imageKey: "gallery-4",
         label: "Captured Moment 4",
-        defaultUrl: "https://images.unsplash.com/photo-1530103862676-de3c9a59af57?q=80&w=600&auto=format&fit=crop",
+        defaultUrl: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=600&auto=format&fit=crop",
         order: 10
     },
     {
@@ -90,7 +90,7 @@ export const HOME_MEDIA = [
         imageKey: "gallery-image-2",
         label: "Garden Patio Seating",
         category: "Ambience",
-        defaultUrl: "https://images.unsplash.com/photo-1576014131795-d4c61dfd81af?q=80&w=800&auto=format&fit=crop",
+        defaultUrl: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=800&auto=format&fit=crop",
         order: 1,
         isGallery: true
     },
@@ -126,7 +126,7 @@ export const HOME_MEDIA = [
         imageKey: "gallery-image-6",
         label: "Private Screen Seating",
         category: "Mini Theatre",
-        defaultUrl: "https://images.unsplash.com/photo-1517604931442-010e42f613e7?q=80&w=800&auto=format&fit=crop",
+        defaultUrl: "https://images.unsplash.com/photo-1586899028174-e7098604235b?q=80&w=800&auto=format&fit=crop",
         order: 5,
         isGallery: true
     },
@@ -144,7 +144,7 @@ export const HOME_MEDIA = [
         imageKey: "gallery-image-8",
         label: "Celebration Table Setup",
         category: "Party Halls",
-        defaultUrl: "https://images.unsplash.com/photo-1530103862676-de3c9a59af57?q=80&w=800&auto=format&fit=crop",
+        defaultUrl: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=800&auto=format&fit=crop",
         order: 7,
         isGallery: true
     },
@@ -161,20 +161,26 @@ export const HOME_MEDIA = [
         section: "reservations",
         imageKey: "reservation-theatre",
         label: "Reservation: Private Mini Theatre",
-        defaultUrl: "https://images.unsplash.com/photo-1517604931442-010e42f613e7?q=80&w=800&auto=format&fit=crop",
+        capacity: "Up to 8 guests",
+        description: "Screen films, stream matches, host private sessions with complimentary snacks and sit-in food menu.",
+        defaultUrl: "https://images.unsplash.com/photo-1586899028174-e7098604235b?q=80&w=800&auto=format&fit=crop",
         order: 0
     },
     {
         section: "reservations",
         imageKey: "reservation-party-hall-1",
         label: "Reservation: Party Hall 1",
-        defaultUrl: "https://images.unsplash.com/photo-1530103862676-de3c9a59af57?q=80&w=800&auto=format&fit=crop",
+        capacity: "Up to 35 guests",
+        description: "Spacious venue crafted for elegant family get-togethers, dinner events, and private birthdays up to 35 guests.",
+        defaultUrl: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=800&auto=format&fit=crop",
         order: 1
     },
     {
         section: "reservations",
         imageKey: "reservation-party-hall-2",
         label: "Reservation: Party Hall 2",
+        capacity: "Up to 15 guests",
+        description: "Cozy hosting space for small groups, creative workspaces, and birthday setups up to 15 guests.",
         defaultUrl: "https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=800&auto=format&fit=crop",
         order: 2
     },

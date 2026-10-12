@@ -43,7 +43,7 @@ const WaiterDashboard = () => {
 
     const handlePaymentClick = (order) => {
         setSelectedOrder(order);
-        setPaymentMethod('cash'); // Reset default
+        setPaymentMethod(order.paymentMethod === 'Online' ? 'manual_online' : 'cash');
         setPaymentModalOpen(true);
     };
 
@@ -53,7 +53,8 @@ const WaiterDashboard = () => {
         try {
             await axios.patch(`/api/order/status/${selectedOrder._id}`, { 
                 status: 'completed',
-                paymentMethod: paymentMethod === 'cash' ? 'Cash' : 'Manual Card/UPI'
+                paymentStatus: 'paid',
+                paymentMethod: paymentMethod === 'cash' ? 'Cash' : 'Online'
             });
             setPaymentModalOpen(false);
             setSelectedOrder(null);
@@ -97,18 +98,26 @@ const WaiterDashboard = () => {
                                     <div className="text-2xl font-bold">
                                         {(() => {
                                             const table = order.tableNumber;
-                                            const customer = order.customerName;
+                                            const customer = order.customerName || order.guestDetails?.name;
                                             const invalidValues = ['n/a', 'null', 'undefined', 'walk-in', 'unknown', 'takeaway'];
                                             const isValidTable = table && !invalidValues.includes(String(table).toLowerCase().trim());
-                                            if (isValidTable) {
-                                                return `Table #${table}`;
+                                            if (customer && isValidTable) {
+                                                return `${customer} (Table #${table})`;
                                             }
                                             if (customer) {
-                                                return `Customer: ${customer}`;
+                                                return customer;
+                                            }
+                                            if (isValidTable) {
+                                                return `Table #${table}`;
                                             }
                                             return 'Customer';
                                         })()}
                                     </div>
+                                    {(order.customerPhone || order.guestDetails?.phone) && (
+                                        <div className="text-xs font-semibold opacity-85 mt-0.5">
+                                            📞 {order.customerPhone || order.guestDetails?.phone}
+                                        </div>
+                                    )}
                                     {/* Order Source & Payment Info */}
                                     <div className="flex flex-wrap gap-1 mt-2">
                                         {order.orderSource === 'waiter' ? (
@@ -120,8 +129,14 @@ const WaiterDashboard = () => {
                                                 Customer
                                             </span>
                                         )}
-                                        <span className={`text-[10px] px-2 py-0.5 rounded-full inline-block font-semibold ${order.paymentStatus === 'paid' ? 'bg-green-600 text-white' : 'bg-yellow-600 text-black'}`}>
-                                            💳 {order.paymentStatus === 'paid' ? `Paid (${order.paymentMethod || 'Online'})` : 'Pending'}
+                                        <span className={`text-[10px] px-2 py-0.5 rounded-full inline-block font-semibold ${
+                                            order.paymentStatus === 'paid'
+                                                ? 'bg-green-600 text-white'
+                                                : (order.paymentMethod === 'Cash' ? 'bg-amber-400 text-black font-bold animate-pulse' : 'bg-yellow-600 text-black')
+                                        }`}>
+                                            {order.paymentStatus === 'paid'
+                                                ? `✓ Paid (${order.paymentMethod || 'Online'})`
+                                                : (order.paymentMethod === 'Cash' ? '💵 Cash Pending' : '💳 Online Pending')}
                                         </span>
                                     </div>
                                 </div>
@@ -151,7 +166,7 @@ const WaiterDashboard = () => {
                             </div>
 
                             {/* Actions */}
-                            <div className="p-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+                            <div className="p-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex flex-col gap-2">
                                 {order.status === 'ready' && (
                                     <button
                                         onClick={() => updateStatus(order._id, 'served')}
@@ -166,6 +181,14 @@ const WaiterDashboard = () => {
                                         className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition"
                                     >
                                         <DollarSign size={20} /> Collect Payment
+                                    </button>
+                                )}
+                                {order.paymentStatus !== 'paid' && order.paymentMethod === 'Cash' && order.status !== 'served' && (
+                                    <button
+                                        onClick={() => handlePaymentClick(order)}
+                                        className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded-lg flex items-center justify-center gap-2 text-sm transition"
+                                    >
+                                        <Banknote size={18} /> Collect Cash (₹{order.totalAmount})
                                     </button>
                                 )}
                             </div>
@@ -191,17 +214,25 @@ const WaiterDashboard = () => {
                             <p className="text-gray-500 text-sm mt-2">
                                 {(() => {
                                     const table = selectedOrder.tableNumber;
-                                    const customer = selectedOrder.customerName;
+                                    const customer = selectedOrder.customerName || selectedOrder.guestDetails?.name;
                                     const invalidValues = ['n/a', 'null', 'undefined', 'walk-in', 'unknown', 'takeaway'];
                                     const isValidTable = table && !invalidValues.includes(String(table).toLowerCase().trim());
-                                    if (isValidTable) {
-                                        return `Table #${table}`;
+                                    if (customer && isValidTable) {
+                                        return `${customer} · Table #${table}`;
                                     }
                                     if (customer) {
                                         return `Customer: ${customer}`;
                                     }
+                                    if (isValidTable) {
+                                        return `Table #${table}`;
+                                    }
                                     return 'Customer';
                                 })()}
+                                {(selectedOrder.customerPhone || selectedOrder.guestDetails?.phone) && (
+                                    <span className="block text-xs text-gray-400 mt-0.5">
+                                        📞 {selectedOrder.customerPhone || selectedOrder.guestDetails?.phone}
+                                    </span>
+                                )}
                             </p>
                         </div>
 

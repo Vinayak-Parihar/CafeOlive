@@ -9,6 +9,8 @@ import {
     reservationInquiry,
     lookupReservation
 } from "../controllers/reservation.controller.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { verifyAdmin } from "../middlewares/admin.middleware.js";
 
 const router = express.Router();
 
@@ -16,12 +18,13 @@ const router = express.Router();
 router.get('/rates', getRates);
 router.get('/availability', getAvailability);
 router.post('/create-payment-order', createPaymentOrder);
+router.post('/book', createPaymentOrder);
 router.post('/verify-and-confirm', verifyAndConfirm);
 router.get('/lookup', lookupReservation);
-router.get('/reservations/inquiry', reservationInquiry); // Todo: Add Middleware
 
 // Admin dashboard routes
-router.get('/', getAllReservations);
-router.patch('/:id/status', updateReservationStatus);
+router.get('/reservations/inquiry', verifyJWT, verifyAdmin, reservationInquiry);
+router.get('/', verifyJWT, verifyAdmin, getAllReservations);
+router.patch('/:id/status', verifyJWT, verifyAdmin, updateReservationStatus);
 
 export default router;
