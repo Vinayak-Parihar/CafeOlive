@@ -1,0 +1,15 @@
+{
+  "name": "cafeolive",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "cafeolive": "./build.js",
+    "workflows-starter-template": "./build.js"
+  },
+  "scripts": {
+    "build": "node ./build.js",
+    "cafeolive": "node ./build.js",
+    "dev": "npm --prefix frontend run dev"
+  }
+}
