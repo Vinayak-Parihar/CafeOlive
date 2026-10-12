@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import axios from 'axios';
 import { Coffee, PartyPopper, ArrowRight, MapPin, Camera, Film, Clock, Tag, Users, Gift, Star, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion as Motion } from 'motion/react';
@@ -52,18 +53,18 @@ const LandingPage = () => {
     useEffect(() => {
         const fetchHomeMedia = async () => {
             try {
-                const response = await fetch('/api/home/media');
-                if (!response.ok) return;
-                const data = await response.json();
-                const rawList = data.data?.media || [];
-                setMediaList(rawList);
-                const mediaMap = rawList.reduce((map, media) => {
-                    map[media.imageKey] = media;
-                    return map;
-                }, {});
-                setHomeMedia(mediaMap);
-            } catch (error) {
-                console.error('Failed to fetch home media:', error);
+                const response = await axios.get('/api/home/media');
+                if (response.data && typeof response.data === 'object' && response.data.data?.media) {
+                    const rawList = response.data.data.media;
+                    setMediaList(rawList);
+                    const mediaMap = rawList.reduce((map, media) => {
+                        map[media.imageKey] = media;
+                        return map;
+                    }, {});
+                    setHomeMedia(mediaMap);
+                }
+            } catch {
+                // Backend not connected or offline, fallback to built-in placeholders
             }
         };
 
@@ -162,13 +163,12 @@ const LandingPage = () => {
     useEffect(() => {
         const fetchReviews = async () => {
             try {
-                const response = await fetch('/api/reviews/public');
-                if (response.ok) {
-                    const data = await response.json();
-                    setReviews(data);
+                const response = await axios.get('/api/reviews/public');
+                if (response.data && Array.isArray(response.data)) {
+                    setReviews(response.data);
                 }
-            } catch (error) {
-                console.error("Failed to fetch reviews:", error);
+            } catch {
+                // Backend not connected or offline, fallback to built-in reviews
             }
         };
         fetchReviews();
@@ -178,16 +178,10 @@ const LandingPage = () => {
         e.preventDefault();
         if (newReview.name && newReview.rating > 0) {
             try {
-                const response = await fetch('/api/reviews', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newReview)
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    localStorage.setItem('myReview', JSON.stringify(data.review));
-                    setMyReview(data.review);
+                const response = await axios.post('/api/reviews', newReview);
+                if (response.data?.review) {
+                    localStorage.setItem('myReview', JSON.stringify(response.data.review));
+                    setMyReview(response.data.review);
                     setShowReviewModal(false);
                     setNewReview({ name: '', rating: 0, comment: '' });
                     alert("Thank you for your review!");
