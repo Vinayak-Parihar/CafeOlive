@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, LogOut, Menu, Users, ChefHat, Coffee, X, Settings as SettingsIcon, Calendar, MessageSquare } from 'lucide-react';
+import {
+    LayoutDashboard, PlusCircle, LogOut, Menu, Users, ChefHat,
+    Coffee, X, Settings as SettingsIcon, Calendar, MessageSquare, Star, Sparkles
+} from 'lucide-react';
 import axios from 'axios';
-import ThemeToggle from '../components/ThemeToggle';
+import ArtisanalCupMotif from '../components/ArtisanalCupMotif';
 
 const AdminLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isCheckingSession, setIsCheckingSession] = useState(true);
 
     const handleLogout = async () => {
         try {
@@ -20,34 +24,30 @@ const AdminLayout = () => {
         }
     };
 
-    const [isCheckingSession, setIsCheckingSession] = useState(true);
-
     useEffect(() => {
         const verifySession = async () => {
             try {
                 await axios.get('/api/users/current-user');
             } catch (error) {
-                console.error("Session expired or invalid:", error);
+                console.error("Session expired:", error);
                 localStorage.removeItem('adminUser');
                 navigate('/admin');
             } finally {
                 setIsCheckingSession(false);
             }
         };
-
         verifySession();
     }, [navigate]);
 
     if (isCheckingSession) {
         return (
-            <div className="flex h-screen items-center justify-center bg-oliv-cream dark:bg-oliv-dark">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-oliv-gold" />
+            <div className="flex h-screen items-center justify-center bg-[#FAF8F3]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1e2a1b]" />
             </div>
         );
     }
 
     const user = JSON.parse(localStorage.getItem('adminUser') || '{}');
-
     if (!user || !user.role) {
         return <Navigate to="/admin" replace />;
     }
@@ -59,104 +59,82 @@ const AdminLayout = () => {
 
     const isActive = (path) => location.pathname === path;
 
+    const navItemClass = (path) => {
+        const active = isActive(path);
+        return `flex items-center gap-3 px-4 py-3 rounded-2xl text-xs uppercase tracking-wider font-semibold transition-all duration-200 ${
+            active
+                ? 'bg-[#1e2a1b] text-white shadow-sm'
+                : 'text-stone-600 hover:text-[#1e2a1b] hover:bg-black/5'
+        }`;
+    };
+
+    const roleName = user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Admin';
+
     return (
-            <div className="fixed inset-0 flex h-dvh min-h-0 overflow-hidden bg-oliv-cream dark:bg-oliv-dark text-oliv-dark dark:text-oliv-cream font-sans transition-colors duration-300">
-
-            {/* Mobile Header */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 bg-oliv-cream dark:bg-oliv-dark p-4 flex justify-between items-center z-40 border-b border-oliv-gold/30 shadow-md transition-colors duration-300">
-                <h2 className="text-xl font-bold text-oliv-green dark:text-soft-gold flex items-center gap-2 font-serif">
-                    <Coffee size={24} /> CafeOlive Admin
-                </h2>
-                <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} aria-label={isSidebarOpen ? 'Close sidebar' : 'Open sidebar'} aria-expanded={isSidebarOpen} className="text-oliv-green dark:text-oliv-cream bg-white/70 dark:bg-white/10 p-2 rounded-lg transition-colors duration-300">
-                    {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+        <div className="fixed inset-0 flex h-dvh min-h-0 overflow-hidden bg-[#FAF8F3] text-[#1e2a1b] font-sans">
+            {/* Mobile Top Header */}
+            <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md px-4 flex justify-between items-center z-40 border-b border-[#e8e2d5] shadow-sm">
+                <Link to="/" className="flex items-center gap-2">
+                    <span className="font-serif text-xl font-bold tracking-widest text-[#1e2a1b]">OLIV</span>
+                    <span className="text-[10px] text-[#c2a677] uppercase tracking-wider font-semibold">Desk</span>
+                </Link>
+                <button
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    aria-label={isSidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+                    className="p-2 rounded-xl bg-stone-100 text-[#1e2a1b]"
+                >
+                    {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
                 </button>
-            </div>
+            </header>
 
-            {/* Overlay */}
+            {/* Mobile Backdrop */}
             {isSidebarOpen && (
                 <div
-                    className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                    className="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 lg:hidden"
                     onClick={() => setIsSidebarOpen(false)}
                 />
             )}
 
-            {/* Sidebar */}
-            <aside className={`fixed inset-y-0 left-0 w-72 h-full min-h-0 flex flex-col bg-oliv-cream dark:bg-oliv-dark shadow-2xl transform transition-transform duration-300 ease-in-out z-50 lg:translate-x-0 lg:static lg:block flex-shrink-0 border-r border-oliv-gold/30 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                <div className="p-6 border-b border-oliv-gold/30 flex justify-between items-center transition-colors duration-300">
-                    <h2 className="text-2xl font-bold text-oliv-green dark:text-soft-gold flex items-center gap-2 font-serif">
-                        {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Admin'}
-                    </h2>
-                    <button onClick={() => setIsSidebarOpen(false)} aria-label="Close sidebar" className="lg:hidden text-oliv-green hover:text-oliv-gold dark:text-oliv-cream dark:hover:text-soft-gold">
-                        <X size={24} />
-                    </button>
+            {/* Sidebar Navigation */}
+            <aside className={`fixed inset-y-0 left-0 w-72 h-full min-h-0 flex flex-col bg-white border-r border-[#e8e2d5] shadow-lg lg:shadow-none transform transition-transform duration-300 ease-in-out z-50 lg:translate-x-0 lg:static lg:block flex-shrink-0 ${
+                isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}>
+                {/* Brand & User Profile */}
+                <div className="p-6 border-b border-[#ece7dc] space-y-3">
+                    <div className="flex items-center justify-between">
+                        <Link to="/" className="flex flex-col">
+                            <span className="font-serif text-2xl font-bold tracking-[0.3em] text-[#1e2a1b]">OLIV</span>
+                            <span className="text-[8px] uppercase tracking-[0.4em] text-[#c2a677] font-semibold">Atelier Portal</span>
+                        </Link>
+                        <button
+                            onClick={() => setIsSidebarOpen(false)}
+                            className="lg:hidden p-1 text-stone-400 hover:text-stone-700"
+                        >
+                            <X size={20} />
+                        </button>
+                    </div>
+
+                    <div className="pt-2">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f5f3ee] text-[#1e2a1b] text-[11px] font-semibold tracking-wider">
+                            <Sparkles size={12} className="text-[#c2a677]" />
+                            <span>{roleName} Role</span>
+                        </div>
+                        <p className="text-xs text-stone-500 font-light mt-1 truncate">
+                            {user.fullName || user.username || 'Staff Member'}
+                        </p>
+                    </div>
                 </div>
 
-                <nav className="flex-1 p-4 space-y-2">
+                {/* Navigation Links */}
+                <nav className="flex-1 overflow-y-auto p-4 space-y-1.5">
                     {isAdmin && (
                         <Link
                             to="/admin/dashboard"
                             onClick={() => setIsSidebarOpen(false)}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/admin/dashboard')
-                                ? 'bg-oliv-green text-white shadow-lg'
-                                : 'text-oliv-dark/75 dark:text-oliv-cream/75 hover:bg-oliv-gold/15 dark:hover:bg-white/10 hover:text-oliv-green dark:hover:text-white'
-                                }`}
+                            className={navItemClass('/admin/dashboard')}
                         >
-                            <LayoutDashboard size={20} />
+                            <LayoutDashboard size={18} />
                             Dashboard
-                        </Link>
-                    )}
-
-                    {isAdmin && (
-                        <>
-                            <Link
-                                to="/admin/staff"
-                                onClick={() => setIsSidebarOpen(false)}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/admin/staff')
-                                    ? 'bg-oliv-green text-white shadow-lg'
-                                    : 'text-oliv-dark/75 dark:text-oliv-cream/75 hover:bg-oliv-gold/15 dark:hover:bg-white/10 hover:text-oliv-green dark:hover:text-white'
-                                    }`}
-                            >
-                                <Users size={20} />
-                                Staff
-                            </Link>
-
-                            <Link
-                                to="/admin/add-menu"
-                                onClick={() => setIsSidebarOpen(false)}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/admin/add-menu')
-                                    ? 'bg-oliv-green text-white shadow-lg'
-                                    : 'text-oliv-dark/75 dark:text-oliv-cream/75 hover:bg-oliv-gold/15 dark:hover:bg-white/10 hover:text-oliv-green dark:hover:text-white'
-                                    }`}
-                            >
-                                <PlusCircle size={20} />
-                                Add Items
-                            </Link>
-
-                            <Link
-                                to="/admin/reviews"
-                                onClick={() => setIsSidebarOpen(false)}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/admin/reviews')
-                                    ? 'bg-orange-600 text-white shadow-lg'
-                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
-                                    }`}
-                            >
-                                <SettingsIcon size={20} />
-                                Reviews
-                            </Link>
-                        </>
-                    )}
-
-                    {canManageSettings && (
-                        <Link
-                            to="/admin/settings"
-                            onClick={() => setIsSidebarOpen(false)}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/admin/settings')
-                                ? 'bg-oliv-green text-white shadow-lg'
-                                : 'text-oliv-dark/75 dark:text-oliv-cream/75 hover:bg-oliv-gold/15 dark:hover:bg-white/10 hover:text-oliv-green dark:hover:text-white'
-                                }`}
-                        >
-                            <SettingsIcon size={20} />
-                            Settings
                         </Link>
                     )}
 
@@ -164,12 +142,9 @@ const AdminLayout = () => {
                         <Link
                             to="/admin/kitchen"
                             onClick={() => setIsSidebarOpen(false)}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/admin/kitchen')
-                                ? 'bg-oliv-green text-white shadow-lg'
-                                : 'text-oliv-dark/75 dark:text-oliv-cream/75 hover:bg-oliv-gold/15 dark:hover:bg-white/10 hover:text-oliv-green dark:hover:text-white'
-                                }`}
+                            className={navItemClass('/admin/kitchen')}
                         >
-                            <ChefHat size={20} />
+                            <ChefHat size={18} />
                             Kitchen (KDS)
                         </Link>
                     )}
@@ -179,77 +154,107 @@ const AdminLayout = () => {
                             <Link
                                 to="/admin/service"
                                 onClick={() => setIsSidebarOpen(false)}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/admin/service')
-                                    ? 'bg-oliv-green text-white shadow-lg'
-                                    : 'text-oliv-dark/75 dark:text-oliv-cream/75 hover:bg-oliv-gold/15 dark:hover:bg-white/10 hover:text-oliv-green dark:hover:text-white'
-                                    }`}
+                                className={navItemClass('/admin/service')}
                             >
-                                <Coffee size={20} />
-                                Service
+                                <Coffee size={18} />
+                                Service Floor
                             </Link>
 
                             <Link
                                 to="/admin/take-order"
                                 onClick={() => setIsSidebarOpen(false)}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/admin/take-order')
-                                    ? 'bg-oliv-green text-white shadow-lg'
-                                    : 'text-oliv-dark/75 dark:text-oliv-cream/75 hover:bg-oliv-gold/15 dark:hover:bg-white/10 hover:text-oliv-green dark:hover:text-white'
-                                    }`}
+                                className={navItemClass('/admin/take-order')}
                             >
-                                <PlusCircle size={20} />
+                                <PlusCircle size={18} />
                                 Take Order
                             </Link>
+                        </>
+                    )}
 
+                    {isAdmin && (
+                        <>
                             <Link
                                 to="/admin/reservations"
                                 onClick={() => setIsSidebarOpen(false)}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/admin/reservations')
-                                    ? 'bg-oliv-green text-white shadow-lg'
-                                    : 'text-oliv-dark/75 dark:text-oliv-cream/75 hover:bg-oliv-gold/15 dark:hover:bg-white/10 hover:text-oliv-green dark:hover:text-white'
-                                    }`}
+                                className={navItemClass('/admin/reservations')}
                             >
-                                <Calendar size={20} />
+                                <Calendar size={18} />
                                 Reservations
                             </Link>
 
                             <Link
                                 to="/admin/inquiries"
                                 onClick={() => setIsSidebarOpen(false)}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/admin/inquiries')
-                                    ? 'bg-oliv-green text-white shadow-lg'
-                                    : 'text-oliv-dark/75 dark:text-oliv-cream/75 hover:bg-oliv-gold/15 dark:hover:bg-white/10 hover:text-oliv-green dark:hover:text-white'
-                                    }`}
+                                className={navItemClass('/admin/inquiries')}
                             >
-                                <MessageSquare size={20} />
+                                <MessageSquare size={18} />
                                 Inquiries
+                            </Link>
+
+                            <Link
+                                to="/admin/add-menu"
+                                onClick={() => setIsSidebarOpen(false)}
+                                className={navItemClass('/admin/add-menu')}
+                            >
+                                <PlusCircle size={18} />
+                                Add Menu
+                            </Link>
+
+                            <Link
+                                to="/admin/staff"
+                                onClick={() => setIsSidebarOpen(false)}
+                                className={navItemClass('/admin/staff')}
+                            >
+                                <Users size={18} />
+                                Staff Team
+                            </Link>
+
+                            <Link
+                                to="/admin/reviews"
+                                onClick={() => setIsSidebarOpen(false)}
+                                className={navItemClass('/admin/reviews')}
+                            >
+                                <Star size={18} />
+                                Reviews
                             </Link>
                         </>
                     )}
+
+                    {canManageSettings && (
+                        <Link
+                            to="/admin/settings"
+                            onClick={() => setIsSidebarOpen(false)}
+                            className={navItemClass('/admin/settings')}
+                        >
+                            <SettingsIcon size={18} />
+                            Settings
+                        </Link>
+                    )}
                 </nav>
 
-
-                <div className="p-4 border-t border-oliv-gold/30 space-y-2 transition-colors duration-300">
-                    <div className="flex justify-between items-center px-4 py-2 bg-white/60 dark:bg-white/5 rounded-lg transition-colors duration-300">
-                        <span className="text-oliv-dark/70 dark:text-oliv-cream/70 text-sm font-medium">Theme</span>
-                        <ThemeToggle />
-                    </div>
+                {/* Footer Logout Action */}
+                <div className="p-4 border-t border-[#ece7dc] space-y-2">
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-white/10 rounded-lg transition-colors"
+                        className="w-full flex items-center gap-3 px-4 py-3 text-rose-700 hover:bg-rose-50 rounded-2xl text-xs uppercase tracking-wider font-semibold transition"
                     >
-                        <LogOut size={20} />
-                        Logout
+                        <LogOut size={18} />
+                        Sign Out
                     </button>
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <main className="flex-1 min-h-0 flex flex-col min-w-0 overflow-hidden">
-                <div className="flex-1 min-h-0 overflow-y-auto p-4 pt-20 lg:p-8 lg:pt-8">
+            {/* Main Outlet Workspace */}
+            <main className="flex-1 min-h-0 flex flex-col min-w-0 overflow-hidden bg-[#FAF8F3] relative">
+                {/* Stationary cup motif in the center of the admin workspace */}
+                <div className="absolute inset-0 pointer-events-none select-none flex items-center justify-center overflow-hidden z-0">
+                    <ArtisanalCupMotif opacity="opacity-[0.06]" scale="scale-110" />
+                </div>
+                <div className="flex-1 min-h-0 overflow-y-auto p-4 pt-20 lg:p-8 lg:pt-8 relative z-10">
                     <Outlet />
                 </div>
             </main>
-        </div >
+        </div>
     );
 };
 

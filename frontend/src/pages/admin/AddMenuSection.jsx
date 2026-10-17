@@ -357,9 +357,10 @@ const AddMenuSection = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-orange-500 font-serif">Manage Menu</h1>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                        Add individual items, add multiple items at once, and manage your full live menu directory.
+                    <span className="text-[10px] uppercase tracking-[0.3em] text-[#c2a677] font-semibold">Culinary Atelier</span>
+                    <h1 className="text-3xl font-bold font-serif text-[#1e2a1b] tracking-tight">Manage Menu</h1>
+                    <p className="text-stone-500 text-sm mt-0.5">
+                        Add individual items, curate multiple dishes in bulk, and manage the live dining menu.
                     </p>
                 </div>
                 <button
@@ -367,7 +368,7 @@ const AddMenuSection = () => {
                         fetchCategories();
                         fetchMenuItems();
                     }}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-semibold hover:border-orange-500 transition shadow-xs"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1e2a1b] hover:bg-[#2d3e29] text-white rounded-xl text-xs uppercase tracking-wider font-semibold transition duration-200 shadow-xs"
                 >
                     <RefreshCw size={14} className={menuLoading ? 'animate-spin' : ''} />
                     Refresh Menu
@@ -378,28 +379,28 @@ const AddMenuSection = () => {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
                 {/* ── Left Card: Add Category ─────────────────────────────────── */}
-                <div className="lg:col-span-4 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 transition-colors">
-                    <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-800 dark:text-white">
-                        <Tag className="text-orange-500" size={20} /> Add Category
+                <div className="lg:col-span-4 bg-white p-6 rounded-2xl shadow-xs border border-[#e8e2d5]">
+                    <h2 className="text-lg font-serif font-bold mb-4 flex items-center gap-2 text-[#1e2a1b]">
+                        <Tag className="text-[#c2a677]" size={20} /> Add Category
                     </h2>
 
                     {categoryMsg.text && (
-                        <div className={`p-3 mb-4 rounded-lg text-xs font-semibold ${categoryMsg.type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white`}>
+                        <div className={`p-3 mb-4 rounded-xl text-xs font-semibold ${categoryMsg.type === 'success' ? 'bg-[#eaf3e8] text-[#245220] border border-[#cbe4c7]' : 'bg-[#fdeeed] text-[#9a2c2c] border border-[#f7cdcd]'}`}>
                             {categoryMsg.text}
                         </div>
                     )}
 
                     <form onSubmit={handleCategorySubmit} className="space-y-4">
                         <div>
-                            <label className="block text-xs font-semibold uppercase tracking-wider mb-2 text-gray-600 dark:text-gray-300">
+                            <label className="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-stone-600">
                                 Category Name
                             </label>
                             <input
                                 type="text"
                                 value={categoryName}
                                 onChange={(e) => setCategoryName(e.target.value)}
-                                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-orange-500"
-                                placeholder="e.g. Starters, Main Course, Shakes"
+                                className="w-full px-4 py-2.5 bg-[#FAF8F3] border border-[#e8e2d5] rounded-xl text-xs text-[#1e2a1b] focus:outline-none focus:border-[#c2a677]"
+                                placeholder="e.g. Starters, Main Course, Artisanal Drinks"
                                 required
                             />
                         </div>
@@ -407,52 +408,52 @@ const AddMenuSection = () => {
                         <button
                             type="submit"
                             disabled={categoryLoading}
-                            className={`w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 px-4 rounded-lg transition text-sm ${categoryLoading ? 'opacity-50' : ''}`}
+                            className={`w-full bg-[#1e2a1b] hover:bg-[#2d3e29] text-white font-semibold py-2.5 px-4 rounded-xl transition text-xs uppercase tracking-wider shadow-xs ${categoryLoading ? 'opacity-50' : ''}`}
                         >
                             {categoryLoading ? 'Adding...' : 'Add Category'}
                         </button>
                     </form>
 
                     {/* Quick Category Badges */}
-                    <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
-                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">
+                    <div className="mt-6 pt-4 border-t border-[#ece7dc]">
+                        <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block mb-2">
                             Existing Categories ({categories.length})
                         </span>
                         <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
                             {categories.map(cat => (
                                 <span
                                     key={cat._id}
-                                    className="px-2.5 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-md font-medium"
+                                    className="px-2.5 py-1 bg-[#FAF8F3] border border-[#e8e2d5] text-[#1e2a1b] text-[11px] rounded-full font-medium"
                                 >
                                     {cat.name}
                                 </span>
                             ))}
                             {categories.length === 0 && (
-                                <span className="text-xs text-gray-400 italic">No categories created yet.</span>
+                                <span className="text-xs text-stone-400 italic">No categories created yet.</span>
                             )}
                         </div>
                     </div>
                 </div>
 
-                {/* ── Right Card: Add Menu Item (Single OR Multiple with Single Time) ── */}
-                <div className="lg:col-span-8 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 transition-colors">
+                {/* ── Right Card: Add Menu Item (Single OR Multiple) ── */}
+                <div className="lg:col-span-8 bg-white p-6 rounded-2xl shadow-xs border border-[#e8e2d5]">
                     
                     {/* Header with Single vs Multiple Mode Toggle */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100 dark:border-gray-700">
-                        <h2 className="text-lg font-bold flex items-center gap-2 text-gray-800 dark:text-white">
-                            <Plus className="text-orange-500" size={20} />
-                            {addMode === 'single' ? 'Add Menu Item (Single)' : 'Add Menu Items (Multiple at Once)'}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#ece7dc]">
+                        <h2 className="text-lg font-serif font-bold flex items-center gap-2 text-[#1e2a1b]">
+                            <Plus className="text-[#c2a677]" size={20} />
+                            {addMode === 'single' ? 'Add Menu Item (Single)' : 'Add Menu Items (Bulk)'}
                         </h2>
 
                         {/* Mode Selector Pill Buttons */}
-                        <div className="inline-flex p-1 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <div className="inline-flex p-1 bg-[#FAF8F3] rounded-xl border border-[#e8e2d5]">
                             <button
                                 type="button"
                                 onClick={() => setAddMode('single')}
-                                className={`px-3 py-1.5 rounded-md text-xs font-bold transition flex items-center gap-1.5 ${
+                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition flex items-center gap-1.5 ${
                                     addMode === 'single'
-                                        ? 'bg-orange-500 text-white shadow-xs'
-                                        : 'text-gray-600 dark:text-gray-300 hover:text-orange-500'
+                                        ? 'bg-[#1e2a1b] text-white shadow-xs'
+                                        : 'text-stone-600 hover:text-[#1e2a1b]'
                                 }`}
                             >
                                 <Plus size={14} /> Single Item
@@ -460,13 +461,13 @@ const AddMenuSection = () => {
                             <button
                                 type="button"
                                 onClick={() => setAddMode('multiple')}
-                                className={`px-3 py-1.5 rounded-md text-xs font-bold transition flex items-center gap-1.5 ${
+                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition flex items-center gap-1.5 ${
                                     addMode === 'multiple'
-                                        ? 'bg-orange-500 text-white shadow-xs'
-                                        : 'text-gray-600 dark:text-gray-300 hover:text-orange-500'
+                                        ? 'bg-[#1e2a1b] text-white shadow-xs'
+                                        : 'text-stone-600 hover:text-[#1e2a1b]'
                                 }`}
                             >
-                                <Layers size={14} /> Multiple Items (Bulk)
+                                <Layers size={14} /> Multiple (Bulk)
                             </button>
                         </div>
                     </div>
@@ -477,7 +478,7 @@ const AddMenuSection = () => {
                     {addMode === 'single' && (
                         <div className="pt-4">
                             {itemMsg.text && (
-                                <div className={`p-3 mb-4 rounded-lg text-xs font-semibold ${itemMsg.type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white`}>
+                                <div className={`p-3 mb-4 rounded-xl text-xs font-semibold ${itemMsg.type === 'success' ? 'bg-[#eaf3e8] text-[#245220] border border-[#cbe4c7]' : 'bg-[#fdeeed] text-[#9a2c2c] border border-[#f7cdcd]'}`}>
                                     {itemMsg.text}
                                 </div>
                             )}
@@ -485,7 +486,7 @@ const AddMenuSection = () => {
                             <form onSubmit={handleSingleItemSubmit} className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-semibold uppercase tracking-wider mb-2 text-gray-600 dark:text-gray-300">
+                                        <label className="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-stone-600">
                                             Item Name *
                                         </label>
                                         <input
@@ -493,13 +494,13 @@ const AddMenuSection = () => {
                                             name="name"
                                             value={itemData.name}
                                             onChange={handleItemChange}
-                                            placeholder="e.g. Olive Special Pizza"
-                                            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-orange-500"
+                                            placeholder="e.g. Olive Herb Focaccia"
+                                            className="w-full px-4 py-2.5 bg-[#FAF8F3] border border-[#e8e2d5] rounded-xl text-xs text-[#1e2a1b] focus:outline-none focus:border-[#c2a677]"
                                             required
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold uppercase tracking-wider mb-2 text-gray-600 dark:text-gray-300">
+                                        <label className="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-stone-600">
                                             Price (₹) *
                                         </label>
                                         <input
@@ -507,22 +508,22 @@ const AddMenuSection = () => {
                                             name="price"
                                             value={itemData.price}
                                             onChange={handleItemChange}
-                                            placeholder="e.g. 299"
-                                            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-orange-500"
+                                            placeholder="e.g. 350"
+                                            className="w-full px-4 py-2.5 bg-[#FAF8F3] border border-[#e8e2d5] rounded-xl text-xs text-[#1e2a1b] focus:outline-none focus:border-[#c2a677]"
                                             required
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-semibold uppercase tracking-wider mb-2 text-gray-600 dark:text-gray-300">
+                                    <label className="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-stone-600">
                                         Category *
                                     </label>
                                     <select
                                         name="categoryId"
                                         value={itemData.categoryId}
                                         onChange={handleItemChange}
-                                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-orange-500"
+                                        className="w-full px-4 py-2.5 bg-[#FAF8F3] border border-[#e8e2d5] rounded-xl text-xs text-[#1e2a1b] focus:outline-none focus:border-[#c2a677]"
                                         required
                                     >
                                         <option value="" disabled>Select a Category</option>
@@ -535,32 +536,32 @@ const AddMenuSection = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-semibold uppercase tracking-wider mb-2 text-gray-600 dark:text-gray-300">
+                                    <label className="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-stone-600">
                                         Description (Optional)
                                     </label>
                                     <textarea
                                         name="description"
                                         value={itemData.description}
                                         onChange={handleItemChange}
-                                        placeholder="Ingredients, preparation, taste profile..."
-                                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-orange-500 h-20 resize-none"
+                                        placeholder="Ingredients, culinary notes, origin..."
+                                        className="w-full px-4 py-2 bg-[#FAF8F3] border border-[#e8e2d5] rounded-xl text-xs text-[#1e2a1b] focus:outline-none focus:border-[#c2a677] h-20 resize-none leading-relaxed"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-semibold uppercase tracking-wider mb-2 text-gray-600 dark:text-gray-300">
+                                    <label className="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-stone-600">
                                         Dish Image (Optional)
                                     </label>
-                                    <div className="relative border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-3 hover:border-orange-500 transition">
+                                    <div className="relative border-2 border-dashed border-[#e8e2d5] rounded-xl p-4 bg-[#FAF8F3] hover:border-[#c2a677] transition cursor-pointer text-center">
                                         <input
                                             type="file"
                                             onChange={handleFileChange}
                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                             accept="image/*"
                                         />
-                                        <div className="text-center">
-                                            <Upload className="mx-auto h-6 w-6 text-gray-400" />
-                                            <p className="mt-1 text-xs text-gray-400">
+                                        <div>
+                                            <Upload className="mx-auto h-6 w-6 text-[#c2a677]" />
+                                            <p className="mt-1 text-xs text-stone-500">
                                                 {itemData.image ? itemData.image.name : "Click or drag dish photo to upload"}
                                             </p>
                                         </div>
@@ -570,7 +571,7 @@ const AddMenuSection = () => {
                                 <button
                                     type="submit"
                                     disabled={itemLoading}
-                                    className={`w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg transition text-sm ${itemLoading ? 'opacity-50' : ''}`}
+                                    className={`w-full bg-[#1e2a1b] hover:bg-[#2d3e29] text-white font-semibold py-3 px-4 rounded-xl transition text-xs uppercase tracking-wider shadow-xs ${itemLoading ? 'opacity-50' : ''}`}
                                 >
                                     {itemLoading ? 'Adding Item...' : 'Add Menu Item'}
                                 </button>
@@ -584,21 +585,21 @@ const AddMenuSection = () => {
                     {addMode === 'multiple' && (
                         <div className="pt-4 space-y-4">
                             {bulkMsg.text && (
-                                <div className={`p-3 rounded-lg text-xs font-semibold ${bulkMsg.type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white`}>
+                                <div className={`p-3 rounded-xl text-xs font-semibold ${bulkMsg.type === 'success' ? 'bg-[#eaf3e8] text-[#245220] border border-[#cbe4c7]' : 'bg-[#fdeeed] text-[#9a2c2c] border border-[#f7cdcd]'}`}>
                                     {bulkMsg.text}
                                 </div>
                             )}
 
                             {/* Default Category toolbar & Quick row adders */}
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-[#FAF8F3] rounded-xl border border-[#e8e2d5]">
                                 <div className="flex items-center gap-2">
-                                    <label className="text-xs font-bold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                                    <label className="text-xs font-semibold text-stone-600 whitespace-nowrap">
                                         Default Category:
                                     </label>
                                     <select
                                         value={bulkDefaultCategory}
                                         onChange={(e) => handleBulkDefaultCategoryChange(e.target.value)}
-                                        className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2.5 py-1 text-xs font-semibold text-gray-800 dark:text-white outline-none focus:border-orange-500"
+                                        className="bg-white border border-[#e8e2d5] rounded-lg px-2.5 py-1 text-xs font-semibold text-[#1e2a1b] outline-none focus:border-[#c2a677]"
                                     >
                                         <option value="" disabled>Select Category</option>
                                         {categories.map(c => (
@@ -611,23 +612,23 @@ const AddMenuSection = () => {
                                     <button
                                         type="button"
                                         onClick={() => addBulkRow(1)}
-                                        className="px-2.5 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:border-orange-500 text-xs font-bold text-gray-700 dark:text-gray-200 rounded transition"
+                                        className="px-3 py-1 bg-white border border-[#e8e2d5] hover:border-[#1e2a1b] text-xs font-semibold text-[#1e2a1b] rounded-lg transition"
                                     >
-                                        + Add 1 Row
+                                        + 1 Row
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => addBulkRow(3)}
-                                        className="px-2.5 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:border-orange-500 text-xs font-bold text-gray-700 dark:text-gray-200 rounded transition"
+                                        className="px-3 py-1 bg-white border border-[#e8e2d5] hover:border-[#1e2a1b] text-xs font-semibold text-[#1e2a1b] rounded-lg transition"
                                     >
-                                        + Add 3 Rows
+                                        + 3 Rows
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setBulkRows([
                                             { id: `row-${Date.now()}-1`, name: '', price: '', categoryId: bulkDefaultCategory, description: '' }
                                         ])}
-                                        className="px-2 py-1 text-xs font-bold text-gray-400 hover:text-red-500 transition"
+                                        className="px-2 py-1 text-xs font-semibold text-stone-400 hover:text-[#9a2c2c] transition"
                                     >
                                         Reset
                                     </button>
@@ -640,9 +641,9 @@ const AddMenuSection = () => {
                                     {bulkRows.map((row, idx) => (
                                         <div
                                             key={row.id}
-                                            className="grid grid-cols-12 gap-2 p-2.5 bg-gray-50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-700 rounded-lg items-center text-xs"
+                                            className="grid grid-cols-12 gap-2 p-2.5 bg-[#FAF8F3] border border-[#e8e2d5] rounded-xl items-center text-xs"
                                         >
-                                            <div className="col-span-1 text-center font-bold text-gray-400">
+                                            <div className="col-span-1 text-center font-mono font-bold text-stone-400">
                                                 #{idx + 1}
                                             </div>
                                             <div className="col-span-4">
@@ -651,7 +652,7 @@ const AddMenuSection = () => {
                                                     placeholder="Item Name *"
                                                     value={row.name}
                                                     onChange={(e) => handleBulkRowChange(row.id, 'name', e.target.value)}
-                                                    className="w-full px-2.5 py-1.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white outline-none focus:border-orange-500"
+                                                    className="w-full px-2.5 py-1.5 bg-white border border-[#e8e2d5] rounded-lg text-[#1e2a1b] outline-none focus:border-[#c2a677]"
                                                     required={idx === 0}
                                                 />
                                             </div>
@@ -661,7 +662,7 @@ const AddMenuSection = () => {
                                                     placeholder="Price (₹) *"
                                                     value={row.price}
                                                     onChange={(e) => handleBulkRowChange(row.id, 'price', e.target.value)}
-                                                    className="w-full px-2.5 py-1.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white outline-none focus:border-orange-500"
+                                                    className="w-full px-2.5 py-1.5 bg-white border border-[#e8e2d5] rounded-lg text-[#1e2a1b] outline-none focus:border-[#c2a677]"
                                                     required={idx === 0}
                                                 />
                                             </div>
@@ -669,7 +670,7 @@ const AddMenuSection = () => {
                                                 <select
                                                     value={row.categoryId || bulkDefaultCategory}
                                                     onChange={(e) => handleBulkRowChange(row.id, 'categoryId', e.target.value)}
-                                                    className="w-full px-2 py-1.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white outline-none focus:border-orange-500"
+                                                    className="w-full px-2 py-1.5 bg-white border border-[#e8e2d5] rounded-lg text-[#1e2a1b] outline-none focus:border-[#c2a677]"
                                                 >
                                                     <option value="" disabled>Category</option>
                                                     {categories.map(c => (
@@ -683,14 +684,14 @@ const AddMenuSection = () => {
                                                     placeholder="Description"
                                                     value={row.description}
                                                     onChange={(e) => handleBulkRowChange(row.id, 'description', e.target.value)}
-                                                    className="w-full px-2.5 py-1.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white outline-none focus:border-orange-500"
+                                                    className="w-full px-2.5 py-1.5 bg-white border border-[#e8e2d5] rounded-lg text-[#1e2a1b] outline-none focus:border-[#c2a677]"
                                                 />
                                             </div>
                                             <div className="col-span-1 text-center">
                                                 <button
                                                     type="button"
                                                     onClick={() => removeBulkRow(row.id)}
-                                                    className="p-1 text-gray-400 hover:text-red-500 transition"
+                                                    className="p-1 text-stone-400 hover:text-[#9a2c2c] transition"
                                                     title="Remove Row"
                                                 >
                                                     <Trash2 size={14} />
@@ -704,7 +705,7 @@ const AddMenuSection = () => {
                                     <button
                                         type="button"
                                         onClick={() => addBulkRow(1)}
-                                        className="text-xs font-bold text-orange-500 hover:underline flex items-center gap-1"
+                                        className="text-xs font-semibold text-[#1e2a1b] hover:underline flex items-center gap-1"
                                     >
                                         <Plus size={14} /> Add another row
                                     </button>
@@ -712,7 +713,7 @@ const AddMenuSection = () => {
                                     <button
                                         type="submit"
                                         disabled={bulkLoading}
-                                        className={`bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 px-6 rounded-lg transition text-xs flex items-center gap-2 ${
+                                        className={`bg-[#1e2a1b] hover:bg-[#2d3e29] text-white font-semibold py-2.5 px-6 rounded-xl transition text-xs uppercase tracking-wider flex items-center gap-2 shadow-xs ${
                                             bulkLoading ? 'opacity-50' : ''
                                         }`}
                                     >
@@ -730,52 +731,52 @@ const AddMenuSection = () => {
             </div>
 
             {/* ═════════════════════════════════════════════════════════════════════ */}
-            {/* ── BOTTOM SECTION: SHOW THE MENU IN THE UNDER THIS ────────────────── */}
+            {/* ── BOTTOM SECTION: LIVE MENU DIRECTORY ────────────────────────────── */}
             {/* ═════════════════════════════════════════════════════════════════════ */}
-            <section className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 transition-colors space-y-6">
+            <section className="bg-white p-6 sm:p-8 rounded-3xl shadow-xs border border-[#e8e2d5] space-y-6">
                 
                 {/* Section Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100 dark:border-gray-700">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#ece7dc]">
                     <div>
                         <div className="flex items-center gap-3">
-                            <Utensils className="text-orange-500" size={24} />
-                            <h2 className="text-2xl font-bold font-serif text-gray-800 dark:text-white">
+                            <Utensils className="text-[#c2a677]" size={22} />
+                            <h2 className="text-2xl font-bold font-serif text-[#1e2a1b]">
                                 All Live Menu Items
                             </h2>
-                            <span className="px-2.5 py-0.5 bg-orange-100 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 text-xs font-bold rounded-full">
+                            <span className="px-3 py-0.5 bg-[#FAF8F3] border border-[#e8e2d5] text-[#1e2a1b] text-xs font-bold rounded-full">
                                 {menuItems.length} Total
                             </span>
                         </div>
-                        <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
+                        <p className="text-stone-500 text-xs mt-1">
                             Browse, edit, toggle availability, or delete existing dishes across all categories.
                         </p>
                     </div>
 
                     {/* View mode toggle (Grid vs Table) */}
-                    <div className="flex items-center gap-2 self-start md:self-auto">
+                    <div className="flex items-center gap-1.5 self-start md:self-auto bg-[#FAF8F3] p-1 rounded-xl border border-[#e8e2d5]">
                         <button
                             type="button"
                             onClick={() => setViewMode('grid')}
-                            className={`p-2 rounded-lg border text-xs font-semibold transition ${
+                            className={`p-2 rounded-lg text-xs font-semibold transition ${
                                 viewMode === 'grid'
-                                    ? 'bg-orange-500 text-white border-orange-500'
-                                    : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600'
+                                    ? 'bg-[#1e2a1b] text-white shadow-xs'
+                                    : 'text-stone-600 hover:text-[#1e2a1b]'
                             }`}
                             title="Grid View"
                         >
-                            <LayoutGrid size={16} />
+                            <LayoutGrid size={15} />
                         </button>
                         <button
                             type="button"
                             onClick={() => setViewMode('table')}
-                            className={`p-2 rounded-lg border text-xs font-semibold transition ${
+                            className={`p-2 rounded-lg text-xs font-semibold transition ${
                                 viewMode === 'table'
-                                    ? 'bg-orange-500 text-white border-orange-500'
-                                    : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600'
+                                    ? 'bg-[#1e2a1b] text-white shadow-xs'
+                                    : 'text-stone-600 hover:text-[#1e2a1b]'
                             }`}
                             title="Table View"
                         >
-                            <List size={16} />
+                            <List size={15} />
                         </button>
                     </div>
                 </div>
@@ -784,22 +785,22 @@ const AddMenuSection = () => {
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
                     {/* Search */}
                     <div className="md:col-span-5 relative">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={15} />
                         <input
                             type="text"
                             placeholder="Search dishes by name or description..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-xs font-medium text-gray-800 dark:text-white outline-none focus:border-orange-500"
+                            className="w-full pl-9 pr-4 py-2 bg-[#FAF8F3] border border-[#e8e2d5] rounded-xl text-xs font-medium text-[#1e2a1b] outline-none focus:border-[#c2a677]"
                         />
                     </div>
 
                     {/* Stock filter */}
-                    <div className="md:col-span-3">
+                    <div className="md:col-span-4">
                         <select
                             value={availabilityFilter}
                             onChange={(e) => setAvailabilityFilter(e.target.value)}
-                            className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-xs font-medium text-gray-800 dark:text-white outline-none focus:border-orange-500"
+                            className="w-full px-3 py-2 bg-[#FAF8F3] border border-[#e8e2d5] rounded-xl text-xs font-medium text-[#1e2a1b] outline-none focus:border-[#c2a677]"
                         >
                             <option value="all">All Availability (In & Out of Stock)</option>
                             <option value="in_stock">Available / In Stock Only</option>
@@ -808,8 +809,8 @@ const AddMenuSection = () => {
                     </div>
 
                     {/* Stats summary */}
-                    <div className="md:col-span-4 text-right text-xs text-gray-400 font-medium">
-                        Showing <strong className="text-gray-700 dark:text-gray-200">{filteredItems.length}</strong> of {menuItems.length} items
+                    <div className="md:col-span-3 text-right text-xs text-stone-400 font-medium">
+                        Showing <strong className="text-[#1e2a1b]">{filteredItems.length}</strong> of {menuItems.length} items
                     </div>
                 </div>
 
@@ -818,10 +819,10 @@ const AddMenuSection = () => {
                     <button
                         type="button"
                         onClick={() => setCategoryFilter('all')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition ${
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition uppercase tracking-wider ${
                             categoryFilter === 'all'
-                                ? 'bg-orange-500 text-white shadow-xs'
-                                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200'
+                                ? 'bg-[#1e2a1b] text-white shadow-xs'
+                                : 'bg-[#FAF8F3] border border-[#e8e2d5] text-stone-600 hover:text-[#1e2a1b]'
                         }`}
                     >
                         All Categories ({menuItems.length})
@@ -833,10 +834,10 @@ const AddMenuSection = () => {
                                 key={cat._id}
                                 type="button"
                                 onClick={() => setCategoryFilter(cat._id)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition ${
+                                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition uppercase tracking-wider ${
                                     categoryFilter === cat._id
-                                        ? 'bg-orange-500 text-white shadow-xs'
-                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200'
+                                        ? 'bg-[#1e2a1b] text-white shadow-xs'
+                                        : 'bg-[#FAF8F3] border border-[#e8e2d5] text-stone-600 hover:text-[#1e2a1b]'
                                 }`}
                             >
                                 {cat.name} ({count})
@@ -848,14 +849,14 @@ const AddMenuSection = () => {
                 {/* Loading state */}
                 {menuLoading ? (
                     <div className="flex items-center justify-center py-16">
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-orange-500" />
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-[#1e2a1b]" />
                     </div>
                 ) : filteredItems.length === 0 ? (
                     /* Empty State */
-                    <div className="text-center py-16 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
-                        <Utensils className="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600" />
-                        <h3 className="mt-3 text-sm font-bold text-gray-700 dark:text-gray-300">No menu items found</h3>
-                        <p className="mt-1 text-xs text-gray-400 max-w-sm mx-auto">
+                    <div className="text-center py-16 border border-dashed border-[#e8e2d5] rounded-2xl bg-[#FAF8F3]">
+                        <Utensils className="mx-auto h-10 w-10 text-stone-300" />
+                        <h3 className="mt-3 text-sm font-serif font-bold text-[#1e2a1b]">No menu items found</h3>
+                        <p className="mt-1 text-xs text-stone-500 max-w-sm mx-auto">
                             {searchQuery || categoryFilter !== 'all'
                                 ? 'No dishes match your active filter. Try resetting search or selecting another category.'
                                 : 'Add your first menu item above using Single or Multiple mode to get started!'}
@@ -867,14 +868,14 @@ const AddMenuSection = () => {
                         {filteredItems.map(item => (
                             <div
                                 key={item._id}
-                                className={`rounded-xl border transition duration-200 flex flex-col justify-between overflow-hidden bg-white dark:bg-gray-800 ${
+                                className={`rounded-2xl border transition duration-200 flex flex-col justify-between overflow-hidden bg-white shadow-xs ${
                                     item.isAvailable
-                                        ? 'border-gray-200 dark:border-gray-700 hover:border-orange-500/50 shadow-xs'
-                                        : 'border-red-200/50 dark:border-red-900/30 opacity-75'
+                                        ? 'border-[#e8e2d5] hover:border-[#c2a677]'
+                                        : 'border-[#f7cdcd] opacity-75'
                                 }`}
                             >
                                 {/* Image / Thumbnail */}
-                                <div className="w-full h-36 bg-gray-100 dark:bg-gray-700 relative overflow-hidden flex items-center justify-center">
+                                <div className="w-full h-36 bg-[#FAF8F3] relative overflow-hidden flex items-center justify-center border-b border-[#ece7dc]">
                                     {item.image ? (
                                         <img
                                             src={item.image}
@@ -887,23 +888,23 @@ const AddMenuSection = () => {
                                             }}
                                         />
                                     ) : (
-                                        <Utensils className="text-gray-400 dark:text-gray-500" size={32} />
+                                        <Utensils className="text-stone-300" size={28} />
                                     )}
 
                                     {/* Category badge */}
-                                    <span className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold rounded">
+                                    <span className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-xs text-white text-[10px] font-semibold tracking-wider uppercase rounded-md">
                                         {item.category?.name || 'Item'}
                                     </span>
 
                                     {/* Stock status badge */}
                                     <span
-                                        className={`absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold rounded shadow-xs ${
+                                        className={`absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md border ${
                                             item.isAvailable
-                                                ? 'bg-green-600 text-white'
-                                                : 'bg-red-600 text-white'
+                                                ? 'bg-[#eaf3e8] text-[#245220] border-[#cbe4c7]'
+                                                : 'bg-[#fdeeed] text-[#9a2c2c] border-[#f7cdcd]'
                                         }`}
                                     >
-                                        {item.isAvailable ? 'In Stock' : 'Out of Stock'}
+                                        {item.isAvailable ? 'In Stock' : 'Out'}
                                     </span>
                                 </div>
 
@@ -911,51 +912,51 @@ const AddMenuSection = () => {
                                 <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
                                     <div>
                                         <div className="flex items-start justify-between gap-2">
-                                            <h3 className="font-bold text-sm text-gray-900 dark:text-white line-clamp-1">
+                                            <h3 className="font-serif font-bold text-sm text-[#1e2a1b] line-clamp-1">
                                                 {item.name}
                                             </h3>
-                                            <span className="font-bold text-orange-500 text-sm whitespace-nowrap">
+                                            <span className="font-serif font-bold text-sm text-[#1e2a1b] whitespace-nowrap">
                                                 ₹{item.price}
                                             </span>
                                         </div>
                                         {item.description && (
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                                            <p className="text-xs text-stone-500 mt-1 line-clamp-2 leading-relaxed">
                                                 {item.description}
                                             </p>
                                         )}
                                     </div>
 
                                     {/* Actions */}
-                                    <div className="pt-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between gap-2">
+                                    <div className="pt-3 border-t border-[#ece7dc] flex items-center justify-between gap-2">
                                         <button
                                             type="button"
                                             onClick={() => handleToggleAvailability(item)}
-                                            className={`text-[11px] font-bold px-2 py-1 rounded transition ${
+                                            className={`text-[11px] font-semibold px-2 py-1 rounded-lg transition ${
                                                 item.isAvailable
-                                                    ? 'text-gray-500 hover:text-red-500'
-                                                    : 'text-green-600 hover:text-green-700 font-bold'
+                                                    ? 'text-stone-500 hover:text-[#9a2c2c]'
+                                                    : 'text-[#245220] font-bold'
                                             }`}
                                             title="Toggle Availability"
                                         >
-                                            {item.isAvailable ? 'Mark Out' : 'Mark Available'}
+                                            {item.isAvailable ? 'Mark Out' : 'Mark In'}
                                         </button>
 
                                         <div className="flex items-center gap-1">
                                             <button
                                                 type="button"
                                                 onClick={() => openEditModal(item)}
-                                                className="p-1.5 text-gray-500 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-gray-700 rounded transition"
+                                                className="p-1.5 text-stone-400 hover:text-[#1e2a1b] hover:bg-[#FAF8F3] rounded-lg transition"
                                                 title="Edit Dish"
                                             >
-                                                <Edit3 size={15} />
+                                                <Edit3 size={14} />
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => handleDeleteItem(item._id, item.name)}
-                                                className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-gray-700 rounded transition"
+                                                className="p-1.5 text-stone-400 hover:text-[#9a2c2c] hover:bg-[#fdeeed] rounded-lg transition"
                                                 title="Delete Dish"
                                             >
-                                                <Trash2 size={15} />
+                                                <Trash2 size={14} />
                                             </button>
                                         </div>
                                     </div>
@@ -965,9 +966,9 @@ const AddMenuSection = () => {
                     </div>
                 ) : (
                     /* ── TABLE VIEW ───────────────────────────────────────────── */
-                    <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-xl">
-                        <table className="w-full text-left text-xs text-gray-700 dark:text-gray-300">
-                            <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 uppercase text-[10px] font-bold tracking-wider border-b border-gray-200 dark:border-gray-700">
+                    <div className="overflow-x-auto border border-[#e8e2d5] rounded-2xl">
+                        <table className="w-full text-left text-xs text-stone-600">
+                            <thead className="bg-[#FAF8F3] text-stone-500 uppercase text-[10px] font-bold tracking-wider border-b border-[#e8e2d5]">
                                 <tr>
                                     <th className="py-3 px-4">Dish</th>
                                     <th className="py-3 px-4">Category</th>
@@ -977,41 +978,41 @@ const AddMenuSection = () => {
                                     <th className="py-3 px-4 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                            <tbody className="divide-y divide-[#ece7dc]">
                                 {filteredItems.map(item => (
-                                    <tr key={item._id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/20 transition">
-                                        <td className="py-3 px-4 font-bold text-gray-900 dark:text-white flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded bg-gray-100 dark:bg-gray-700 overflow-hidden flex-none flex items-center justify-center">
+                                    <tr key={item._id} className="hover:bg-[#FAF8F3] transition">
+                                        <td className="py-3 px-4 font-bold text-[#1e2a1b] flex items-center gap-3">
+                                            <div className="w-9 h-9 rounded-lg bg-[#FAF8F3] border border-[#e8e2d5] overflow-hidden flex-none flex items-center justify-center">
                                                 {item.image ? (
                                                     <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <Utensils size={14} className="text-gray-400" />
+                                                    <Utensils size={13} className="text-stone-300" />
                                                 )}
                                             </div>
-                                            <span>{item.name}</span>
+                                            <span className="font-serif">{item.name}</span>
                                         </td>
                                         <td className="py-3 px-4">
-                                            <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded font-semibold text-[11px]">
+                                            <span className="px-2 py-0.5 bg-[#FAF8F3] border border-[#e8e2d5] rounded-md font-semibold text-[10px] text-stone-700">
                                                 {item.category?.name || '—'}
                                             </span>
                                         </td>
-                                        <td className="py-3 px-4 font-bold text-orange-500">
+                                        <td className="py-3 px-4 font-bold font-serif text-[#1e2a1b]">
                                             ₹{item.price}
                                         </td>
-                                        <td className="py-3 px-4 text-gray-500 dark:text-gray-400 max-w-xs truncate">
+                                        <td className="py-3 px-4 text-stone-500 max-w-xs truncate">
                                             {item.description || '—'}
                                         </td>
                                         <td className="py-3 px-4">
                                             <button
                                                 type="button"
                                                 onClick={() => handleToggleAvailability(item)}
-                                                className={`px-2 py-0.5 text-[10px] font-bold rounded ${
+                                                className={`px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${
                                                     item.isAvailable
-                                                        ? 'bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-400'
-                                                        : 'bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-400'
+                                                        ? 'bg-[#eaf3e8] text-[#245220] border-[#cbe4c7]'
+                                                        : 'bg-[#fdeeed] text-[#9a2c2c] border-[#f7cdcd]'
                                                 }`}
                                             >
-                                                {item.isAvailable ? 'In Stock' : 'Out of Stock'}
+                                                {item.isAvailable ? 'In Stock' : 'Out'}
                                             </button>
                                         </td>
                                         <td className="py-3 px-4 text-right">
@@ -1019,18 +1020,18 @@ const AddMenuSection = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => openEditModal(item)}
-                                                    className="p-1.5 text-gray-500 hover:text-orange-500 rounded"
+                                                    className="p-1.5 text-stone-400 hover:text-[#1e2a1b] rounded-lg"
                                                     title="Edit"
                                                 >
-                                                    <Edit3 size={15} />
+                                                    <Edit3 size={14} />
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleDeleteItem(item._id, item.name)}
-                                                    className="p-1.5 text-gray-500 hover:text-red-500 rounded"
+                                                    className="p-1.5 text-stone-400 hover:text-[#9a2c2c] rounded-lg"
                                                     title="Delete"
                                                 >
-                                                    <Trash2 size={15} />
+                                                    <Trash2 size={14} />
                                                 </button>
                                             </div>
                                         </td>
@@ -1046,65 +1047,65 @@ const AddMenuSection = () => {
             {/* ── EDIT MENU ITEM MODAL ───────────────────────────────────────────── */}
             {/* ═════════════════════════════════════════════════════════════════════ */}
             {editingItem && (
-                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-lg overflow-hidden">
+                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl shadow-2xl border border-[#e8e2d5] w-full max-w-lg overflow-hidden p-6 sm:p-8">
                         
-                        <div className="p-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                            <h3 className="font-bold text-base text-gray-800 dark:text-white flex items-center gap-2">
-                                <Edit3 size={18} className="text-orange-500" />
-                                Edit Menu Item: {editingItem.name}
+                        <div className="pb-4 border-b border-[#ece7dc] flex items-center justify-between">
+                            <h3 className="font-serif font-bold text-xl text-[#1e2a1b] flex items-center gap-2">
+                                <Edit3 size={18} className="text-[#c2a677]" />
+                                Edit: {editingItem.name}
                             </h3>
                             <button
                                 type="button"
                                 onClick={closeEditModal}
-                                className="text-gray-400 hover:text-gray-600 dark:hover:text-white"
+                                className="text-stone-400 hover:text-stone-700"
                             >
                                 <X size={20} />
                             </button>
                         </div>
 
                         {editMsg.text && (
-                            <div className={`m-5 p-3 rounded-lg text-xs font-semibold ${editMsg.type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white`}>
+                            <div className={`mt-4 p-3 rounded-xl text-xs font-semibold ${editMsg.type === 'success' ? 'bg-[#eaf3e8] text-[#245220] border border-[#cbe4c7]' : 'bg-[#fdeeed] text-[#9a2c2c] border border-[#f7cdcd]'}`}>
                                 {editMsg.text}
                             </div>
                         )}
 
-                        <form onSubmit={handleEditSubmit} className="p-5 space-y-4">
+                        <form onSubmit={handleEditSubmit} className="pt-4 space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-semibold uppercase tracking-wider mb-1 text-gray-600 dark:text-gray-300">
+                                    <label className="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-stone-600">
                                         Item Name *
                                     </label>
                                     <input
                                         type="text"
                                         value={editFormData.name}
                                         onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                                        className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-xs text-gray-900 dark:text-white outline-none focus:border-orange-500"
+                                        className="w-full px-3.5 py-2.5 bg-[#FAF8F3] border border-[#e8e2d5] rounded-xl text-xs text-[#1e2a1b] outline-none focus:border-[#c2a677]"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold uppercase tracking-wider mb-1 text-gray-600 dark:text-gray-300">
+                                    <label className="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-stone-600">
                                         Price (₹) *
                                     </label>
                                     <input
                                         type="number"
                                         value={editFormData.price}
                                         onChange={(e) => setEditFormData({ ...editFormData, price: e.target.value })}
-                                        className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-xs text-gray-900 dark:text-white outline-none focus:border-orange-500"
+                                        className="w-full px-3.5 py-2.5 bg-[#FAF8F3] border border-[#e8e2d5] rounded-xl text-xs text-[#1e2a1b] outline-none focus:border-[#c2a677]"
                                         required
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold uppercase tracking-wider mb-1 text-gray-600 dark:text-gray-300">
+                                <label className="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-stone-600">
                                     Category *
                                 </label>
                                 <select
                                     value={editFormData.categoryId}
                                     onChange={(e) => setEditFormData({ ...editFormData, categoryId: e.target.value })}
-                                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-xs text-gray-900 dark:text-white outline-none focus:border-orange-500"
+                                    className="w-full px-3.5 py-2.5 bg-[#FAF8F3] border border-[#e8e2d5] rounded-xl text-xs text-[#1e2a1b] outline-none focus:border-[#c2a677]"
                                     required
                                 >
                                     {categories.map(c => (
@@ -1114,52 +1115,52 @@ const AddMenuSection = () => {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold uppercase tracking-wider mb-1 text-gray-600 dark:text-gray-300">
+                                <label className="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-stone-600">
                                     Description
                                 </label>
                                 <textarea
                                     value={editFormData.description}
                                     onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
-                                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-xs text-gray-900 dark:text-white outline-none focus:border-orange-500 h-16 resize-none"
+                                    className="w-full px-3.5 py-2.5 bg-[#FAF8F3] border border-[#e8e2d5] rounded-xl text-xs text-[#1e2a1b] outline-none focus:border-[#c2a677] h-16 resize-none leading-relaxed"
                                 />
                             </div>
 
                             <div className="flex items-center gap-3">
-                                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700 dark:text-gray-300">
+                                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-stone-700">
                                     <input
                                         type="checkbox"
                                         checked={editFormData.isAvailable}
                                         onChange={(e) => setEditFormData({ ...editFormData, isAvailable: e.target.checked })}
-                                        className="rounded text-orange-500 focus:ring-orange-500 h-4 w-4"
+                                        className="rounded text-[#1e2a1b] focus:ring-[#c2a677] h-4 w-4"
                                     />
                                     In Stock (Available for ordering)
                                 </label>
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold uppercase tracking-wider mb-1 text-gray-600 dark:text-gray-300">
+                                <label className="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-stone-600">
                                     Change Image (Optional)
                                 </label>
                                 <input
                                     type="file"
                                     accept="image/*"
                                     onChange={(e) => setEditFormData({ ...editFormData, image: e.target.files[0] })}
-                                    className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
+                                    className="w-full text-xs text-stone-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#FAF8F3] file:text-[#1e2a1b] hover:file:bg-[#ece7dc]"
                                 />
                             </div>
 
-                            <div className="pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-2">
+                            <div className="pt-3 border-t border-[#ece7dc] flex justify-end gap-2">
                                 <button
                                     type="button"
                                     onClick={closeEditModal}
-                                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                                    className="px-4 py-2 border border-[#e8e2d5] rounded-xl text-xs font-semibold uppercase tracking-wider text-stone-600 hover:bg-stone-50 transition"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={editLoading}
-                                    className={`px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded text-xs font-bold transition ${
+                                    className={`px-5 py-2 bg-[#1e2a1b] hover:bg-[#2d3e29] text-white rounded-xl text-xs font-semibold uppercase tracking-wider transition shadow-xs ${
                                         editLoading ? 'opacity-50' : ''
                                     }`}
                                 >

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gallery &amp; Visual Journal — OLIV Sanctuary &amp; Lounge</title>
+<!-- Google Fonts: Cormorant Garamond & Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS CDN with plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            oliv: {
+              deep: '#182416',       /* Deepest forest pine/olive */
+              forest: '#223220',     /* Core brand dark olive */
+              moss: '#344b31',       /* Accent moss */
+              muted: '#52664e',      /* Secondary muted green */
+              gold: '#c49a45',       /* Warm brass/gold */
+              goldLight: '#dfb76c',  /* Soft champagne gold */
+              sand: '#f4ede2',       /* Warm card linen */
+              cream: '#faf7f2',      /* Page canvas ivory */
+              lightBorder: '#e8e1d5' /* Subtle divider tone */
+            }
+          },
+          fontFamily: {
+            serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+          },
+          boxShadow: {
+            'soft-card': '0 10px 30px -10px rgba(24, 36, 22, 0.08), 0 4px 6px -2px rgba(24, 36, 22, 0.03)',
+            'hover-card': '0 20px 40px -15px rgba(24, 36, 22, 0.16), 0 8px 12px -4px rgba(24, 36, 22, 0.05)',
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Architectural & Layout Styles -->
+<style data-purpose="custom-arch-shape">
+    /* Architectural Top Arch Frame matching the editorial design */
+    .arch-crop {
+      border-radius: 9999px 9999px 12px 12px;
+      overflow: hidden;
+      aspect-ratio: 4 / 5;
+      position: relative;
+    }
+    
+    /* Smooth transitions for luxury tactile feel */
+    .luxury-transition {
+      transition: all 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+  </style>
+<style data-purpose="scrollbar-and-glow">
+    /* Subtle custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #faf7f2;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c9bfaf;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a89a84;
+    }
+  </style>
+</head>
+<body class="bg-oliv-cream text-oliv-deep font-sans antialiased selection:bg-oliv-forest selection:text-oliv-sand">
+<!-- BEGIN: NavigationBar -->
+<header class="sticky top-0 z-40 bg-oliv-cream/90 backdrop-blur-md border-b border-oliv-lightBorder/70 transition-all duration-300">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+<!-- Left Navigation Items -->
+<nav class="hidden md:flex items-center space-x-7 text-xs font-semibold tracking-widest uppercase text-oliv-forest/80">
+<a class="hover:text-oliv-gold transition-colors duration-200" href="#home">Home</a>
+<a class="hover:text-oliv-gold transition-colors duration-200" href="#menu">Menu</a>
+<a class="inline-flex items-center space-x-1.5 hover:text-oliv-gold transition-colors duration-200" href="#order">
+<span>Your Order</span>
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" title="Active Cart Status"></span>
+</a>
+</nav>
+<!-- Center Brand Identity -->
+<div class="text-center flex-shrink-0">
+<a aria-label="OLIV Sanctuary Homepage" class="inline-block group focus:outline-none" href="#">
+<span class="font-serif text-2xl sm:text-3xl tracking-[0.38em] font-light text-oliv-forest group-hover:text-oliv-moss transition-colors">
+            O L I V
+          </span>
+<span class="block text-[8px] uppercase tracking-[0.45em] text-oliv-gold mt-0.5">Sanctuary &amp; Lounge</span>
+</a>
+</div>
+<!-- Right Navigation & Action Items -->
+<div class="flex items-center space-x-4 sm:space-x-6">
+<a class="hidden sm:inline-block text-xs font-semibold tracking-widest uppercase text-oliv-forest/80 hover:text-oliv-gold transition-colors" href="#reserve">
+          Reserve Now
+        </a>
+<!-- Active Gallery Pill -->
+<a class="px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase bg-oliv-forest text-oliv-cream shadow-sm hover:bg-oliv-moss transition-colors" href="#gallery">
+          Gallery
+        </a>
+<a class="text-xs font-semibold tracking-widest uppercase text-oliv-forest/80 hover:text-oliv-gold transition-colors" href="#inquiry">
+          Inquiry
+        </a>
+</div>
+</div>
+</header>
+<!-- END: NavigationBar -->
+<main>
+<!-- BEGIN: HeaderAndFilterSection -->
+<section class="pt-14 pb-8 sm:pt-18 sm:pb-12 text-center max-w-5xl mx-auto px-4 sm:px-6">
+<!-- Eyebrow Tagline -->
+<div class="inline-flex items-center space-x-2.5 mb-3">
+<span class="w-8 h-[1px] bg-oliv-gold"></span>
+<span class="text-[11px] uppercase tracking-[0.3em] font-medium text-oliv-gold">Moments &amp; Atmosphere</span>
+<span class="w-8 h-[1px] bg-oliv-gold"></span>
+</div>
+<!-- Editorial Headline -->
+<h1 class="font-serif text-3xl sm:text-5xl lg:text-6xl font-normal text-oliv-forest tracking-tight leading-tight sm:leading-none mb-4">
+        Visual Journal &amp; Sanctuary Spaces
+      </h1>
+<!-- Description Subtext -->
+<p class="max-w-2xl mx-auto text-oliv-muted text-sm sm:text-base font-light leading-relaxed mb-8">
+        Immerse yourself in our botanical courtyards, hand-pulled espresso bars, intimate mini-theatre sanctuaries, and bespoke celebration pavilions crafted for tranquil gatherings.
+      </p>
+<!-- Segmented Pill Filter Buttons (Filter bar from reference) -->
+<div aria-label="Gallery category filters" class="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 pt-2" role="tablist">
+<button aria-selected="true" class="gallery-filter-btn px-5 py-2 rounded-full text-xs font-semibold tracking-wider uppercase transition-all duration-300 bg-oliv-forest text-oliv-cream shadow-sm" data-filter="all" onclick="filterGallery('all', this)" type="button">
+          All
+        </button>
+<button class="gallery-filter-btn px-5 py-2 rounded-full text-xs font-medium tracking-wider uppercase transition-all duration-300 bg-white/70 hover:bg-white text-oliv-forest border border-oliv-lightBorder/80 hover:border-oliv-gold" data-filter="ambience" onclick="filterGallery('ambience', this)" type="button">
+          Ambience
+        </button>
+<button class="gallery-filter-btn px-5 py-2 rounded-full text-xs font-medium tracking-wider uppercase transition-all duration-300 bg-white/70 hover:bg-white text-oliv-forest border border-oliv-lightBorder/80 hover:border-oliv-gold" data-filter="food-drinks" onclick="filterGallery('food-drinks', this)" type="button">
+          Food &amp; Drinks
+        </button>
+<button class="gallery-filter-btn px-5 py-2 rounded-full text-xs font-medium tracking-wider uppercase transition-all duration-300 bg-white/70 hover:bg-white text-oliv-forest border border-oliv-lightBorder/80 hover:border-oliv-gold" data-filter="mini-theatre" onclick="filterGallery('mini-theatre', this)" type="button">
+          Mini Theatre
+        </button>
+<button class="gallery-filter-btn px-5 py-2 rounded-full text-xs font-medium tracking-wider uppercase transition-all duration-300 bg-white/70 hover:bg-white text-oliv-forest border border-oliv-lightBorder/80 hover:border-oliv-gold" data-filter="party-halls" onclick="filterGallery('party-halls', this)" type="button">
+          Party Halls
+        </button>
+<button class="gallery-filter-btn px-5 py-2 rounded-full text-xs font-medium tracking-wider uppercase transition-all duration-300 bg-white/70 hover:bg-white text-oliv-forest border border-oliv-lightBorder/80 hover:border-oliv-gold" data-filter="curations" onclick="filterGallery('curations', this)" type="button">
+          Curations
+        </button>
+</div>
+<!-- Dynamic Counter Indicator -->
+<div class="mt-5 text-xs tracking-widest text-oliv-forest/60 uppercase">
+<span class="font-semibold text-oliv-forest" id="gallery-count">12</span> Archways on display
+      </div>
+</section>
+<!-- END: HeaderAndFilterSection -->
+<!-- BEGIN: ArchedPhotoGalleryGrid -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24" id="gallery">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-8" id="gallery-grid">
+<!-- Card 1: Ambience — Bungalow Lounge -->
+<article class="gallery-card group bg-white/60 hover:bg-white p-3.5 sm:p-4 rounded-3xl border border-oliv-lightBorder/70 shadow-soft-card hover:shadow-hover-card luxury-transition flex flex-col cursor-pointer" data-category="ambience" data-subtitle="Atmospheric interior with mood lighting and plush banquettes." data-title="Bungalow Lounge" onclick="openLightbox('Bungalow Lounge', 'AMBIENCE', 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&amp;fit=crop&amp;w=1200&amp;q=80')">
+<div class="arch-crop bg-oliv-forest/5 w-full">
+<img alt="Moody and sophisticated interior lounge lighting" class="w-full h-full object-cover object-center group-hover:scale-105 luxury-transition brightness-95 group-hover:brightness-100" loading="lazy" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgx8xmQJfuCWOqmi8GEAkpPNYp7IX-drYPg7-yuIpcscFACIzDQWydPttl0h2oReKCX3_vPlrjPztkNHGR3_z2NkgIf6aVopo5W9cK5CpR-xfa-SosaG2Wac7anHsNyLPe535LxUpo5YctKO3Tp7CQ0eRNvSA9T4yeaNK_n7SF4mChS3HbPR423zyROlWxAKU3Jb3T9IgEO4J42j4ZY6zpyXu5oi8JTqZ3Ok7xlWbG0MknlBz0Vc4"/>
+<!-- Visual Overlay Action on Hover -->
+<div class="absolute inset-0 bg-oliv-deep/30 opacity-0 group-hover:opacity-100 luxury-transition flex items-center justify-center">
+<span class="p-3 rounded-full bg-white/90 text-oliv-forest shadow-md backdrop-blur-sm transform translate-y-3 group-hover:translate-y-0 transition-transform">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</span>
+</div>
+</div>
+<!-- Card Description Footer -->
+<div class="pt-4 pb-2 text-center">
+<span class="text-[10px] uppercase font-bold tracking-[0.25em] text-oliv-gold block mb-1">Ambience</span>
+<h2 class="font-serif text-xl font-normal text-oliv-forest group-hover:text-oliv-moss transition-colors">Bungalow Lounge</h2>
+</div>
+</article>
+<!-- Card 2: Ambience — Garden Patio Seating -->
+<article class="gallery-card group bg-white/60 hover:bg-white p-3.5 sm:p-4 rounded-3xl border border-oliv-lightBorder/70 shadow-soft-card hover:shadow-hover-card luxury-transition flex flex-col cursor-pointer" data-category="ambience" data-subtitle="Sun-dappled open air dining amidst lush ficus trees." data-title="Garden Patio Seating" onclick="openLightbox('Garden Patio Seating', 'AMBIENCE', 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&amp;fit=crop&amp;w=1200&amp;q=80')">
+<div class="arch-crop bg-oliv-forest/5 w-full">
+<img alt="Sunlit architectural garden seating with natural wooden chairs" class="w-full h-full object-cover object-center group-hover:scale-105 luxury-transition brightness-95 group-hover:brightness-100" loading="lazy" src="https://lh3.googleusercontent.com/aida-public/AB6AXuARvAZTZV1_-4bqDkwPfYVe--BKWGIix5xZZwTZtqc8qo3uzzmtRxY8JwCC-S2AndLqE0euVfbuqzxtD9TwA6yM4lKygahGvGz3WfBAvvpRTGhKvhiPuwNLSbvScLnN3WbBHh22hUccfGKXrRHLmeS4FUCFPWaNW0aczonWHf3oJtC9e-ng62laGYCY_BSgmhD9aZ3a291N1gRVoXBGu1TgnDVRW1zm0w16YCEhoonPQkT_xzDoXGY"/>
+<div class="absolute inset-0 bg-oliv-deep/30 opacity-0 group-hover:opacity-100 luxury-transition flex items-center justify-center">
+<span class="p-3 rounded-full bg-white/90 text-oliv-forest shadow-md backdrop-blur-sm transform translate-y-3 group-hover:translate-y-0 transition-transform">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</span>
+</div>
+</div>
+<div class="pt-4 pb-2 text-center">
+<span class="text-[10px] uppercase font-bold tracking-[0.25em] text-oliv-gold block mb-1">Ambience</span>
+<h2 class="font-serif text-xl font-normal text-oliv-forest group-hover:text-oliv-moss transition-colors">Garden Patio Seating</h2>
+</div>
+</article>
+<!-- Card 3: Food & Drinks — Artisanal Espresso Brew -->
+<article class="gallery-card group bg-white/60 hover:bg-white p-3.5 sm:p-4 rounded-3xl border border-oliv-lightBorder/70 shadow-soft-card hover:shadow-hover-card luxury-transition flex flex-col cursor-pointer" data-category="food-drinks" data-subtitle="Single-origin beans paired with silky organic milk art." data-title="Artisanal Espresso Brew" onclick="openLightbox('Artisanal Espresso Brew', 'FOOD &amp; DRINKS', 'https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&amp;fit=crop&amp;w=1200&amp;q=80')">
+<div class="arch-crop bg-oliv-forest/5 w-full">
+<img alt="Artisanal cappuccinos garnished amidst indoor plants" class="w-full h-full object-cover object-center group-hover:scale-105 luxury-transition brightness-95 group-hover:brightness-100" loading="lazy" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvGZ2RnEXwxu8F2M5OWklt1x43pIevbifXP0QXcKZsGOVGQGNmSdL1mW36SYmQQZMaHljTTMgitj07f1gE4gF6E0FWeNbmoC1MqC0lOZtdORUpdJinlmpgnQ6orJJTdspyi-Fq6ipRX3GkB4W1RvDKGMsptW7dBdYZPX1w2yjlCbZKd_R70M_dssatqIiJwAreHz0FngVS7yovOqgkpgbg4tKEz6BXx_IG9bZz2xaPowhvpb2JlLQ"/>
+<div class="absolute inset-0 bg-oliv-deep/30 opacity-0 group-hover:opacity-100 luxury-transition flex items-center justify-center">
+<span class="p-3 rounded-full bg-white/90 text-oliv-forest shadow-md backdrop-blur-sm transform translate-y-3 group-hover:translate-y-0 transition-transform">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</span>
+</div>
+</div>
+<div class="pt-4 pb-2 text-center">
+<span class="text-[10px] uppercase font-bold tracking-[0.25em] text-oliv-gold block mb-1">Food &amp; Drinks</span>
+<h2 class="font-serif text-xl font-normal text-oliv-forest group-hover:text-oliv-moss transition-colors">Artisanal Espresso Brew</h2>
+</div>
+</article>
+<!-- Card 4: Food & Drinks — Curated Pour-over Coffee -->
+<article class="gallery-card group bg-white/60 hover:bg-white p-3.5 sm:p-4 rounded-3xl border border-oliv-lightBorder/70 shadow-soft-card hover:shadow-hover-card luxury-transition flex flex-col cursor-pointer" data-category="food-drinks" data-subtitle="Shared afternoon coffee tastings with roasts from Ethiopia and Colombia." data-title="Curated Pour-over Coffee" onclick="openLightbox('Curated Pour-over Coffee', 'FOOD &amp; DRINKS', 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&amp;fit=crop&amp;w=1200&amp;q=80')">
+<div class="arch-crop bg-oliv-forest/5 w-full">
+<img alt="Hands holding cups of artisanal latte art together" class="w-full h-full object-cover object-center group-hover:scale-105 luxury-transition brightness-95 group-hover:brightness-100" loading="lazy" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWZKBGtSMMg618stDayh6tGPbpdokTKkBQ7vQc0AjK1hEWDzNtSSsYDWsXj1XzzSfLf7nf3GH0NJifEFL1JeJLRqrntIprxYsXTtjfeILt2RHuEx9a42W_25bZoeRgbnVtnP6ZlMIqyMLq7I1KNTc8Kld_59W3UZesO50HoOumpvNWzbI4L_E00sCjI9SpLEIWGWTAP_YLffJHmgzWjbBWcoJMHyBm-hVcukC5u_3RvVrnWLW9qrs"/>
+<div class="absolute inset-0 bg-oliv-deep/30 opacity-0 group-hover:opacity-100 luxury-transition flex items-center justify-center">
+<span class="p-3 rounded-full bg-white/90 text-oliv-forest shadow-md backdrop-blur-sm transform translate-y-3 group-hover:translate-y-0 transition-transform">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</span>
+</div>
+</div>
+<div class="pt-4 pb-2 text-center">
+<span class="text-[10px] uppercase font-bold tracking-[0.25em] text-oliv-gold block mb-1">Food &amp; Drinks</span>
+<h2 class="font-serif text-xl font-normal text-oliv-forest group-hover:text-oliv-moss transition-colors">Curated Pour-over Coffee</h2>
+</div>
+</article>
+<!-- Card 5: Mini Theatre — Private Screen Seating -->
+<article class="gallery-card group bg-white/60 hover:bg-white p-3.5 sm:p-4 rounded-3xl border border-oliv-lightBorder/70 shadow-soft-card hover:shadow-hover-card luxury-transition flex flex-col cursor-pointer" data-category="mini-theatre" data-subtitle="Exclusive cinematic chamber equipped with bespoke audio and lounge recliners." data-title="Private Screen Seating" onclick="openLightbox('Private Screen Seating', 'MINI THEATRE', 'https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&amp;fit=crop&amp;w=1200&amp;q=80')">
+<div class="arch-crop bg-oliv-forest/5 w-full">
+<img alt="Private media room lounge with intimate screen and cozy surroundings" class="w-full h-full object-cover object-center group-hover:scale-105 luxury-transition brightness-95 group-hover:brightness-100" loading="lazy" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2WaOTdbd2NaCXVql3gqA7kpo6SmydE3QUib5HNBUB2px7stt4kzwp5HZa8QEDeWAdrMql4dmQtPrhzYDE_cKBTimhi0wmu6OgBCYmj4_kWwA55U0ieOXmMx0FDi8b6YzJUGct4u2zYRFr1Iv8_Oo12AJ2Z8GHF9l8wQYarLAa3oDp3rfgKHGaxWm-fws_iOBFm7VqXNhI4PKXzSqb_GGkqWCzQAPyblwWvfMDQ5ryBkJkmZ77qnw"/>
+<div class="absolute inset-0 bg-oliv-deep/30 opacity-0 group-hover:opacity-100 luxury-transition flex items-center justify-center">
+<span class="p-3 rounded-full bg-white/90 text-oliv-forest shadow-md backdrop-blur-sm transform translate-y-3 group-hover:translate-y-0 transition-transform">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</span>
+</div>
+</div>
+<div class="pt-4 pb-2 text-center">
+<span class="text-[10px] uppercase font-bold tracking-[0.25em] text-oliv-gold block mb-1">Mini Theatre</span>
+<h2 class="font-serif text-xl font-normal text-oliv-forest group-hover:text-oliv-moss transition-colors">Private Screen Seating</h2>
+</div>
+</article>
+<!-- Card 6: Mini Theatre — Recliner Cozy Setup -->
+<article class="gallery-card group bg-white/60 hover:bg-white p-3.5 sm:p-4 rounded-3xl border border-oliv-lightBorder/70 shadow-soft-card hover:shadow-hover-card luxury-transition flex flex-col cursor-pointer" data-category="mini-theatre" data-subtitle="Plush cashmere throws, footstools, and private movie curation." data-title="Recliner Cozy Setup" onclick="openLightbox('Recliner Cozy Setup', 'MINI THEATRE', 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&amp;fit=crop&amp;w=1200&amp;q=80')">
+<div class="arch-crop bg-oliv-forest/5 w-full">
+<img alt="Plush recliner and comfortable warm lounge seating space" class="w-full h-full object-cover object-center group-hover:scale-105 luxury-transition brightness-95 group-hover:brightness-100" loading="lazy" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdqnVa5uzPGXlKVqulbBflkZ8lo_v3weC8kIMTgnsS_B-2OEaqgQokElQ6A-yTdxfKY_PMvAmwfT4G416tpevZQXisXneut8-Q8v4s_HiUqzSB7msHnEXULdQkCsH1ScmfvOB4E_Ay2bX2bwcib59aS1VQ0_4OGZvTq_8KtgeD9jyeDhU4Sfgaz2pxln037f6hGN0Jhy0lnKflg0RS6Zv6i2c6_5GH2hRalj2cWsJhUfxnlF4EsFw"/>
+<div class="absolute inset-0 bg-oliv-deep/30 opacity-0 group-hover:opacity-100 luxury-transition flex items-center justify-center">
+<span class="p-3 rounded-full bg-white/90 text-oliv-forest shadow-md backdrop-blur-sm transform translate-y-3 group-hover:translate-y-0 transition-transform">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</span>
+</div>
+</div>
+<div class="pt-4 pb-2 text-center">
+<span class="text-[10px] uppercase font-bold tracking-[0.25em] text-oliv-gold block mb-1">Mini Theatre</span>
+<h2 class="font-serif text-xl font-normal text-oliv-forest group-hover:text-oliv-moss transition-colors">Recliner Cozy Setup</h2>
+</div>
+</article>
+<!-- Card 7: Party Halls — Celebration Table Setup -->
+<article class="gallery-card group bg-white/60 hover:bg-white p-3.5 sm:p-4 rounded-3xl border border-oliv-lightBorder/70 shadow-soft-card hover:shadow-hover-card luxury-transition flex flex-col cursor-pointer" data-category="party-halls" data-subtitle="Solid walnut banquet bar, artisanal cocktail station, and warm filament lights." data-title="Celebration Table Setup" onclick="openLightbox('Celebration Table Setup', 'PARTY HALLS', 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&amp;fit=crop&amp;w=1200&amp;q=80')">
+<div class="arch-crop bg-oliv-forest/5 w-full">
+<img alt="Warm bar and party celebration table with brass fixtures" class="w-full h-full object-cover object-center group-hover:scale-105 luxury-transition brightness-95 group-hover:brightness-100" loading="lazy" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDO6SvPspWzgwrd59TyTwZkkp9jeL0W1-pHO3-ScE3L3_itTU6EfbZCUL-xIvdiIUKKiODs6SN5SSsJ5UUfBHaYUZurO8Xhrcexip_EcADi4s3ptmEjddwmvDl2EIhg1iJl1DhsY_SskdAN9xYRxrQF4eDbPaU0o6WqnniKDq33XQKnSK-mnws8sFFiXTIWv0icZ13Cstw0o_OAh9uMfkHIDIV6oFwkZPG9siHgBJAMCXQ1iY6ZQeQ"/>
+<div class="absolute inset-0 bg-oliv-deep/30 opacity-0 group-hover:opacity-100 luxury-transition flex items-center justify-center">
+<span class="p-3 rounded-full bg-white/90 text-oliv-forest shadow-md backdrop-blur-sm transform translate-y-3 group-hover:translate-y-0 transition-transform">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</span>
+</div>
+</div>
+<div class="pt-4 pb-2 text-center">
+<span class="text-[10px] uppercase font-bold tracking-[0.25em] text-oliv-gold block mb-1">Party Halls</span>
+<h2 class="font-serif text-xl font-normal text-oliv-forest group-hover:text-oliv-moss transition-colors">Celebration Table Setup</h2>
+</div>
+</article>
+<!-- Card 8: Party Halls — Bespoke Event Styling -->
+<article class="gallery-card group bg-white/60 hover:bg-white p-3.5 sm:p-4 rounded-3xl border border-oliv-lightBorder/70 shadow-soft-card hover:shadow-hover-card luxury-transition flex flex-col cursor-pointer" data-category="party-halls" data-subtitle="Celebratory botanical florals and shimmering festive accents." data-title="Bespoke Event Styling" onclick="openLightbox('Bespoke Event Styling', 'PARTY HALLS', 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&amp;fit=crop&amp;w=1200&amp;q=80')">
+<div class="arch-crop bg-oliv-forest/5 w-full">
+<img alt="Floating confetti and celebratory festive party styling" class="w-full h-full object-cover object-center group-hover:scale-105 luxury-transition brightness-95 group-hover:brightness-100" loading="lazy" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvxFUJ7lvdyLkPzU82cFaMzpnUuIchNLcEry1_dD95zpN2UcrP253aTdT17bj7lGtKYQ4f5OLZ0CqbkE40saEWBVY0RJHlugdG8pfHlvQp38MTeJPt1GAxVJw0Uqx6Z6ZJ_K1Jo_gITkLBaRwGo29cP4f6bKkPgdMUFmYnsEo3HfDzm6nDXTB2yKREwEmnlBoAzf16zz2KULchiHOsEdqqCtWTWh3vVqeTFis863hKO4ePCaYKeqk"/>
+<div class="absolute inset-0 bg-oliv-deep/30 opacity-0 group-hover:opacity-100 luxury-transition flex items-center justify-center">
+<span class="p-3 rounded-full bg-white/90 text-oliv-forest shadow-md backdrop-blur-sm transform translate-y-3 group-hover:translate-y-0 transition-transform">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</span>
+</div>
+</div>
+<div class="pt-4 pb-2 text-center">
+<span class="text-[10px] uppercase font-bold tracking-[0.25em] text-oliv-gold block mb-1">Party Halls</span>
+<h2 class="font-serif text-xl font-normal text-oliv-forest group-hover:text-oliv-moss transition-colors">Bespoke Event Styling</h2>
+</div>
+</article>
+<!-- Card 9: Curations — Botanical Pavilion Hall 1 -->
+<article class="gallery-card group bg-white/60 hover:bg-white p-3.5 sm:p-4 rounded-3xl border border-oliv-lightBorder/70 shadow-soft-card hover:shadow-hover-card luxury-transition flex flex-col cursor-pointer" data-category="curations" data-subtitle="Arched skylights, cascading olive greens, and communal banquets." data-title="Botanical Pavilion (Hall 1)" onclick="openLightbox('Botanical Pavilion (Hall 1)', 'CURATIONS', 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&amp;fit=crop&amp;w=1200&amp;q=80')">
+<div class="arch-crop bg-oliv-forest/5 w-full">
+<img alt="Grand arched banquet hall with chandeliers and celebration table decor" class="w-full h-full object-cover object-center group-hover:scale-105 luxury-transition brightness-95 group-hover:brightness-100" loading="lazy" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYTVDr4u_0UAj8zP5ZnQ_xF0mfs9u95DZZoO-DrNJGe2rrWngyxPrUNFe95VXnU_uW6bWqrIEt0IsiwN07BloZnfmKoGxD_HkVmR6CvIBBBVFtYJMSAE0TEsl1nIfOpITs9Czup3NSjXYqWlMtMxAxYaJRdP0ehoLUlrMyEp1MgaRawfk-gRBXYSw3U0hmIRKFOVQF9K2GWIhx4YV709-RkkYQEnA6dvnPrLobjCzozVjMizerelY"/>
+<div class="absolute inset-0 bg-oliv-deep/30 opacity-0 group-hover:opacity-100 luxury-transition flex items-center justify-center">
+<span class="p-3 rounded-full bg-white/90 text-oliv-forest shadow-md backdrop-blur-sm transform translate-y-3 group-hover:translate-y-0 transition-transform">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</span>
+</div>
+</div>
+<div class="pt-4 pb-2 text-center">
+<span class="text-[10px] uppercase font-bold tracking-[0.25em] text-oliv-gold block mb-1">Curations</span>
+<h2 class="font-serif text-xl font-normal text-oliv-forest group-hover:text-oliv-moss transition-colors">Botanical Pavilion (Hall 1)</h2>
+</div>
+</article>
+<!-- Card 10: Curations — Grand Hall 2 Sanctuary -->
+<article class="gallery-card group bg-white/60 hover:bg-white p-3.5 sm:p-4 rounded-3xl border border-oliv-lightBorder/70 shadow-soft-card hover:shadow-hover-card luxury-transition flex flex-col cursor-pointer" data-category="curations" data-subtitle="Double-height gallery space tailored for soirees, live acoustic recitals and launches." data-title="Grand Hall 2" onclick="openLightbox('Grand Hall 2', 'CURATIONS', 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&amp;fit=crop&amp;w=1200&amp;q=80')">
+<div class="arch-crop bg-oliv-forest/5 w-full">
+<img alt="High-ceiling luxury event ballroom and banquet space" class="w-full h-full object-cover object-center group-hover:scale-105 luxury-transition brightness-95 group-hover:brightness-100" loading="lazy" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_9abNAsKnFKSPG9LtP6-H5hgpeg6IAFd5VA6WDswOSrpRfmNlLlCDh9mdseMJ9PjYQkGlbE0QXY81CDpKpoalusRSY2g4MUxlYj-xLRzyFIaNNwQfBBA8MNqRBytQRLlQlOQScIOrvQ4x7cU1vF29p3fEEmSthyJHnn1R2LW8oC2Ah2RggofnFtQhcznBhKJlmwVjTSzTCvrVg7zY0SzX6y6FMznj__9za2MLTi0pVj-QBCr6bkE"/>
+<div class="absolute inset-0 bg-oliv-deep/30 opacity-0 group-hover:opacity-100 luxury-transition flex items-center justify-center">
+<span class="p-3 rounded-full bg-white/90 text-oliv-forest shadow-md backdrop-blur-sm transform translate-y-3 group-hover:translate-y-0 transition-transform">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</span>
+</div>
+</div>
+<div class="pt-4 pb-2 text-center">
+<span class="text-[10px] uppercase font-bold tracking-[0.25em] text-oliv-gold block mb-1">Curations</span>
+<h2 class="font-serif text-xl font-normal text-oliv-forest group-hover:text-oliv-moss transition-colors">Grand Hall 2</h2>
+</div>
+</article>
+<!-- Card 11: Food & Drinks — Hearthside Breads & Provisions -->
+<article class="gallery-card group bg-white/60 hover:bg-white p-3.5 sm:p-4 rounded-3xl border border-oliv-lightBorder/70 shadow-soft-card hover:shadow-hover-card luxury-transition flex flex-col cursor-pointer" data-category="food-drinks" data-subtitle="Fresh 72-hour wild yeast sourdough served with whipped rosemary butter." data-title="Hearth Provisions" onclick="openLightbox('Hearth Provisions', 'FOOD &amp; DRINKS', 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&amp;fit=crop&amp;w=1200&amp;q=80')">
+<div class="arch-crop bg-oliv-forest/5 w-full">
+<img alt="Artisanal baked breads and olive focaccia on linen cloth" class="w-full h-full object-cover object-center group-hover:scale-105 luxury-transition brightness-95 group-hover:brightness-100" loading="lazy" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgRcEBfVKSyYcPKlFbj3xZydbdJEJ2WMfGeXv4i6ZANrGeppYPdkHtrFwUYqGa4zezwhuJ58hQkBgi57GBf5bjbDbhgnpP0kb1BWb0utu8XGzx_DG8Y9FbcDBaNAWYVe2_l5gZce4DMpeQpWOiONxdZK-EqqnwGWOEkfBNSxmJm99EK0Pxtr314vzAoWmohdhVW2Yche8xuQYIT_85HJF-mBgpKe3j38P2zxuhON2oyZyK6H18u7M"/>
+<div class="absolute inset-0 bg-oliv-deep/30 opacity-0 group-hover:opacity-100 luxury-transition flex items-center justify-center">
+<span class="p-3 rounded-full bg-white/90 text-oliv-forest shadow-md backdrop-blur-sm transform translate-y-3 group-hover:translate-y-0 transition-transform">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</span>
+</div>
+</div>
+<div class="pt-4 pb-2 text-center">
+<span class="text-[10px] uppercase font-bold tracking-[0.25em] text-oliv-gold block mb-1">Food &amp; Drinks</span>
+<h2 class="font-serif text-xl font-normal text-oliv-forest group-hover:text-oliv-moss transition-colors">Hearth Provisions</h2>
+</div>
+</article>
+<!-- Card 12: Ambience — Intimate Candlelit Table -->
+<article class="gallery-card group bg-white/60 hover:bg-white p-3.5 sm:p-4 rounded-3xl border border-oliv-lightBorder/70 shadow-soft-card hover:shadow-hover-card luxury-transition flex flex-col cursor-pointer" data-category="ambience" data-subtitle="Romantic evening corners sheltered by olive trees and soft shadows." data-title="Candlelit Nook" onclick="openLightbox('Candlelit Nook', 'AMBIENCE', 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&amp;fit=crop&amp;w=1200&amp;q=80')">
+<div class="arch-crop bg-oliv-forest/5 w-full">
+<img alt="Warm candlelit dining table with elegant glasses and olive branches" class="w-full h-full object-cover object-center group-hover:scale-105 luxury-transition brightness-95 group-hover:brightness-100" loading="lazy" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZAdQdL3jJJOouxRGj2X9zV9jaAdk7PIf1ovWhshAKjZZDRx3eBkvhb6dn8-4zzRy1Ubl1Gv1aChlOKfAqK5qSe4N8JJ05ETPO-3uglgzKQ6tQYeKOUX-5Sd-8cbNnfOKfZMR26oTzRGkycv2PRUYOO2N113uZjaVivHz8S3qjDe_UPPhZsUou5EMUjU7qYHQ5IvsF-VGjqHjg9xEKDWQ3Ll4mpKj780uLkkMlFsa3WbaHWY4WijY"/>
+<div class="absolute inset-0 bg-oliv-deep/30 opacity-0 group-hover:opacity-100 luxury-transition flex items-center justify-center">
+<span class="p-3 rounded-full bg-white/90 text-oliv-forest shadow-md backdrop-blur-sm transform translate-y-3 group-hover:translate-y-0 transition-transform">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</span>
+</div>
+</div>
+<div class="pt-4 pb-2 text-center">
+<span class="text-[10px] uppercase font-bold tracking-[0.25em] text-oliv-gold block mb-1">Ambience</span>
+<h2 class="font-serif text-xl font-normal text-oliv-forest group-hover:text-oliv-moss transition-colors">Candlelit Nook</h2>
+</div>
+</article>
+</div>
+<!-- Bottom Reservation Callout Banner -->
+<div class="mt-20 p-8 sm:p-12 rounded-3xl bg-oliv-forest text-oliv-cream relative overflow-hidden shadow-xl">
+<div class="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-oliv-moss/40 blur-3xl pointer-events-none"></div>
+<div class="max-w-2xl relative z-10">
+<span class="text-xs uppercase tracking-[0.3em] font-semibold text-oliv-gold block mb-2">Host With OLIV</span>
+<h3 class="font-serif text-2xl sm:text-4xl font-normal tracking-tight mb-3">Envisioning a Gathering in These Spaces?</h3>
+<p class="text-oliv-sand/80 text-sm sm:text-base font-light mb-6">
+            Reserve our private cinema, book an entire botanical wing for an evening celebration, or simply schedule an afternoon tea table.
+          </p>
+<div class="flex flex-wrap items-center gap-4">
+<a class="px-7 py-3 rounded-full bg-oliv-gold text-oliv-deep font-semibold text-xs tracking-widest uppercase hover:bg-oliv-goldLight transition-colors" href="#reserve">
+              Book A Reservation
+            </a>
+<a class="px-6 py-3 rounded-full border border-oliv-sand/30 hover:border-oliv-sand text-oliv-sand font-medium text-xs tracking-widest uppercase transition-colors" href="#inquiry">
+              Private Event Inquiries
+            </a>
+</div>
+</div>
+</div>
+</section>
+<!-- END: ArchedPhotoGalleryGrid -->
+</main>
+<!-- BEGIN: LightboxModal -->
+<div aria-label="Image Preview Lightbox" aria-modal="true" class="fixed inset-0 z-50 bg-oliv-deep/90 backdrop-blur-md hidden items-center justify-center p-4 sm:p-8 transition-opacity duration-300" id="lightbox-modal" onclick="closeLightbox(event)" role="dialog">
+<div class="bg-oliv-cream rounded-3xl max-w-4xl w-full overflow-hidden shadow-2xl relative border border-oliv-lightBorder transform transition-transform" onclick="event.stopPropagation()">
+<!-- Close Button -->
+<button aria-label="Close modal" class="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-oliv-forest/80 text-white hover:bg-oliv-forest flex items-center justify-center shadow-md transition-colors" onclick="closeLightbox()" type="button">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<div class="flex flex-col md:flex-row">
+<!-- Lightbox Image Viewport with Arch Accent -->
+<div class="md:w-3/5 bg-oliv-deep flex items-center justify-center max-h-[70vh]">
+<img alt="Modal View" class="max-h-[70vh] w-full object-cover" id="modal-image" src=""/>
+</div>
+<!-- Lightbox Details -->
+<div class="md:w-2/5 p-6 sm:p-8 flex flex-col justify-between bg-oliv-cream">
+<div>
+<span class="text-[10px] uppercase font-bold tracking-[0.25em] text-oliv-gold block mb-2" id="modal-category">Category</span>
+<h3 class="font-serif text-2xl sm:text-3xl text-oliv-forest mb-3 leading-tight" id="modal-title">Title</h3>
+<p class="text-xs sm:text-sm text-oliv-muted leading-relaxed font-light mb-6" id="modal-description">
+              Capturing the serene interplay of architecture, organic olive plantings, and refined hospitality at OLIV.
+            </p>
+</div>
+<div class="pt-6 border-t border-oliv-lightBorder">
+<span class="text-[11px] uppercase tracking-wider text-oliv-forest/60 block mb-3 font-semibold">Experience This Setting</span>
+<a class="block w-full text-center py-3 rounded-full bg-oliv-forest hover:bg-oliv-moss text-oliv-cream text-xs font-semibold tracking-widest uppercase transition-colors" href="#reserve">
+              Reserve This Setting
+            </a>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- END: LightboxModal -->
+<!-- BEGIN: Footer -->
+<footer class="bg-oliv-forest text-oliv-sand border-t border-oliv-moss/50 pt-16 pb-12">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+<!-- Col 1: Brand Info -->
+<div class="md:col-span-1">
+<span class="font-serif text-2xl tracking-[0.35em] font-light text-oliv-cream block mb-3">O L I V</span>
+<p class="text-xs font-light text-oliv-sand/70 leading-relaxed mb-4">
+            A sanctuary blending specialty third-wave coffee, serene botanical courtyards, private screenings, and celebratory halls.
+          </p>
+<p class="text-[11px] text-oliv-gold uppercase tracking-widest">© 2025 OLIV Sanctuary</p>
+</div>
+<!-- Col 2: Sanctuaries -->
+<div>
+<h4 class="text-xs font-semibold uppercase tracking-widest text-oliv-gold mb-4">Sanctuaries</h4>
+<ul class="space-y-2 text-xs font-light text-oliv-sand/80">
+<li><a class="hover:text-oliv-gold transition-colors" href="#gallery">The Courtyard Lounge</a></li>
+<li><a class="hover:text-oliv-gold transition-colors" href="#gallery">Bespoke Mini Theatres</a></li>
+<li><a class="hover:text-oliv-gold transition-colors" href="#gallery">Banquet Halls 1 &amp; 2</a></li>
+<li><a class="hover:text-oliv-gold transition-colors" href="#gallery">Open Sky Terrace</a></li>
+</ul>
+</div>
+<!-- Col 3: Hours & Location -->
+<div>
+<h4 class="text-xs font-semibold uppercase tracking-widest text-oliv-gold mb-4">Hours &amp; Welcome</h4>
+<div class="text-xs font-light text-oliv-sand/80 space-y-1.5">
+<p><span class="text-oliv-sand font-medium">Daily:</span> 08:00 AM – 11:30 PM</p>
+<p><span class="text-oliv-sand font-medium">Mini Theatre:</span> Prior Booking Required</p>
+<p class="pt-2 text-oliv-sand/60">Valet &amp; botanical parking available at main pavilion gate.</p>
+</div>
+</div>
+<!-- Col 4: Newsletter -->
+<div>
+<h4 class="text-xs font-semibold uppercase tracking-widest text-oliv-gold mb-4">Curated Dispatches</h4>
+<p class="text-xs text-oliv-sand/70 mb-3 font-light">Receive invitations to secret tasting sessions and acoustic performances.</p>
+<form class="flex items-center" onsubmit="event.preventDefault(); alert('Thank you for subscribing to OLIV Dispatches.');">
+<input class="w-full text-xs bg-oliv-moss/60 border border-oliv-sand/20 rounded-l-full py-2.5 px-4 text-oliv-cream placeholder:text-oliv-sand/40 focus:ring-1 focus:ring-oliv-gold focus:border-oliv-gold" placeholder="Your email address" required="" type="email"/>
+<button class="px-4 py-2.5 bg-oliv-gold text-oliv-deep hover:bg-oliv-goldLight rounded-r-full text-xs font-bold uppercase transition-colors" type="submit">
+              Join
+            </button>
+</form>
+</div>
+</div>
+<div class="pt-8 border-t border-oliv-moss/70 text-center text-[11px] text-oliv-sand/50 tracking-wider">
+        Designed for mindful pauses, coffee rituals, and cherished company.
+      </div>
+</div>
+</footer>
+<!-- END: Footer -->
+<!-- BEGIN: GalleryInteractivityScript -->
+<script data-purpose="gallery-filter-and-lightbox">
+    // Filtering logic for the categories
+    function filterGallery(category, buttonElement) {
+      // 1. Update filter buttons UI
+      const buttons = document.querySelectorAll('.gallery-filter-btn');
+      buttons.forEach(btn => {
+        btn.classList.remove('bg-oliv-forest', 'text-oliv-cream', 'shadow-sm');
+        btn.classList.add('bg-white/70', 'text-oliv-forest', 'border', 'border-oliv-lightBorder/80');
+        btn.setAttribute('aria-selected', 'false');
+      });
+
+      buttonElement.classList.remove('bg-white/70', 'border', 'border-oliv-lightBorder/80');
+      buttonElement.classList.add('bg-oliv-forest', 'text-oliv-cream', 'shadow-sm');
+      buttonElement.setAttribute('aria-selected', 'true');
+
+      // 2. Filter gallery cards with smooth fade
+      const cards = document.querySelectorAll('.gallery-card');
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const cardCat = card.getAttribute('data-category');
+        if (category === 'all' || cardCat === category) {
+          card.style.display = 'flex';
+          card.style.opacity = '0';
+          setTimeout(() => {
+            card.style.opacity = '1';
+          }, 50);
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      // 3. Update counter text
+      const countEl = document.getElementById('gallery-count');
+      if (countEl) {
+        countEl.textContent = visibleCount;
+      }
+    }
+
+    // Lightbox modal logic
+    function openLightbox(title, category, imageSrc) {
+      const modal = document.getElementById('lightbox-modal');
+      const modalImg = document.getElementById('modal-image');
+      const modalTitle = document.getElementById('modal-title');
+      const modalCategory = document.getElementById('modal-category');
+
+      modalImg.src = imageSrc;
+      modalImg.alt = title;
+      modalTitle.textContent = title;
+      modalCategory.textContent = category;
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox(e) {
+      const modal = document.getElementById('lightbox-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.body.style.overflow = '';
+    }
+
+    // Close on Escape key press
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeLightbox();
+      }
+    });
+  </script>
+<!-- END: GalleryInteractivityScript -->
+</body></html>

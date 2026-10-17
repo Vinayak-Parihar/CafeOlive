@@ -59,6 +59,32 @@ const getDashboardStats = asyncHandler(async (req, res) => {
         return acc;
     }, {});
 
+    // 6. Recent Sales & Orders Timeline for Graphs
+    const timelineAgg = await Order.aggregate([
+        {
+            $group: {
+                _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                orders: { $sum: 1 },
+                revenue: {
+                    $sum: {
+                        $cond: [{ $ne: ["$status", "cancelled"] }, "$totalAmount", 0]
+                    }
+                }
+            }
+        },
+        { $sort: { _id: 1 } }
+    ]);
+
+    const salesTimeline = timelineAgg.slice(-7).map(item => {
+        const d = new Date(item._id);
+        const dayLabel = !isNaN(d.getTime()) ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : item._id;
+        return {
+            date: item._id,
+            label: dayLabel,
+            orders: item.orders,
+            revenue: item.revenue
+        };
+    });
 
     return res.status(200).json(
         new ApiResponce(200, {
@@ -66,7 +92,8 @@ const getDashboardStats = asyncHandler(async (req, res) => {
             todayOrders,
             todayOnlinePayments,
             todayRevenue,
-            statusBreakdown: formattedBreakdown
+            statusBreakdown: formattedBreakdown,
+            salesTimeline
         }, "Dashboard stats fetched successfully")
     );
 });

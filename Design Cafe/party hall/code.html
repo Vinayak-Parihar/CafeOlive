@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OLIV - Curated Sanctuary Party Halls</title>
+<!-- Tailwind CSS CDN with plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts for Playfair Display & Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&amp;family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script data-purpose="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            linen: '#fbf9f3',
+            'cream-surface': '#f5f3ee',
+            'olive-deep': '#1e2a1b',
+            'olive-rich': '#253723',
+            'olive-muted': '#4a5b46',
+            'olive-light': '#e9ede6',
+            'sage-accent': '#8b9d83',
+            'gold-accent': '#c2a677',
+            'gold-subtle': '#e7d8bd',
+            'charcoal-soft': '#2c2d2b'
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            brand: ['Cinzel', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          boxShadow: {
+            'curated': '0 12px 35px -8px rgba(30, 42, 27, 0.08), 0 4px 12px -2px rgba(30, 42, 27, 0.04)',
+            'curated-hover': '0 20px 45px -10px rgba(30, 42, 27, 0.16), 0 8px 18px -4px rgba(30, 42, 27, 0.06)',
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Core Styles -->
+<style data-purpose="base-typography">
+    body {
+      background-color: #fbf9f3;
+      color: #2c2d2b;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .letter-spaced-wide {
+      letter-spacing: 0.18em;
+    }
+    .letter-spaced-widest {
+      letter-spacing: 0.28em;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-linen text-charcoal-soft antialiased selection:bg-olive-deep selection:text-white">
+<!-- BEGIN: MainHeader -->
+<header class="sticky top-0 z-50 bg-linen/95 backdrop-blur-md border-b border-[#ece6d9]" data-purpose="site-navigation-header">
+<div class="max-w-7xl mx-auto px-6 lg:px-12 h-24 flex items-center justify-between">
+<!-- Primary Navigation Links (Left) -->
+<nav aria-label="Main Navigation" class="hidden md:flex items-center space-x-9 text-xs font-medium tracking-widest uppercase text-olive-muted">
+<a class="hover:text-olive-deep transition-colors" href="#home">HOME</a>
+<a class="hover:text-olive-deep transition-colors" href="#menu">MENU</a>
+<a class="inline-flex items-center gap-1.5 hover:text-olive-deep transition-colors" href="#orders">
+          YOUR ORDER
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block" title="Active order item present"></span>
+</a>
+</nav>
+<!-- Center Brand Logo -->
+<div class="text-center">
+<a class="inline-flex flex-col items-center group" href="#">
+<span class="font-serif text-3xl md:text-4xl tracking-[0.32em] font-medium text-olive-deep pl-[0.32em] group-hover:text-olive-rich transition-colors">
+            OLIV
+          </span>
+<span class="text-[9px] tracking-[0.35em] uppercase text-gold-accent font-sans mt-0.5">Sanctuary &amp; Lounge</span>
+</a>
+</div>
+<!-- Action Navigation (Right) -->
+<div class="flex items-center space-x-6">
+<a class="px-6 py-2.5 rounded-full bg-olive-light/90 hover:bg-olive-deep hover:text-white text-olive-deep text-xs font-semibold tracking-wider transition-all duration-300 border border-olive-muted/20" data-purpose="nav-primary-action" href="#reservations">
+          RESERVE NOW
+        </a>
+<nav aria-label="Secondary Navigation" class="hidden md:flex items-center space-x-7 text-xs font-medium tracking-widest uppercase text-olive-muted">
+<a class="hover:text-olive-deep transition-colors" href="#gallery">GALLERY</a>
+<a class="hover:text-olive-deep transition-colors" href="#inquiry">INQUIRY</a>
+</nav>
+</div>
+</div>
+</header>
+<!-- END: MainHeader -->
+<!-- BEGIN: HeroSection -->
+<section class="pt-16 pb-12 md:pt-20 md:pb-16 text-center px-4" data-purpose="page-hero-banner">
+<div class="max-w-3xl mx-auto">
+<!-- Eyebrow text -->
+<span class="inline-block text-[11px] md:text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent mb-4">
+        CURATED SANCTUARY
+      </span>
+<!-- Main Page Title -->
+<h1 class="font-serif text-4xl sm:text-5xl md:text-6xl font-medium tracking-tight text-olive-deep leading-[1.15] mb-5">
+        Reservations &amp; Sanctuaries
+      </h1>
+<div class="w-12 h-[1.5px] bg-gold-accent/70 mx-auto mb-6"></div>
+<!-- Subtitle Description -->
+<p class="text-base sm:text-lg text-olive-muted/90 font-light leading-relaxed max-w-2xl mx-auto">
+        Reserve a dedicated environment for your group. Select your experience, customize preferences, and schedule your celebration or corporate gathering.
+      </p>
+</div>
+</section>
+<!-- END: HeroSection -->
+<!-- BEGIN: SanctuariesGrid -->
+<section class="max-w-7xl mx-auto px-6 lg:px-12 pb-24" data-purpose="hall-cards-catalog">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 xl:gap-10">
+<!-- Sanctuary Card 1: Mini Theatre -->
+<article class="bg-cream-surface rounded-3xl overflow-hidden border border-[#e8e4d8] shadow-curated hover:shadow-curated-hover transition-all duration-300 flex flex-col justify-between" data-purpose="sanctuary-card">
+<div>
+<!-- Thumbnail & Visual Badges -->
+<div class="relative h-60 w-full overflow-hidden bg-stone-200">
+<img alt="Intimate acoustic cinema room with warm lighting" class="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPK3Ycrs7u8avE0mnl7NtfD5AukAcr3CrwjycAarwMtLYpSyWqyBfPuVtpUNlNMB60oHxDRIJsDCLTp52lGhbs9FrXfG_nLGL3GtthMXKSg23jjNLBK65s6Hfw_fkShFHu3FrXf9XUwb0lcPaSTfh-Ezdl2CRi8N3h7ubEIw__kWBBfXUIslckBBuuCZtxolcK8sEOCp82h4looYjvVBZtzgj3pcdz7f5WrBP_O7nq8SIdfD3-fm4"/>
+<!-- Top Floating Badges -->
+<div class="absolute top-4 left-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-olive-deep/85 backdrop-blur-sm text-gold-subtle text-[11px] font-medium tracking-wide">
+<svg class="w-3.5 h-3.5 fill-current" viewbox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>
+                Boutique Suite
+              </span>
+</div>
+<div class="absolute top-4 right-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white/95 text-[11px] font-medium">
+<svg class="w-3.5 h-3.5 text-gold-accent" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                Up to 8 Guests
+              </span>
+</div>
+</div>
+<!-- Card Content Body -->
+<div class="p-7">
+<div class="flex items-baseline justify-between mb-2">
+<h2 class="font-serif text-2xl font-semibold text-olive-deep">Mini Theatre</h2>
+<span class="text-xs font-semibold tracking-wider text-olive-rich/80">From ₹1,200/hr</span>
+</div>
+<p class="text-xs leading-relaxed text-olive-muted mb-6">
+              Intimate private screening lounge with acoustic insulation, 4K projection, plush banquettes, and sommelier service.
+            </p>
+<!-- Feature Bullet Inclusions -->
+<div class="grid grid-cols-2 gap-y-2.5 gap-x-2 text-[11.5px] font-medium text-olive-deep/90 border-t border-[#ece7dc] pt-5">
+<div class="flex items-center gap-1.5">
+<span class="text-gold-accent text-sm font-bold">✓</span> 4K Laser Projection
+              </div>
+<div class="flex items-center gap-1.5">
+<span class="text-gold-accent text-sm font-bold">✓</span> Dedicated Host
+              </div>
+<div class="flex items-center gap-1.5">
+<span class="text-gold-accent text-sm font-bold">✓</span> Custom Soundscape
+              </div>
+<div class="flex items-center gap-1.5">
+<span class="text-gold-accent text-sm font-bold">✓</span> Tasting Menus
+              </div>
+</div>
+</div>
+</div>
+<!-- Action Button -->
+<div class="px-7 pb-7 pt-2">
+<button class="w-full py-3.5 rounded-full bg-olive-deep hover:bg-olive-rich text-white text-xs font-bold tracking-widest uppercase transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-olive-deep" data-purpose="hall-booking-trigger" type="button">
+            CONFIGURE BOOKING
+          </button>
+</div>
+</article>
+<!-- Sanctuary Card 2: Hall 1 (The Grand Atrium Hall) -->
+<article class="bg-cream-surface rounded-3xl overflow-hidden border border-[#d9d3c5] ring-1 ring-gold-accent/40 shadow-curated hover:shadow-curated-hover transition-all duration-300 flex flex-col justify-between relative" data-purpose="sanctuary-card">
+<div>
+<!-- Thumbnail & Visual Badges -->
+<div class="relative h-60 w-full overflow-hidden bg-stone-200">
+<img alt="Bright elegant atrium party hall with grand banquet tables" class="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCJCXTI7cX_FQi0LaFX9BWDxR4rrxuHTBmuWxDK-n-iYODdL_0ZDY0gISxKLTecrLzaT-xBK4bzxyv0eoQEvUTS1y1HOZtgsWqbJXyj_W07yQuT6iPr-OjjpBkU4HDsYVmUwe7QqeuU0aEDbvUYRxb2xCRuSPLYsqEcvvqoPABgynvgBNOc2FnN-qBrhW0yPoxMxFt55NrszrqaIOzh4tgZrR0dkNcIMo4hqDaTu7uxoAZUmGi22I"/>
+<!-- Top Floating Badges -->
+<div class="absolute top-4 left-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-900/90 backdrop-blur-sm text-gold-subtle text-[11px] font-medium tracking-wide">
+<svg class="w-3.5 h-3.5 fill-gold-accent" viewbox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>
+                Most Popular
+              </span>
+</div>
+<div class="absolute top-4 right-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white/95 text-[11px] font-medium">
+<svg class="w-3.5 h-3.5 text-gold-accent" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                Up to 50 Guests
+              </span>
+</div>
+</div>
+<!-- Card Content Body -->
+<div class="p-7">
+<div class="flex items-baseline justify-between mb-2">
+<h2 class="font-serif text-2xl font-semibold text-olive-deep">Hall 1</h2>
+<span class="text-xs font-semibold tracking-wider text-olive-rich/80">From ₹1,500/hr</span>
+</div>
+<p class="text-xs leading-relaxed text-olive-muted mb-6">
+              Sunlit botanical hall with arched ceilings, modular banquet seating, dedicated culinary staging counter, and ambient illumination.
+            </p>
+<!-- Feature Bullet Inclusions -->
+<div class="grid grid-cols-2 gap-y-2.5 gap-x-2 text-[11.5px] font-medium text-olive-deep/90 border-t border-[#ece7dc] pt-5">
+<div class="flex items-center gap-1.5">
+<span class="text-gold-accent text-sm font-bold">✓</span> Up to 50 guests
+              </div>
+<div class="flex items-center gap-1.5">
+<span class="text-gold-accent text-sm font-bold">✓</span> Dedicated host
+              </div>
+<div class="flex items-center gap-1.5">
+<span class="text-gold-accent text-sm font-bold">✓</span> Audio system setup
+              </div>
+<div class="flex items-center gap-1.5">
+<span class="text-gold-accent text-sm font-bold">✓</span> Ambient lighting
+              </div>
+</div>
+</div>
+</div>
+<!-- Action Button -->
+<div class="px-7 pb-7 pt-2">
+<button class="w-full py-3.5 rounded-full bg-olive-deep hover:bg-olive-rich text-white text-xs font-bold tracking-widest uppercase transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-olive-deep" data-purpose="hall-booking-trigger" type="button">
+            CONFIGURE BOOKING
+          </button>
+</div>
+</article>
+<!-- Sanctuary Card 3: Hall 2 (The Heritage Ballroom) -->
+<article class="bg-cream-surface rounded-3xl overflow-hidden border border-[#e8e4d8] shadow-curated hover:shadow-curated-hover transition-all duration-300 flex flex-col justify-between" data-purpose="sanctuary-card">
+<div>
+<!-- Thumbnail & Visual Badges -->
+<div class="relative h-60 w-full overflow-hidden bg-stone-200">
+<img alt="Grand ballroom setting with stone accents and high ceilings" class="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbzrSxYu48yaquxWLDcR-_kW6aPHeHH_5dgjQgTy6Rb_CP_JoBB0uRvkJ1wgBceNRODswOUAjCAYg2ch5LuNR0hYHAHBpu675m_ubDJi4cPCJ4Zyoux_Clcc2u7eaRXtlA3o7xU0p9dZp8tYBtn4d5GTy435pj5EKLJTrjU414LWFNcmGhaJZPt5JHqxR7qR7vL8UAE-kkw25Oui3yLJsQnD3uhHY89yONdz5L373IxUWQS2Unk_g"/>
+<!-- Top Floating Badges -->
+<div class="absolute top-4 left-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-olive-deep/85 backdrop-blur-sm text-gold-subtle text-[11px] font-medium tracking-wide">
+<svg class="w-3.5 h-3.5 fill-current" viewbox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>
+                Grand Celebrations
+              </span>
+</div>
+<div class="absolute top-4 right-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white/95 text-[11px] font-medium">
+<svg class="w-3.5 h-3.5 text-gold-accent" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                Up to 100 Guests
+              </span>
+</div>
+</div>
+<!-- Card Content Body -->
+<div class="p-7">
+<div class="flex items-baseline justify-between mb-2">
+<h2 class="font-serif text-2xl font-semibold text-olive-deep">Hall 2</h2>
+<span class="text-xs font-semibold tracking-wider text-olive-rich/80">From ₹2,800/hr</span>
+</div>
+<p class="text-xs leading-relaxed text-olive-muted mb-6">
+              Spacious double-height banquet hall designed for grand banquets, wedding receptions, and milestone celebrations with private hearth kitchen.
+            </p>
+<!-- Feature Bullet Inclusions -->
+<div class="grid grid-cols-2 gap-y-2.5 gap-x-2 text-[11.5px] font-medium text-olive-deep/90 border-t border-[#ece7dc] pt-5">
+<div class="flex items-center gap-1.5">
+<span class="text-gold-accent text-sm font-bold">✓</span> Up to 100 guests
+              </div>
+<div class="flex items-center gap-1.5">
+<span class="text-gold-accent text-sm font-bold">✓</span> Dedicated host
+              </div>
+<div class="flex items-center gap-1.5">
+<span class="text-gold-accent text-sm font-bold">✓</span> Audio system setup
+              </div>
+<div class="flex items-center gap-1.5">
+<span class="text-gold-accent text-sm font-bold">✓</span> Ambient lighting
+              </div>
+</div>
+</div>
+</div>
+<!-- Action Button -->
+<div class="px-7 pb-7 pt-2">
+<button class="w-full py-3.5 rounded-full bg-olive-deep hover:bg-olive-rich text-white text-xs font-bold tracking-widest uppercase transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-olive-deep" data-purpose="hall-booking-trigger" type="button">
+            CONFIGURE BOOKING
+          </button>
+</div>
+</article>
+</div>
+</section>
+<!-- END: SanctuariesGrid -->
+<!-- BEGIN: BespokeServicesSection -->
+<section class="border-t border-[#ece6d8] bg-[#f7f5ef]/80 py-20 px-6 lg:px-12" data-purpose="inclusions-and-services">
+<div class="max-w-7xl mx-auto">
+<div class="text-center max-w-2xl mx-auto mb-16">
+<span class="text-xs uppercase tracking-[0.25em] font-semibold text-gold-accent">Experience Elevation</span>
+<h3 class="font-serif text-3xl md:text-4xl text-olive-deep font-medium mt-2 mb-4">
+          Bespoke Event Inclusions &amp; Concierge
+        </h3>
+<p class="text-sm text-olive-muted">
+          Every booking comes with our benchmark hospitality provisions, tailored precisely around your group's specifications.
+        </p>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+<!-- Amenity 1 -->
+<div class="p-6 rounded-2xl bg-white/70 border border-[#eae4d5] shadow-sm">
+<div class="w-10 h-10 rounded-full bg-olive-light flex items-center justify-center text-olive-deep mb-5">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path></svg>
+</div>
+<h4 class="font-serif text-lg font-semibold text-olive-deep mb-2">Artisan Culinary Curation</h4>
+<p class="text-xs text-olive-muted leading-relaxed">
+            Direct coordination with our head chef for custom plated dinners, tapas flights, or interactive grazing stations.
+          </p>
+</div>
+<!-- Amenity 2 -->
+<div class="p-6 rounded-2xl bg-white/70 border border-[#eae4d5] shadow-sm">
+<div class="w-10 h-10 rounded-full bg-olive-light flex items-center justify-center text-olive-deep mb-5">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path></svg>
+</div>
+<h4 class="font-serif text-lg font-semibold text-olive-deep mb-2">Floral &amp; Atmosphere Styling</h4>
+<p class="text-xs text-olive-muted leading-relaxed">
+            In-house botanical installations, linen selections, and custom table centerpieces aligned to your theme.
+          </p>
+</div>
+<!-- Amenity 3 -->
+<div class="p-6 rounded-2xl bg-white/70 border border-[#eae4d5] shadow-sm">
+<div class="w-10 h-10 rounded-full bg-olive-light flex items-center justify-center text-olive-deep mb-5">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path></svg>
+</div>
+<h4 class="font-serif text-lg font-semibold text-olive-deep mb-2">Acoustic &amp; AV Mastery</h4>
+<p class="text-xs text-olive-muted leading-relaxed">
+            Wireless microphones, acoustic tuning, projection setups, and background playlist personalization.
+          </p>
+</div>
+<!-- Amenity 4 -->
+<div class="p-6 rounded-2xl bg-white/70 border border-[#eae4d5] shadow-sm">
+<div class="w-10 h-10 rounded-full bg-olive-light flex items-center justify-center text-olive-deep mb-5">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path></svg>
+</div>
+<h4 class="font-serif text-lg font-semibold text-olive-deep mb-2">Dedicated Event Butler</h4>
+<p class="text-xs text-olive-muted leading-relaxed">
+            Personal lead concierge to oversee arrivals, schedule flow, service coordination, and guest requirements.
+          </p>
+</div>
+</div>
+</div>
+</section>
+<!-- END: BespokeServicesSection -->
+<!-- BEGIN: SiteFooter -->
+<footer class="bg-olive-deep text-linen py-14 border-t border-olive-rich/80" data-purpose="site-footer">
+<div class="max-w-7xl mx-auto px-6 lg:px-12 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left">
+<div>
+<span class="font-serif text-2xl tracking-[0.3em] font-medium text-white block">OLIV</span>
+<span class="text-[10px] tracking-widest text-gold-accent/90 uppercase font-sans mt-1 block">Sanctuary • Culinary • Gatherings</span>
+</div>
+<div class="flex items-center space-x-8 text-xs tracking-wider uppercase text-linen/70 font-medium">
+<a class="hover:text-white transition-colors" href="#reservations">Hall Inquiries</a>
+<a class="hover:text-white transition-colors" href="#menu">Bespoke Catering</a>
+<a class="hover:text-white transition-colors" href="#privacy">House Guidelines</a>
+<a class="hover:text-white transition-colors" href="#contact">Concierge Desk</a>
+</div>
+<div class="text-[11px] text-linen/50 tracking-wide">
+        © 2025 OLIV Sanctuary. All rights reserved.
+      </div>
+</div>
+</footer>
+<!-- END: SiteFooter -->
+<!-- UI Interactivity Script -->
+<script data-purpose="booking-button-handler">
+    document.addEventListener('DOMContentLoaded', () => {
+      const bookingButtons = document.querySelectorAll('[data-purpose="hall-booking-trigger"]');
+      bookingButtons.forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          const card = e.target.closest('article');
+          const hallName = card ? card.querySelector('h2')?.textContent : 'Selected Sanctuary';
+          alert(`Initiating booking configuration for: ${hallName}. A concierge scheduler modal will open.`);
+        });
+      });
+    });
+  </script>
+</body></html>

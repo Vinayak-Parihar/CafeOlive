@@ -1,56 +1,54 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Film, PartyPopper, Calendar, ArrowRight, Users } from 'lucide-react';
-import { ManagedImage, mediaUrl, usePublicMedia, usePublicMediaList } from './utils/mediaUtils';
+import { Film, PartyPopper, Users, Sparkles, Check, ArrowRight } from 'lucide-react';
+import { ManagedImage, usePublicMediaList } from './utils/mediaUtils';
 import ReservationLookup from './components/ReservationLookup';
 import Reveal from './components/motion/Reveal';
-import { StaggerGrid, StaggerItem } from './components/motion/StaggerGrid';
 
-const defaultDescMap = {
-    'reservation-theatre': "Screen films, stream matches, host private sessions with complimentary snacks and sit-in food menu.",
-    'reservation-party-hall-1': "Spacious venue crafted for elegant family get-togethers, dinner events, and private birthdays up to 35 guests.",
-    'reservation-party-hall-2': "Cozy hosting space for small groups, creative workspaces, and birthday setups up to 15 guests."
-};
-
-const defaultFeaturesMap = {
-    'reservation-theatre': ["Cozy recliners", "Private catering", "3-hour slots", "Dolby Atmos sound"],
-    'reservation-party-hall-1': ["Dedicated host", "Custom buffet", "Ambient illumination", "Audio system setup"],
-    'reservation-party-hall-2': ["Intimate setup", "High-speed WiFi", "Custom tea & bites", "Smart TV display"]
-};
-
-const defaultSpaces = [
+const DEFAULT_SPACES = [
     {
-        id: "reservation-theatre",
-        title: "Private Mini Theatre",
-        icon: Film,
-        url: "/reservations/booking?zone=theatre",
+        id: 'reservation-theatre',
+        zone: 'theatre',
+        badge: 'Boutique Suite',
+        title: 'Mini Theatre',
+        rateText: 'From ₹1,200/hr',
+        capacityText: 'Up to 8 Guests',
+        url: '/reservations/booking?zone=theatre',
         imageKey: 'reservation-theatre',
-        desc: defaultDescMap['reservation-theatre'],
-        features: defaultFeaturesMap['reservation-theatre']
+        fallbackImage: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&fit=crop&w=1200&q=80',
+        desc: 'Intimate private screening lounge with acoustic insulation, 4K projection, plush recliners, and sit-in food menu.',
+        features: ['4K Laser Projection', 'Dedicated Host', 'Custom Soundscape', 'Tasting Menus']
     },
     {
-        id: "reservation-party-hall-1",
-        title: "Bespoke Party Hall 1",
-        icon: PartyPopper,
-        url: "/reservations/booking?zone=partyHall1",
+        id: 'reservation-party-hall-1',
+        zone: 'partyHall1',
+        badge: 'Most Popular',
+        title: 'Hall 1 (The Grand Atrium)',
+        rateText: 'From ₹1,500/hr',
+        capacityText: 'Up to 50 Guests',
+        url: '/reservations/booking?zone=partyHall1',
         imageKey: 'reservation-party-hall-1',
-        desc: defaultDescMap['reservation-party-hall-1'],
-        features: defaultFeaturesMap['reservation-party-hall-1']
+        fallbackImage: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80',
+        desc: 'Sunlit botanical hall with arched ceilings, modular banquet seating, dedicated culinary staging counter, and ambient illumination.',
+        features: ['Up to 50 guests', 'Dedicated host', 'Audio system setup', 'Ambient lighting']
     },
     {
-        id: "reservation-party-hall-2",
-        title: "Bespoke Party Hall 2",
-        icon: PartyPopper,
-        url: "/reservations/booking?zone=partyHall2",
+        id: 'reservation-party-hall-2',
+        zone: 'partyHall2',
+        badge: 'Grand Celebrations',
+        title: 'Hall 2 (The Heritage Ballroom)',
+        rateText: 'From ₹2,800/hr',
+        capacityText: 'Up to 100 Guests',
+        url: '/reservations/booking?zone=partyHall2',
         imageKey: 'reservation-party-hall-2',
-        desc: defaultDescMap['reservation-party-hall-2'],
-        features: defaultFeaturesMap['reservation-party-hall-2']
+        fallbackImage: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=80',
+        desc: 'Spacious double-height banquet hall designed for grand banquets, wedding receptions, and milestone celebrations with private hearth kitchen.',
+        features: ['Up to 100 guests', 'Full AV setup', 'Private banquet bar', 'Custom staging']
     }
 ];
 
 const ReservationsPage = () => {
     const { mediaList } = usePublicMediaList();
-    const media = usePublicMedia();
 
     const spaces = useMemo(() => {
         const venueItems = (mediaList || []).filter(
@@ -61,124 +59,154 @@ const ReservationsPage = () => {
         );
 
         if (!venueItems.length) {
-            return defaultSpaces;
+            return DEFAULT_SPACES;
         }
 
-        return venueItems.map((item) => {
-            const labelLower = (item.label || '').toLowerCase();
+        return venueItems.map((item, idx) => {
             const keyLower = (item.imageKey || '').toLowerCase();
+            const labelLower = (item.label || '').toLowerCase();
             const isTheatre = keyLower.includes('theatre') || labelLower.includes('theatre');
-            const isHall2 = keyLower.includes('party-hall-2') || labelLower.includes('hall 2') || labelLower.includes('hall-2');
-            const isHall1 = keyLower.includes('party-hall-1') || labelLower.includes('hall 1') || labelLower.includes('hall-1');
+            const isHall2 = keyLower.includes('party-hall-2') || labelLower.includes('hall 2');
 
-            // Format clean title without "Reservation: " prefix
-            const cleanTitle = item.label ? item.label.replace(/^Reservation:\s*/i, '').trim() : 'Bespoke Venue Hall';
+            const cleanTitle = item.label ? item.label.replace(/^Reservation:\s*/i, '').trim() : `Sanctuary Hall ${idx + 1}`;
 
-            let bookingUrl = '/reservations/inquiry';
+            let zone = 'partyHall1';
+            let bookingUrl = `/reservations/booking?zone=partyHall1&venue=${encodeURIComponent(cleanTitle)}`;
+            let badge = 'Private Suite';
+            let rateText = 'From ₹1,500/hr';
+
             if (isTheatre) {
+                zone = 'theatre';
                 bookingUrl = '/reservations/booking?zone=theatre';
+                badge = 'Boutique Suite';
+                rateText = 'From ₹1,200/hr';
             } else if (isHall2) {
+                zone = 'partyHall2';
                 bookingUrl = `/reservations/booking?zone=partyHall2&venue=${encodeURIComponent(cleanTitle)}`;
-            } else if (isHall1) {
-                bookingUrl = `/reservations/booking?zone=partyHall1&venue=${encodeURIComponent(cleanTitle)}`;
-            } else {
-                bookingUrl = `/reservations/booking?zone=partyHall1&venue=${encodeURIComponent(cleanTitle)}`;
+                badge = 'Grand Celebrations';
+                rateText = 'From ₹2,800/hr';
             }
 
-            const desc = item.description || defaultDescMap[item.imageKey] || "Private sanctuary crafted for bespoke gatherings, celebrations, and memorable private dining.";
+            const capStr = item.capacity ? String(item.capacity).trim() : (isTheatre ? 'Up to 8 Guests' : 'Up to 50 Guests');
+            const capacityText = /guests?|people/i.test(capStr) ? capStr : `Up to ${capStr} guests`;
 
-            // Features: if capacity is set, feature it prominently
-            let features = defaultFeaturesMap[item.imageKey] ? [...defaultFeaturesMap[item.imageKey]] : ["Dedicated host", "Audio system setup", "Ambient lighting", "Custom catering"];
-            if (item.capacity) {
-                const capStr = String(item.capacity).trim();
-                const capFormatted = /guests?|people|capacity/i.test(capStr)
-                    ? capStr
-                    : `Up to ${capStr} guests`;
-                features = [capFormatted, ...features.filter((f) => !f.toLowerCase().includes('guest'))].slice(0, 4);
-            }
+            const desc = item.description || (isTheatre
+                ? 'Intimate private screening lounge with acoustic insulation, 4K projection, plush recliners, and sit-in food menu.'
+                : 'Sunlit botanical hall with arched ceilings, modular banquet seating, and ambient illumination.');
+
+            const features = isTheatre
+                ? ['4K Laser Projection', 'Dedicated Host', 'Custom Soundscape', 'Tasting Menus']
+                : [capacityText, 'Dedicated host', 'Audio system setup', 'Ambient lighting'];
 
             return {
-                id: item.imageKey,
+                id: item.imageKey || item._id,
+                zone,
+                badge,
                 title: cleanTitle,
-                icon: isTheatre ? Film : PartyPopper,
+                rateText,
+                capacityText,
                 url: bookingUrl,
                 imageKey: item.imageKey,
                 imageUrl: item.imageUrl,
+                fallbackImage: isTheatre ? DEFAULT_SPACES[0].fallbackImage : DEFAULT_SPACES[1].fallbackImage,
                 desc,
-                capacity: item.capacity,
                 features
             };
         });
     }, [mediaList]);
 
     return (
-        <div className="min-h-screen bg-background pt-32 pb-24 px-6 font-[Montserrat]">
-            <div className="max-w-container-max mx-auto">
-                
-                {/* Header */}
-                <Reveal className="text-center mb-16">
-                    <span className="text-soft-gold text-xs font-semibold uppercase tracking-[0.25em] mb-2 block">Curated Sanctuary</span>
-                    <h1 className="text-4xl md:text-6xl font-[Playfair_Display] text-primary font-bold mb-4">Reservations</h1>
-                    <div className="h-[2px] w-24 bg-soft-gold mx-auto opacity-70"></div>
-                    <p className="mt-6 text-on-surface-variant font-light text-base md:text-lg max-w-2xl mx-auto">
-                        Reserve a dedicated environment for your group. Select your experience, customize preferences, and schedule your booking.
+        <div className="min-h-screen bg-transparent font-sans text-olive-deep antialiased selection:bg-olive-rich selection:text-linen">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24">
+                {/* Hero Header */}
+                <Reveal className="pt-6 pb-12 text-center max-w-3xl mx-auto">
+                    <span className="inline-block text-[11px] md:text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent mb-3">
+                        Curated Sanctuary
+                    </span>
+                    <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-medium tracking-tight text-olive-deep leading-[1.15] mb-5">
+                        Reservations & Sanctuaries
+                    </h1>
+                    <div className="w-12 h-[1.5px] bg-gold-accent/70 mx-auto mb-6" />
+                    <p className="text-base sm:text-lg text-olive-muted font-light leading-relaxed max-w-2xl mx-auto">
+                        Reserve a dedicated environment for your group. Select your experience, customize preferences, and schedule your celebration or corporate gathering.
                     </p>
                 </Reveal>
 
-                {/* Grid */}
-                <StaggerGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-                    {spaces.map(space => {
-                        const Icon = space.icon;
-                        return (
-                            <StaggerItem key={space.id} className="bg-white rounded-lg border border-surface-border overflow-hidden soft-shadow flex flex-col justify-between group">
-                                <div>
-                                    <div className="aspect-video overflow-hidden relative border-b border-surface-border">
-                                        <ManagedImage src={space.imageUrl || mediaUrl(media, space.imageKey)} alt={space.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                        <div className="absolute top-4 left-4 bg-primary/95 text-white p-2.5 rounded-full">
-                                            <Icon size={20} />
-                                        </div>
-                                        {space.capacity && (
-                                            <div className="absolute top-4 right-4 bg-white/95 dark:bg-oliv-dark/95 text-primary text-[11px] font-semibold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1 backdrop-blur-sm">
-                                                <Users size={12} className="text-soft-gold" /> {space.capacity}
+                {/* Sanctuaries Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-16">
+                    {spaces.map((space) => (
+                        <article
+                            key={space.id}
+                            className="bg-cream-surface rounded-3xl overflow-hidden border border-[#e8e4d8] shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+                        >
+                            <div>
+                                {/* Visual Image & Badges */}
+                                <div className="relative h-60 w-full overflow-hidden bg-stone-200">
+                                    <ManagedImage
+                                        src={space.imageUrl || space.fallbackImage}
+                                        alt={space.title}
+                                        className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105"
+                                    />
+                                    {/* Top Badges */}
+                                    <div className="absolute top-4 left-4">
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-olive-deep/85 backdrop-blur-sm text-gold-subtle text-[11px] font-medium tracking-wide">
+                                            <Sparkles className="w-3.5 h-3.5 text-gold-accent" />
+                                            {space.badge}
+                                        </span>
+                                    </div>
+                                    <div className="absolute top-4 right-4">
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white/95 text-[11px] font-medium">
+                                            <Users className="w-3.5 h-3.5 text-gold-accent" />
+                                            {space.capacityText}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Body Content */}
+                                <div className="p-7">
+                                    <div className="flex items-baseline justify-between mb-2">
+                                        <h2 className="font-serif text-2xl font-semibold text-olive-deep">
+                                            {space.title}
+                                        </h2>
+                                        <span className="text-xs font-semibold tracking-wider text-olive-rich/80">
+                                            {space.rateText}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs leading-relaxed text-olive-muted mb-6">
+                                        {space.desc}
+                                    </p>
+
+                                    {/* Feature Inclusions */}
+                                    <div className="grid grid-cols-2 gap-y-2.5 gap-x-2 text-[11.5px] font-medium text-olive-deep/90 border-t border-[#ece7dc] pt-5">
+                                        {space.features.map((feature, fIdx) => (
+                                            <div key={fIdx} className="flex items-center gap-1.5">
+                                                <Check className="w-3.5 h-3.5 text-gold-accent shrink-0" />
+                                                <span>{feature}</span>
                                             </div>
-                                        )}
-                                    </div>
-                                    <div className="p-8 space-y-4">
-                                        <h3 className="text-2xl font-[Playfair_Display] font-bold text-primary">{space.title}</h3>
-                                        <p className="text-on-surface-variant text-xs font-light leading-relaxed">{space.desc}</p>
-                                        <div className="grid grid-cols-2 gap-2 text-[11px] font-semibold text-primary pt-2">
-                                            {space.features.map((f, i) => (
-                                                <span key={i} className="flex items-center gap-1.5">✓ {f}</span>
-                                            ))}
-                                        </div>
+                                        ))}
                                     </div>
                                 </div>
-                                <div className="p-8 pt-0">
-                                    <Link to={space.url} className="btn-stitch-primary w-full text-center inline-block text-xs font-bold uppercase tracking-wider">
-                                        Configure Booking
-                                    </Link>
-                                </div>
-                            </StaggerItem>
-                        );
-                    })}
-                </StaggerGrid>
+                            </div>
 
-                {/* Find Your Reservation */}
-                <ReservationLookup />
+                            {/* Action Button */}
+                            <div className="px-7 pb-7 pt-2">
+                                <Link
+                                    to={space.url}
+                                    className="w-full inline-flex items-center justify-center py-3.5 rounded-full bg-olive-deep hover:bg-olive-rich text-white text-xs font-bold tracking-widest uppercase transition-colors shadow-sm group"
+                                >
+                                    <span>CONFIGURE BOOKING</span>
+                                    <ArrowRight className="w-3.5 h-3.5 ml-2 transition-transform group-hover:translate-x-1" />
+                                </Link>
+                            </div>
+                        </article>
+                    ))}
+                </div>
 
-                {/* Inquiry Card */}
-                <Reveal className="max-w-3xl mx-auto bg-surface-container border border-surface-border p-8 md:p-12 rounded-lg text-center soft-shadow space-y-6">
-                    <Calendar className="mx-auto text-soft-gold" size={40} />
-                    <h3 className="text-2xl font-[Playfair_Display] font-bold text-primary">Need a customized hosting configuration?</h3>
-                    <p className="text-on-surface-variant text-sm font-light leading-relaxed max-w-xl mx-auto">
-                        Speak with our events management team. We assist with custom catering options, custom decorators, and scheduling requests.
-                    </p>
-                    <Link to="/reservations/inquiry" className="btn-stitch-outline inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider bg-white/50">
-                        Send Booking Inquiry <ArrowRight size={14} />
-                    </Link>
-                </Reveal>
-
-            </div>
+                {/* Reservation Lookup Section */}
+                <div className="pt-8 border-t border-[#e8e4d8]">
+                    <ReservationLookup />
+                </div>
+            </main>
         </div>
     );
 };

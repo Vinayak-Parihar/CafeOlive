@@ -59,7 +59,7 @@ const ReservationConfirmationPage = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
+            <div className="min-h-screen bg-transparent flex items-center justify-center">
                 <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-primary"></div>
             </div>
         );
@@ -67,7 +67,7 @@ const ReservationConfirmationPage = () => {
 
     if (!booking) {
         return (
-            <div className="min-h-screen bg-background pt-32 pb-24 px-6 text-center font-[Montserrat]">
+            <div className="min-h-screen bg-transparent pt-32 pb-24 px-6 text-center font-[Montserrat]">
                 <h1 className="text-3xl font-bold font-[Playfair_Display] text-primary">Sanctuary Reservation Not Found</h1>
                 <p className="text-on-surface-variant mt-4 font-light">The reservation code supplied is invalid or could not be located.</p>
                 <Link to="/reservations/booking" className="btn-stitch-primary mt-8 inline-block">Book A Sanctuary</Link>
@@ -76,7 +76,7 @@ const ReservationConfirmationPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-background font-[Montserrat]">
+        <div className="min-h-screen bg-transparent font-[Montserrat]">
             {/* Success Hero Section */}
             <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden px-6 py-16">
                 

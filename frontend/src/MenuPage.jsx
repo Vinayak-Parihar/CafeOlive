@@ -2,7 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Link, useSearchParams, useLocation } from 'react-router-dom';
-import { Coffee, CheckCircle, Search, X, Receipt, Plus, Minus, Loader2, SearchX, User, Phone, Mail, Compass } from 'lucide-react';
+import {
+    Search, ShoppingBag, Plus, Minus, X, Check,
+    Clock, Sparkles, Coffee, AlertCircle, Utensils, Receipt
+} from 'lucide-react';
 import { AnimatePresence, motion as Motion } from 'motion/react';
 import {
     getBillSession,
@@ -19,49 +22,41 @@ const MenuPage = () => {
     const [menuItems, setMenuItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [menuError, setMenuError] = useState('');
-    const [itemsPerRow, setItemsPerRow] = useState(4);
-
     const [cart, setCart] = useState([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
-
-    // Table number from QR code
     const [tableNumber, setTableNumber] = useState('');
-
-    // Active bill session (null if no session cookie)
     const [billSession, setBillSessionState] = useState(null);
 
-    // Read table number from URL (?table=5) and store in localStorage
+    // Read table from query or local storage
     useEffect(() => {
         const tableFromUrl = searchParams.get('table');
         if (tableFromUrl) {
             localStorage.setItem('cafeolive_table', tableFromUrl);
             setTableNumber(tableFromUrl);
         } else {
-            const storedTable = localStorage.getItem('cafeolive_table');
-            if (storedTable) {
-                setTableNumber(storedTable);
-            }
+            const stored = localStorage.getItem('cafeolive_table');
+            if (stored) setTableNumber(stored);
         }
     }, [searchParams]);
 
-    // Read active bill session from cookie on mount & detect if already paid
+    // Check active bill session
     useEffect(() => {
-        const checkSessionStatus = async () => {
-            const session = getBillSession();
-            setBillSessionState(session);
-            if (session?.billSessionId) {
+        const checkSession = async () => {
+            const sess = getBillSession();
+            setBillSessionState(sess);
+            if (sess?.billSessionId) {
                 try {
-                    const res = await axios.get(`/api/order/bill/${session.billSessionId}`);
+                    const res = await axios.get(`/api/order/bill/${sess.billSessionId}`);
                     if (res.data?.data?.sessionPaid) {
-                        const newSession = rotateBillSession();
-                        setBillSessionState(newSession);
+                        const newSess = rotateBillSession();
+                        setBillSessionState(newSess);
                     }
                 } catch {
-                    // Ignore session check errors on initial mount
+                    // Ignore background check errors
                 }
             }
         };
-        checkSessionStatus();
+        checkSession();
     }, []);
 
     // Fetch menu
@@ -69,13 +64,12 @@ const MenuPage = () => {
         const fetchMenu = async () => {
             try {
                 setMenuError('');
-                const response = await axios.get('/api/menu/list');
-                if (response.data.success) {
-                    setMenuItems(response.data.data);
+                const res = await axios.get('/api/menu/list');
+                if (res.data.success) {
+                    setMenuItems(res.data.data);
                 }
-            } catch (error) {
-                console.error("Error fetching menu:", error);
-                setMenuError('We could not load the menu right now. Please try again.');
+            } catch (err) {
+                setMenuError('We could not load the menu right now. Please refresh.');
             } finally {
                 setLoading(false);
             }
@@ -83,34 +77,9 @@ const MenuPage = () => {
         fetchMenu();
     }, []);
 
-    // Fetch admin-configured grid layout for the menu page
-    useEffect(() => {
-        const fetchSettings = async () => {
-            try {
-                const response = await axios.get('/api/home/settings');
-                const configured = Number(response.data?.data?.menuItemsPerRow);
-                if (Number.isInteger(configured) && configured >= 2 && configured <= 10) {
-                    setItemsPerRow(configured);
-                }
-            } catch (error) {
-                console.error("Error fetching menu layout settings:", error);
-            }
-        };
-        fetchSettings();
-    }, []);
+    // Unique categories from items
+    const categories = ['All', ...Array.from(new Set(menuItems.map(i => i.category?.name).filter(Boolean)))];
 
-    // Get unique categories
-    let categories = ['All'];
-    try {
-        if (Array.isArray(menuItems) && menuItems.length > 0) {
-            const cats = new Set(menuItems.map(item => item.category?.name).filter(Boolean));
-            categories = ['All', ...cats];
-        }
-    } catch (e) {
-        console.error("Category Error", e);
-    }
-
-    // Filter items
     const filteredItems = menuItems.filter(item => {
         const matchesSearch = item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -118,13 +87,7 @@ const MenuPage = () => {
         return matchesSearch && matchesCategory;
     });
 
-    const hasActiveFilters = searchQuery.trim() !== '' || selectedCategory !== 'All';
-    const clearFilters = () => {
-        setSearchQuery('');
-        setSelectedCategory('All');
-    };
-
-    // ─── Cart Functions ──────────────────────────────────────────────────────
+    // Cart operations
     const addToCart = (item) => {
         setCart(prev => {
             const existing = prev.find(i => i._id === item._id);
@@ -133,7 +96,6 @@ const MenuPage = () => {
             }
             return [...prev, { ...item, quantity: 1 }];
         });
-        // Note: Do not auto-open the cart drawer so customers can freely select multiple items.
     };
 
     const updateQuantity = (itemId, change) => {
@@ -148,804 +110,501 @@ const MenuPage = () => {
     const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-    // ─── Modal States ──────────────────────────────────────────────────────────
-    const [showOrderModal, setShowOrderModal] = useState(false);
-    const [orderSuccess, setOrderSuccess] = useState(false);
-
-    // Separate from the initial menu-fetch `loading` flag so placing an order
-    // never hides the already-loaded menu grid behind a spinner.
+    // Modals
     const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+    const [orderSuccessModal, setOrderSuccessModal] = useState(false);
+    const [showNameModal, setShowNameModal] = useState(false);
+    const [custName, setCustName] = useState('');
+    const [custPhone, setCustPhone] = useState('');
+    const [custEmail, setCustEmail] = useState('');
+    const [nameError, setNameError] = useState('');
 
-    // Customer Details Prompt (required for first order when no active session)
-    const [showNamePromptModal, setShowNamePromptModal] = useState(false);
-    const [customerNameInput, setCustomerNameInput] = useState('');
-    const [customerPhoneInput, setCustomerPhoneInput] = useState('');
-    const [customerEmailInput, setCustomerEmailInput] = useState('');
-    const [namePromptError, setNamePromptError] = useState('');
-    const [placedCustomerName, setPlacedCustomerName] = useState('');
-
-    // Lock background scroll while the order panel or a modal is open (mobile-safe)
-    useEffect(() => {
-        const shouldLock = isCartOpen || showOrderModal || showNamePromptModal;
-        if (shouldLock) {
-            const previousOverflow = document.body.style.overflow;
-            document.body.style.overflow = 'hidden';
-            return () => { document.body.style.overflow = previousOverflow; };
-        }
-    }, [isCartOpen, showOrderModal, showNamePromptModal]);
-
-    // Escape key closes the order panel / name prompt
-    useEffect(() => {
-        const onKeyDown = (e) => {
-            if (e.key !== 'Escape') return;
-            if (showNamePromptModal) {
-                setShowNamePromptModal(false);
-                setNamePromptError('');
-            } else if (isCartOpen) {
-                setIsCartOpen(false);
-            }
-        };
-        document.addEventListener('keydown', onKeyDown);
-        return () => document.removeEventListener('keydown', onKeyDown);
-    }, [isCartOpen, showNamePromptModal]);
-
-    // ─── Place Order (Session-Based) ───────────────────────────────────────────
-    const placeOrder = useCallback(async (sessionId, custName, custPhone, custEmail) => {
+    const placeOrder = useCallback(async (sessionId, cName, cPhone, cEmail) => {
         setIsPlacingOrder(true);
-        setShowOrderModal(true);
-        setOrderSuccess(false);
-
         try {
             const isAdminRoute = location.pathname.startsWith('/admin');
-            const adminUserStr = localStorage.getItem('adminUser');
-            const adminUser = JSON.parse(adminUserStr || 'null');
-            const isWaiterOrder = isAdminRoute && adminUser && (adminUser.role === 'waiter' || adminUser.role === 'admin');
+            const adminUser = JSON.parse(localStorage.getItem('adminUser') || 'null');
+            const isWaiter = isAdminRoute && adminUser && (adminUser.role === 'waiter' || adminUser.role === 'admin');
 
-            const orderPayload = {
-                items: cart.map(item => ({
-                    _id: item._id,
-                    quantity: item.quantity,
-                    name: item.name
-                })),
+            const payload = {
+                items: cart.map(i => ({ _id: i._id, name: i.name, quantity: i.quantity })),
                 totalAmount: cartTotal,
+                tableNumber: tableNumber || '01',
+                customerName: cName,
+                customerPhone: cPhone,
+                customerEmail: cEmail,
+                orderSource: isWaiter ? 'waiter' : 'customer',
+                ...(isWaiter ? { waiterName: adminUser.fullName || 'Staff', waiterId: adminUser._id } : { billSessionId: sessionId })
             };
 
-            if (tableNumber) orderPayload.tableNumber = tableNumber;
-            if (custName) orderPayload.customerName = custName;
-            if (custPhone) orderPayload.customerPhone = custPhone;
-            if (custEmail) orderPayload.customerEmail = custEmail;
-
-            if (isWaiterOrder) {
-                orderPayload.orderSource = 'waiter';
-                orderPayload.waiterName = adminUser.fullName || adminUser.username || 'Staff';
-                orderPayload.waiterId = adminUser._id;
-            } else {
-                orderPayload.orderSource = 'customer';
-                orderPayload.billSessionId = sessionId;
-            }
-
-            const response = await axios.post('/api/order/place', orderPayload);
-
-            if (response.data.success) {
-                setOrderSuccess(true);
+            const res = await axios.post('/api/order/place', payload);
+            if (res.data.success) {
                 setCart([]);
-                setCustomerNameInput('');
-                setCustomerPhoneInput('');
-                setCustomerEmailInput('');
-                setPlacedCustomerName(custName);
+                setIsCartOpen(false);
+                setOrderSuccessModal(true);
                 setBillSessionState(getBillSession());
-
-                setTimeout(() => {
-                    setShowOrderModal(false);
-                    setIsCartOpen(false);
-                    setOrderSuccess(false);
-                }, 3000);
             } else {
-                toast.error(response.data?.message || "We couldn't place your order. Please try again.");
-                setShowOrderModal(false);
+                toast.error(res.data?.message || 'Could not place order.');
             }
         } catch (error) {
             const errorMsg = error.response?.data?.message || '';
-
-            // Handle scenario where previous bill session was already paid (e.g. cash settlement or previous visit)
-            if (
-                error.response?.status === 400 &&
-                (errorMsg.includes("already been paid") || errorMsg.includes("session"))
-            ) {
+            if (error.response?.status === 400 && (errorMsg.includes('paid') || errorMsg.includes('session'))) {
                 const newSession = rotateBillSession();
                 setBillSessionState(newSession);
-
-                try {
-                    const retryPayload = {
-                        items: cart.map(item => ({
-                            _id: item._id,
-                            quantity: item.quantity,
-                            name: item.name
-                        })),
-                        totalAmount: cartTotal,
-                        orderSource: 'customer',
-                        billSessionId: newSession.billSessionId,
-                        customerName: newSession.customerName || custName,
-                        customerPhone: newSession.customerPhone || custPhone,
-                        customerEmail: newSession.customerEmail || custEmail
-                    };
-                    if (tableNumber) retryPayload.tableNumber = tableNumber;
-
-                    const retryResponse = await axios.post('/api/order/place', retryPayload);
-
-                    if (retryResponse.data.success) {
-                        setOrderSuccess(true);
-                        setCart([]);
-                        setCustomerNameInput('');
-                        setCustomerPhoneInput('');
-                        setCustomerEmailInput('');
-                        setPlacedCustomerName(retryPayload.customerName);
-                        setBillSessionState(getBillSession());
-
-                        setTimeout(() => {
-                            setShowOrderModal(false);
-                            setIsCartOpen(false);
-                            setOrderSuccess(false);
-                        }, 3000);
-                        return;
-                    }
-                } catch {
-                    // Fall through to generic error toast below
-                }
+                toast('Rotated to fresh session. Please press Place Order again.');
+            } else {
+                toast.error(errorMsg || 'Failed to place order.');
             }
-
-            setShowOrderModal(false);
-            toast.error(error.response?.data?.message || "We couldn't place your order. Please try again.");
         } finally {
             setIsPlacingOrder(false);
         }
     }, [cart, cartTotal, tableNumber, location.pathname]);
 
-    // ─── Handle "Confirm Order" click ──────────────────────────────────────────
     const handlePlaceOrderClick = () => {
         if (cart.length === 0) return;
-
-        const isAdminRoute = location.pathname.startsWith('/admin');
-        const adminUserStr = localStorage.getItem('adminUser');
-        const adminUser = JSON.parse(adminUserStr || 'null');
-        const isWaiterOrder = isAdminRoute && adminUser && (adminUser.role === 'waiter' || adminUser.role === 'admin');
-
-        if (isWaiterOrder) {
-            placeOrder(null, '');
-            return;
-        }
-
-        const existingSession = getBillSession();
-
-        if (existingSession?.billSessionId) {
-            placeOrder(
-                existingSession.billSessionId,
-                existingSession.customerName || '',
-                existingSession.customerPhone || '',
-                existingSession.customerEmail || ''
-            );
+        const sess = getBillSession();
+        if (sess?.billSessionId) {
+            placeOrder(sess.billSessionId, sess.customerName || '', sess.customerPhone || '', sess.customerEmail || '');
         } else {
-            setShowNamePromptModal(true);
+            setShowNameModal(true);
         }
     };
 
-    // ─── Handle Customer Details Submission (first customer order) ────────────
-    const handleNameSubmit = () => {
-        const trimmedName = customerNameInput.trim();
-        const trimmedPhone = customerPhoneInput.trim();
-        const trimmedEmail = customerEmailInput.trim();
-
+    const handleNameSubmit = (e) => {
+        e.preventDefault();
+        const trimmedName = custName.trim();
+        const trimmedPhone = custPhone.trim();
         if (!trimmedName) {
-            setNamePromptError('Please enter your full name.');
+            setNameError('Please enter your name');
             return;
         }
-        if (trimmedName.length > 50) {
-            setNamePromptError('Name must be 50 characters or less.');
+        if (!trimmedPhone || trimmedPhone.length < 10) {
+            setNameError('Please enter a valid 10-digit phone number');
             return;
         }
-        if (!trimmedPhone) {
-            setNamePromptError('Please enter your phone number.');
-            return;
-        }
-        const cleanPhone = trimmedPhone.replace(/[\s\-\(\)\+]/g, '');
-        if (cleanPhone.length < 10) {
-            setNamePromptError('Please enter a valid 10-digit phone number.');
-            return;
-        }
-        if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-            setNamePromptError('Please enter a valid email address or leave it empty.');
-            return;
-        }
-
-        setNamePromptError('');
+        setNameError('');
         const newSessionId = generateSessionId();
-        setBillSession(newSessionId, trimmedName, trimmedPhone, trimmedEmail);
+        setBillSession(newSessionId, trimmedName, trimmedPhone, custEmail.trim());
         setBillSessionState(getBillSession());
-
-        setShowNamePromptModal(false);
-        placeOrder(newSessionId, trimmedName, trimmedPhone, trimmedEmail);
+        setShowNameModal(false);
+        placeOrder(newSessionId, trimmedName, trimmedPhone, custEmail.trim());
     };
 
-    // ─────────────────────────────────────────────────────────────────────────
     return (
-        <div className="min-h-screen bg-background font-[Montserrat] pt-10 md:pt-14 pb-24 px-4 sm:px-6 relative">
-            <style>{`
-                .menu-grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); }
-                @media (min-width: 640px) { .menu-grid { grid-template-columns: repeat(${Math.min(2, itemsPerRow)}, minmax(0, 1fr)); } }
-                @media (min-width: 1024px) { .menu-grid { grid-template-columns: repeat(${Math.min(3, itemsPerRow)}, minmax(0, 1fr)); } }
-                @media (min-width: 1280px) { .menu-grid { grid-template-columns: repeat(${itemsPerRow}, minmax(0, 1fr)); } }
-                .menu-card-footer { container-type: inline-size; container-name: menu-card-footer; }
-                .add-to-order-icon { display: none; }
-                @container menu-card-footer (max-width: 230px) {
-                    .add-to-order-label { display: none; }
-                    .add-to-order-icon { display: inline-flex; }
-                }
-            `}</style>
+        <div className="min-h-screen bg-transparent text-olive-deep font-sans antialiased selection:bg-olive-rich selection:text-linen">
+            {/* Top Ambient Harvest Ticker */}
+            <aside className="w-full bg-[#263316] text-[#d4eab7] py-2.5 px-4 overflow-hidden relative shadow-sm">
+                <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 text-xs">
+                    <div className="flex items-center gap-2 shrink-0">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                        <span className="uppercase tracking-widest font-semibold text-white">Live Harvest Notice</span>
+                    </div>
+                    <div className="hidden sm:block text-center font-light tracking-wider text-[#d8e9be] truncate">
+                        Morning Levain Drops: <strong>7:00 AM & 1:00 PM</strong> • Single-Estate Geisha Roasts • Stoneground Heritage Flour
+                    </div>
+                    <div className="flex items-center gap-2 text-xs font-medium text-stone-300 shrink-0">
+                        <Clock size={13} className="text-gold-accent" />
+                        <span>Hearth Live: 7:30 AM – 9:00 PM</span>
+                    </div>
+                </div>
+            </aside>
 
-            {/* Cart backdrop */}
-            <AnimatePresence>
-                {isCartOpen && (
-                    <Motion.div
-                        className="fixed inset-0 bg-primary/20 backdrop-blur-sm z-40"
-                        onClick={() => setIsCartOpen(false)}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                    />
-                )}
-            </AnimatePresence>
+            {/* Editorial Hero Section */}
+            <section className="w-full bg-cream-surface/70 backdrop-blur-[0.5px] px-6 lg:px-12 py-12 lg:py-16 border-b border-[#e8e4d8]">
+                <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
+                    <div className="lg:col-span-8 space-y-4">
+                        <div className="inline-flex items-center gap-2 text-gold-accent text-xs uppercase tracking-[0.25em] font-semibold">
+                            <Sparkles size={14} />
+                            Organic Sophistication • Atelier Provisions
+                        </div>
+                        <h1 className="font-serif text-3xl sm:text-5xl font-medium text-olive-deep tracking-tight leading-tight">
+                            Curated Culinary, Hearth & Roastery Offerings
+                        </h1>
+                        <p className="text-olive-muted text-sm sm:text-base max-w-2xl font-light leading-relaxed">
+                            Rooted in ancient soil stewardship and culinary stillness. Each day at OLIV unfolds around 72-hour cold-fermented levain pulled warm from our stone hearth, cold-pressed estate olive oils, and zero-emission micro-lot coffees.
+                        </p>
 
-            {/* ── ORDER PANEL ─────────────────────────────────────────────── */}
-            <div
-                role="dialog"
-                aria-modal="true"
-                aria-label="Your Order"
-                aria-hidden={!isCartOpen}
-                inert={!isCartOpen || undefined}
-                className={`fixed inset-y-0 right-0 w-full md:w-[420px] bg-surface-container-lowest border-l border-surface-border shadow-2xl z-50 flex flex-col transition-transform duration-500 ease-in-out ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}
-            >
-                <div className="p-6 md:p-8 border-b border-surface-border flex justify-between items-center bg-surface-container-low">
-                    <div className="flex items-center gap-3">
-                        <Coffee className="text-primary" size={22} />
-                        <div>
-                            <h2 className="text-xl font-[Playfair_Display] font-bold text-primary leading-tight">Your Order</h2>
-                            {cartItemCount > 0 && (
-                                <p className="text-[11px] text-on-surface-variant font-medium">{cartItemCount} item{cartItemCount !== 1 ? 's' : ''} selected</p>
-                            )}
+                        {/* Sourcing Metrics */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3">
+                            <div className="bg-white p-3.5 rounded-2xl shadow-sm border border-[#e8e4d8]">
+                                <span className="font-serif text-2xl font-bold text-olive-deep block">72 hr</span>
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-olive-muted block mt-0.5">Cold Ferment Levain</span>
+                            </div>
+                            <div className="bg-white p-3.5 rounded-2xl shadow-sm border border-[#e8e4d8]">
+                                <span className="font-serif text-2xl font-bold text-olive-deep block">&lt;0.18%</span>
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-olive-muted block mt-0.5">Free Acidity Extra Virgin</span>
+                            </div>
+                            <div className="bg-white p-3.5 rounded-2xl shadow-sm border border-[#e8e4d8]">
+                                <span className="font-serif text-2xl font-bold text-olive-deep block">88+ SCA</span>
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-olive-muted block mt-0.5">Specialty Micro-Lots</span>
+                            </div>
+                            <div className="bg-white p-3.5 rounded-2xl shadow-sm border border-[#e8e4d8]">
+                                <span className="font-serif text-2xl font-bold text-olive-deep block">100%</span>
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-olive-muted block mt-0.5">Regenerative Flour</span>
+                            </div>
                         </div>
                     </div>
-                    <button
-                        onClick={() => setIsCartOpen(false)}
-                        aria-label="Close order panel"
-                        className="text-on-surface-variant hover:text-primary transition p-2 bg-surface-container rounded-full"
-                    >
-                        <X size={18} />
-                    </button>
-                </div>
 
-                {/* Active session banner */}
-                {billSession && (
-                    <div className="px-6 md:px-8 py-3 bg-primary/5 border-b border-primary/10 flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                            <div className="w-2 h-2 bg-primary rounded-full animate-pulse shrink-0" />
-                            <span className="text-xs font-semibold text-primary truncate">
-                                Active Bill · {billSession.customerName || `Table ${tableNumber}`}
+                    {/* Quick Order / Table status */}
+                    <div className="lg:col-span-4 bg-white p-6 rounded-3xl border border-[#e8e4d8] shadow-sm space-y-4">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs uppercase tracking-wider font-bold text-olive-muted">Table Service</span>
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-olive-light text-olive-deep text-xs font-semibold">
+                                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+                                Table {tableNumber || '01'} Active
                             </span>
                         </div>
-                        <Link
-                            to="/bill"
-                            className="text-[10px] font-bold uppercase tracking-wider text-primary hover:underline flex items-center gap-1 shrink-0"
-                            onClick={() => setIsCartOpen(false)}
-                        >
-                            <Receipt size={11} /> View Bill
-                        </Link>
-                    </div>
-                )}
-
-                <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-4">
-                    {cart.length === 0 ? (
-                        <div className="text-center text-on-surface-variant mt-16 flex flex-col items-center space-y-4">
-                            <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center">
-                                <Coffee size={30} className="text-soft-gold" />
-                            </div>
-                            <p className="text-base font-semibold text-primary">Your order is empty</p>
-                            <p className="text-xs text-on-surface-variant max-w-[220px]">Add something from the menu to begin your visit.</p>
-                        </div>
-                    ) : (
-                        cart.map(item => (
-                            <div key={item._id} className="flex justify-between items-center gap-3 bg-surface-container-low border border-surface-border p-4 rounded-lg soft-shadow">
-                                <div className="flex-1 min-w-0">
-                                    <h4 className="font-semibold text-primary text-sm line-clamp-1">{item.name}</h4>
-                                    <p className="text-xs text-on-surface-variant mt-1">₹{item.price} × {item.quantity}</p>
-                                </div>
-                                <div className="flex items-center gap-2 shrink-0">
-                                    <div className="flex items-center gap-2.5 bg-white p-1 rounded-full border border-surface-border">
-                                        <button
-                                            onClick={() => updateQuantity(item._id, -1)}
-                                            aria-label={`Decrease quantity of ${item.name}`}
-                                            className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-primary hover:bg-surface-container active:scale-90 transition"
-                                        >
-                                            <Minus size={14} />
-                                        </button>
-                                        <span className="font-bold text-xs text-primary w-4 text-center" aria-live="polite">{item.quantity}</span>
-                                        <button
-                                            onClick={() => updateQuantity(item._id, 1)}
-                                            aria-label={`Increase quantity of ${item.name}`}
-                                            className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center hover:brightness-110 active:scale-90 transition"
-                                        >
-                                            <Plus size={14} />
-                                        </button>
-                                    </div>
-                                    <span className="text-sm font-bold text-primary w-14 text-right shrink-0">₹{item.price * item.quantity}</span>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-
-                <div className="p-6 md:p-8 border-t border-surface-border bg-surface-container-low space-y-4 shrink-0" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
-                    <div className="flex justify-between items-center">
-                        <span className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider">Total</span>
-                        <span className="text-3xl font-[Playfair_Display] font-bold text-primary">₹{cartTotal}</span>
-                    </div>
-
-                    <button
-                        onClick={handlePlaceOrderClick}
-                        className="w-full btn-stitch-primary py-4 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2"
-                        disabled={cart.length === 0 || isPlacingOrder}
-                    >
-                        {isPlacingOrder ? (
-                            <>
-                                <Loader2 size={16} className="animate-spin" /> Processing...
-                            </>
-                        ) : (
-                            billSession ? 'Add to My Bill' : 'Confirm Order'
-                        )}
-                    </button>
-
-                    {billSession && (
-                        <Link
-                            to="/bill"
-                            onClick={() => setIsCartOpen(false)}
-                            className="w-full flex items-center justify-center gap-2 py-3 border border-primary/30 text-primary hover:bg-primary/5 font-semibold text-xs uppercase tracking-wider rounded-lg transition"
-                        >
-                            <Receipt size={14} /> View & Pay My Bill
-                        </Link>
-                    )}
-                </div>
-            </div>
-
-            {/* ── Floating Order Summary Bar (multi-item selection) ──────── */}
-            {!isCartOpen && cart.length > 0 && (
-                <div
-                    className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[94%] max-w-lg bg-primary text-white p-3 px-5 rounded-2xl shadow-2xl flex items-center justify-between border border-soft-gold/30 backdrop-blur-md transition-all duration-300"
-                    style={{ bottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}
-                >
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center font-bold text-soft-gold shrink-0">
-                            <Coffee size={20} />
-                        </div>
-                        <div>
-                            <p className="text-xs font-bold uppercase tracking-wider text-white">
-                                {cartItemCount} {cartItemCount === 1 ? 'Item' : 'Items'} Selected
-                            </p>
-                            <p className="text-base font-bold text-soft-gold font-[Playfair_Display]">
-                                ₹{cartTotal}
-                            </p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => setIsCartOpen(true)}
-                        className="bg-white text-primary hover:bg-soft-gold/20 hover:text-white py-2.5 px-5 text-xs font-bold uppercase tracking-wider rounded-xl shadow transition active:scale-95 flex items-center gap-2 shrink-0"
-                    >
-                        <span>View Order</span>
-                        <span>→</span>
-                    </button>
-                </div>
-            )}
-
-            {/* ── Floating "View Bill" button (when cart is empty but active session exists) */}
-            {!isCartOpen && cart.length === 0 && billSession && (
-                <Link
-                    to="/bill"
-                    className="fixed right-6 md:right-8 bg-white border border-primary text-primary p-4 px-6 rounded-full shadow-xl z-30 flex items-center gap-3 hover:bg-primary hover:text-white transition-all duration-300 transform hover:scale-105"
-                    style={{ bottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
-                >
-                    <Receipt size={18} />
-                    <span className="font-bold text-xs uppercase tracking-wider">View My Bill</span>
-                </Link>
-            )}
-
-            {/* ── MAIN CONTENT ───────────────────────────────────────────── */}
-            <div className="max-w-container-max mx-auto">
-                <div className="relative text-center mb-12 md:mb-14 overflow-hidden">
-                    <div aria-hidden="true" className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/3 w-[420px] h-[420px] rounded-full bg-soft-gold/10 blur-3xl pointer-events-none -z-10" />
-                    <span className="text-soft-gold text-xs font-semibold uppercase tracking-[0.3em] mb-3 block">Taste The Calm</span>
-                    <h1 className="text-4xl md:text-6xl font-[Playfair_Display] text-primary font-bold mb-4">The Menu</h1>
-                    <div className="h-[2px] w-20 bg-soft-gold mx-auto opacity-70" />
-                    <p className="mt-6 text-on-surface-variant font-light text-base md:text-lg max-w-2xl mx-auto whitespace-nowrap">
-                        Organic coffees, artisan teas, and slow-crafted plates — order at your own pace.
-                    </p>
-                    <div className="flex flex-wrap justify-center gap-2 mt-5">
-                        {tableNumber && (
-                            <div className="inline-block bg-primary/5 border border-primary/20 text-primary text-xs font-semibold px-4 py-1.5 rounded-full uppercase tracking-wider">
-                                Dining at Table: {tableNumber}
-                            </div>
-                        )}
-                        {billSession && (
-                            <div className="inline-flex items-center gap-1.5 bg-primary/5 border border-primary/20 text-primary text-xs font-semibold px-4 py-1.5 rounded-full uppercase tracking-wider">
-                                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
-                                Active Bill · {billSession.customerName}
-                            </div>
+                        <p className="text-xs text-olive-muted leading-relaxed">
+                            Order dishes directly from your phone. They'll be prepared and served fresh to your table without pre-payment.
+                        </p>
+                        {billSession?.billSessionId && (
+                            <Link
+                                to="/bill"
+                                className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-full bg-cream-surface hover:bg-olive-light text-olive-deep text-xs font-bold uppercase tracking-wider transition border border-[#d8d3c5]"
+                            >
+                                <Receipt size={14} /> View Active Bill Session
+                            </Link>
                         )}
                     </div>
                 </div>
 
-                {/* Search & Filters */}
-                <div className="mb-10 md:mb-12 space-y-6 max-w-4xl mx-auto">
-                    <div className="relative group">
-                        <label htmlFor="menu-search" className="sr-only">Search the menu</label>
-                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-soft-gold h-5 w-5 pointer-events-none" />
+                {/* Filter and Search Bar */}
+                <div className="max-w-7xl mx-auto mt-8 pt-6 border-t border-[#e8e4d8] flex flex-col md:flex-row gap-4 justify-between items-center">
+                    <div className="relative w-full md:w-80">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-olive-muted w-4 h-4" />
                         <input
-                            id="menu-search"
                             type="text"
-                            placeholder="Search the menu..."
+                            placeholder="Search dishes, ingredients..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-11 py-3.5 rounded-full border border-surface-border focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 bg-white shadow-sm text-sm transition"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white border border-[#d8d3c5] text-xs text-olive-deep placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-olive-deep"
                         />
-                        {searchQuery && (
-                            <button
-                                onClick={() => setSearchQuery('')}
-                                aria-label="Clear search"
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-on-surface-variant hover:text-primary p-1.5 rounded-full hover:bg-surface-container-low transition"
-                            >
-                                <X size={15} />
-                            </button>
-                        )}
                     </div>
 
-                    <div className="flex flex-wrap justify-center gap-2 md:gap-3" role="group" aria-label="Filter by category">
-                        {categories.map(cat => (
-                            <button
-                                key={cat}
-                                onClick={() => setSelectedCategory(cat)}
-                                aria-pressed={selectedCategory === cat}
-                                className={`px-5 md:px-6 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 active:scale-95 ${selectedCategory === cat
-                                        ? 'bg-primary text-white shadow-sm'
-                                        : 'bg-white text-on-surface-variant border border-surface-border hover:border-primary/30 hover:text-primary'
+                    {/* Category pills */}
+                    <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
+                        {categories.map(cat => {
+                            const isSelected = selectedCategory === cat;
+                            return (
+                                <button
+                                    key={cat}
+                                    onClick={() => setSelectedCategory(cat)}
+                                    className={`px-4 py-2 rounded-full text-xs uppercase tracking-wider transition shrink-0 ${
+                                        isSelected
+                                            ? 'bg-olive-deep text-white shadow-sm font-bold'
+                                            : 'bg-white text-olive-deep border border-[#e8e4d8] hover:border-gold-accent font-medium'
                                     }`}
-                            >
-                                {cat}
-                            </button>
-                        ))}
+                                >
+                                    {cat}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
+            </section>
 
-                {/* Menu Grid */}
+            {/* Menu Items Grid */}
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 {loading ? (
-                    <div className="menu-grid gap-5 md:gap-6 lg:gap-8" aria-busy="true" aria-label="Loading menu">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="bg-white rounded-lg border border-surface-border overflow-hidden animate-pulse">
-                                <div className="aspect-square p-4 pb-0">
-                                    <div className="w-full h-full arch-frame bg-surface-container-high" />
-                                </div>
-                                <div className="p-6 space-y-3">
-                                    <div className="h-4 w-2/3 bg-surface-container-high rounded" />
-                                    <div className="h-3 w-full bg-surface-container-high rounded" />
-                                    <div className="h-3 w-4/5 bg-surface-container-high rounded" />
-                                    <div className="h-6 w-1/3 bg-surface-container-high rounded mt-4" />
-                                </div>
-                            </div>
-                        ))}
+                    <div className="text-center py-20 text-olive-muted text-sm">
+                        Curating artisanal offerings...
                     </div>
-                ) : menuError ? (
-                    <div className="max-w-md mx-auto text-center py-16 px-6 bg-surface-container-low border border-surface-border rounded-lg">
-                        <Coffee className="h-12 w-12 mx-auto mb-4 text-soft-gold" />
-                        <h2 className="text-xl font-[Playfair_Display] font-semibold text-primary">The menu is resting</h2>
-                        <p className="text-sm text-on-surface-variant mt-2 mb-6">{menuError}</p>
-                        <button onClick={() => window.location.reload()} className="btn-stitch-primary text-xs uppercase tracking-wider">Try Again</button>
+                ) : filteredItems.length === 0 ? (
+                    <div className="text-center py-20 space-y-3">
+                        <p className="text-olive-muted text-sm">No culinary items match your search or category.</p>
+                        <button
+                            onClick={() => { setSearchQuery(''); setSelectedCategory('All'); }}
+                            className="text-xs uppercase font-bold tracking-wider text-gold-accent underline"
+                        >
+                            Reset Filters
+                        </button>
                     </div>
                 ) : (
-                    <>
-                        {filteredItems.length === 0 ? (
-                            menuItems.length === 0 ? (
-                                <div className="text-center py-16 text-on-surface-variant max-w-md mx-auto">
-                                    <Coffee className="h-12 w-12 mx-auto mb-4 text-soft-gold/60" />
-                                    <h2 className="text-lg font-[Playfair_Display] font-semibold text-primary mb-2">Our menu is being prepared</h2>
-                                    <p className="text-sm font-light">Please check back shortly, or ask your server for today's specials.</p>
-                                </div>
-                            ) : (
-                                <div className="text-center py-16 text-on-surface-variant max-w-md mx-auto">
-                                    <SearchX className="h-12 w-12 mx-auto mb-4 text-soft-gold/60" />
-                                    <h2 className="text-lg font-[Playfair_Display] font-semibold text-primary mb-2">No dishes match your search</h2>
-                                    <p className="text-sm font-light mb-6">Try a different keyword or explore another category.</p>
-                                    {hasActiveFilters && (
-                                        <button onClick={clearFilters} className="btn-stitch-outline text-xs uppercase tracking-wider !py-2.5 !px-6">
-                                            Clear Filters
-                                        </button>
-                                    )}
-                                </div>
-                            )
-                        ) : (
-                            <div className="menu-grid gap-5 md:gap-6 lg:gap-8">
-                                {filteredItems.map((item) => (
-                                    <div key={item._id} className="bg-white rounded-lg border border-surface-border overflow-hidden soft-shadow flex flex-col group relative premium-hover">
-                                        <div className="aspect-square overflow-hidden relative p-4 pb-0">
-                                            <div className="w-full h-full arch-frame overflow-hidden border border-surface-border ring-0 ring-soft-gold/0 group-hover:ring-2 group-hover:ring-soft-gold/40 transition-all duration-300">
+                    <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-6">
+                        {filteredItems.map((item, idx) => {
+                            const inCartItem = cart.find(i => i._id === item._id);
+                            const qty = inCartItem?.quantity || 0;
+
+                            return (
+                                <Motion.article
+                                    key={item._id}
+                                    initial={{ opacity: 0, y: 14 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true, margin: '-20px' }}
+                                    transition={{ duration: 0.35, delay: (idx % 6) * 0.04 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    className="bg-white rounded-2xl sm:rounded-3xl p-2 sm:p-5 border border-[#e8e4d8] shadow-xs hover:shadow-md transition-all flex flex-col justify-between group overflow-hidden"
+                                >
+                                    <div className="space-y-1.5 sm:space-y-3">
+                                        <div className="relative w-full aspect-square sm:aspect-[4/3] rounded-xl sm:rounded-2xl overflow-hidden bg-stone-100">
+                                            {item.imageUrl ? (
                                                 <img
-                                                    src={item.image || 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=1000&auto=format&fit=crop'}
+                                                    src={item.imageUrl}
                                                     alt={item.name}
                                                     loading="lazy"
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                                                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=1000&auto=format&fit=crop' }}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                                                 />
-                                            </div>
-                                            <div className="absolute top-6 right-6 bg-white/95 border border-surface-border px-3 py-1 rounded-full text-[10px] font-semibold text-primary uppercase tracking-wider">
-                                                {item.category?.name || 'Organic'}
-                                            </div>
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-stone-300">
+                                                    <Utensils size={20} className="sm:w-7 sm:h-7" />
+                                                </div>
+                                            )}
+                                            {item.category?.name && (
+                                                <span className="absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5 px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-white/95 backdrop-blur-sm text-[8px] sm:text-[10px] font-bold uppercase tracking-wider text-olive-deep shadow-2xs">
+                                                    {item.category.name}
+                                                </span>
+                                            )}
                                         </div>
 
-                                        <div className="p-6 flex-grow flex flex-col justify-between">
-                                            <div className="space-y-2">
-                                                <h3 className="text-lg font-[Playfair_Display] font-bold text-primary">{item.name}</h3>
-                                                {item.description && (
-                                                    <p className="text-on-surface-variant text-sm font-light line-clamp-2 leading-relaxed">{item.description}</p>
-                                                )}
+                                        <div>
+                                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-0.5 sm:gap-2">
+                                                <h3 className="font-serif text-xs sm:text-lg font-semibold text-olive-deep line-clamp-1 leading-tight" title={item.name}>
+                                                    {item.name}
+                                                </h3>
+                                                <span className="font-serif text-xs sm:text-lg font-bold text-olive-deep shrink-0">
+                                                    ₹{item.price}
+                                                </span>
                                             </div>
-                                            <div className="menu-card-footer flex justify-between items-center mt-6 pt-4 border-t border-surface-border/50">
-                                                <span className="text-lg font-bold text-primary">₹{item.price}</span>
-                                                {(() => {
-                                                    const cartItem = cart.find(c => c._id === item._id);
-                                                    if (cartItem && cartItem.quantity > 0) {
-                                                        return (
-                                                            <div className="flex items-center gap-1.5 bg-primary/5 border border-primary/20 rounded-full p-1 shrink-0">
-                                                                <button
-                                                                    onClick={() => updateQuantity(item._id, -1)}
-                                                                    className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-primary shadow-sm hover:bg-surface-container active:scale-90 transition"
-                                                                    aria-label="Decrease quantity"
-                                                                >
-                                                                    <Minus size={13} />
-                                                                </button>
-                                                                <span className="font-bold text-xs text-primary px-1.5 min-w-[20px] text-center">
-                                                                    {cartItem.quantity}
-                                                                </span>
-                                                                <button
-                                                                    onClick={() => updateQuantity(item._id, 1)}
-                                                                    className="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center shadow-sm hover:brightness-110 active:scale-90 transition"
-                                                                    aria-label="Increase quantity"
-                                                                >
-                                                                    <Plus size={13} />
-                                                                </button>
-                                                            </div>
-                                                        );
-                                                    }
-                                                    return (
-                                                        <button
-                                                            onClick={() => addToCart(item)}
-                                                            title="Add to Order"
-                                                            aria-label="Add to Order"
-                                                            className="btn-stitch-outline !px-4 !py-2 text-xs font-semibold tracking-wider uppercase whitespace-nowrap bg-white/50 flex items-center justify-center shrink-0 hover:bg-primary hover:text-white transition"
-                                                        >
-                                                            <Plus size={14} className="shrink-0 mr-1" />
-                                                            <span>Add</span>
-                                                        </button>
-                                                    );
-                                                })()}
-                                            </div>
+                                            {item.description && (
+                                                <p className="hidden sm:block text-xs text-olive-muted font-light mt-1 line-clamp-2 leading-relaxed">
+                                                    {item.description}
+                                                </p>
+                                            )}
                                         </div>
+                                    </div>
+
+                                    {/* Add / Qty Control */}
+                                    <div className="pt-2 sm:pt-4 mt-1 sm:mt-2 border-t border-[#f1eee7] flex items-center justify-between">
+                                        {qty === 0 ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => addToCart(item)}
+                                                className="w-full py-1.5 sm:py-2.5 rounded-full bg-cream-surface hover:bg-olive-deep hover:text-white text-olive-deep text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all border border-[#d8d3c5] flex items-center justify-center gap-1 active:scale-95"
+                                            >
+                                                <Plus size={12} className="sm:w-3.5 sm:h-3.5" />
+                                                <span className="hidden min-[380px]:inline sm:inline">Add</span>
+                                            </button>
+                                        ) : (
+                                            <div className="w-full flex items-center justify-between bg-olive-light/60 rounded-full px-1 py-0.5 sm:px-2 sm:py-1 border border-olive-muted/20">
+                                                <button
+                                                    onClick={() => updateQuantity(item._id, -1)}
+                                                    className="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-white flex items-center justify-center text-olive-deep shadow-2xs active:scale-90"
+                                                >
+                                                    <Minus size={11} className="sm:w-3.5 sm:h-3.5" />
+                                                </button>
+                                                <span className="font-bold text-[10px] sm:text-xs text-olive-deep">{qty}</span>
+                                                <button
+                                                    onClick={() => updateQuantity(item._id, 1)}
+                                                    className="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-olive-deep text-white flex items-center justify-center shadow-2xs active:scale-90"
+                                                >
+                                                    <Plus size={11} className="sm:w-3.5 sm:h-3.5" />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </Motion.article>
+                            );
+                        })}
+                    </div>
+                )}
+            </main>
+
+            {/* Floating Cart Pill */}
+            {cartItemCount > 0 && (
+                <div className="fixed bottom-6 right-6 z-40">
+                    <button
+                        onClick={() => setIsCartOpen(true)}
+                        className="flex items-center gap-3 px-6 py-4 rounded-full bg-olive-deep text-white shadow-2xl hover:bg-olive-rich transition-all transform hover:scale-105 active:scale-95"
+                    >
+                        <ShoppingBag size={18} />
+                        <span className="text-xs font-bold uppercase tracking-widest">
+                            {cartItemCount} item{cartItemCount > 1 ? 's' : ''} • ₹{cartTotal}
+                        </span>
+                    </button>
+                </div>
+            )}
+
+            {/* Cart Drawer */}
+            <AnimatePresence>
+                {isCartOpen && (
+                    <>
+                        <Motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsCartOpen(false)}
+                            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+                        />
+                        <Motion.div
+                            initial={{ x: '100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            className="fixed top-0 right-0 bottom-0 w-full max-w-md bg-white z-50 shadow-2xl flex flex-col justify-between"
+                        >
+                            <div className="p-6 border-b border-[#ece7dc] flex items-center justify-between">
+                                <div>
+                                    <h2 className="font-serif text-2xl font-bold text-olive-deep">Your Order</h2>
+                                    <span className="text-xs text-olive-muted">Table {tableNumber || '01'} • Dine-In</span>
+                                </div>
+                                <button
+                                    onClick={() => setIsCartOpen(false)}
+                                    className="p-2 rounded-full hover:bg-stone-100 text-stone-500"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-6 space-y-4 divide-y divide-[#f5f2eb]">
+                                {cart.map(item => (
+                                    <div key={item._id} className="pt-3 first:pt-0 flex items-center justify-between gap-3">
+                                        <div className="flex-1">
+                                            <h4 className="text-sm font-semibold text-olive-deep">{item.name}</h4>
+                                            <span className="text-xs text-olive-muted">₹{item.price} each</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => updateQuantity(item._id, -1)}
+                                                className="w-7 h-7 rounded-full bg-stone-100 text-stone-700 flex items-center justify-center"
+                                            >
+                                                <Minus size={12} />
+                                            </button>
+                                            <span className="text-xs font-bold">{item.quantity}</span>
+                                            <button
+                                                onClick={() => updateQuantity(item._id, 1)}
+                                                className="w-7 h-7 rounded-full bg-olive-deep text-white flex items-center justify-center"
+                                            >
+                                                <Plus size={12} />
+                                            </button>
+                                        </div>
+                                        <span className="font-serif text-sm font-bold text-olive-deep w-14 text-right">
+                                            ₹{item.price * item.quantity}
+                                        </span>
                                     </div>
                                 ))}
                             </div>
-                        )}
+
+                            <div className="p-6 bg-cream-surface border-t border-[#ece7dc] space-y-4">
+                                <div className="flex justify-between items-baseline">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-olive-muted">Subtotal</span>
+                                    <span className="font-serif text-2xl font-bold text-olive-deep">₹{cartTotal}</span>
+                                </div>
+                                <button
+                                    onClick={handlePlaceOrderClick}
+                                    disabled={isPlacingOrder || cart.length === 0}
+                                    className="w-full py-4 rounded-full bg-olive-deep hover:bg-olive-rich text-white text-xs font-bold uppercase tracking-widest transition shadow-md disabled:opacity-50"
+                                >
+                                    {isPlacingOrder ? 'Sending to Kitchen...' : 'Send Order to Kitchen'}
+                                </button>
+                                <p className="text-[11px] text-center text-olive-muted font-light">
+                                    Pay at table or via UPI when you're finished dining.
+                                </p>
+                            </div>
+                        </Motion.div>
                     </>
                 )}
-            </div>
+            </AnimatePresence>
 
-            {/* ── ORDER PROCESSING MODAL ────────────────────────────────── */}
+            {/* Customer Details Modal (for first order in session) */}
             <AnimatePresence>
-            {showOrderModal && (
-                <Motion.div
-                    className="fixed inset-0 bg-primary/20 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-                    role="dialog" aria-modal="true" aria-live="polite"
-                    onClick={(e) => {
-                        if (e.target === e.currentTarget && orderSuccess) {
-                            setShowOrderModal(false);
-                            setIsCartOpen(false);
-                            setOrderSuccess(false);
-                        }
-                    }}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                >
+                {showNameModal && (
                     <Motion.div
-                        className="bg-white rounded-lg border border-surface-border w-full max-w-sm p-8 text-center shadow-2xl relative"
-                        initial={{ opacity: 0, y: 16, scale: 0.97 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 8, scale: 0.98 }}
-                        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                     >
-                        {orderSuccess ? (
-                            <div className="space-y-4">
-                                <button
-                                    type="button"
-                                    onClick={() => { setShowOrderModal(false); setIsCartOpen(false); setOrderSuccess(false); }}
-                                    className="absolute top-4 right-4 text-on-surface-variant/60 hover:text-primary transition p-1.5 rounded-full hover:bg-surface-container"
-                                    aria-label="Close modal"
+                        <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full space-y-5 border border-[#e8e4d8] shadow-2xl">
+                            <h3 className="font-serif text-2xl font-bold text-olive-deep">Start Dining Session</h3>
+                            <p className="text-xs text-olive-muted leading-relaxed">
+                                Enter your name and phone number to start your bill session at Table {tableNumber || '01'}.
+                            </p>
+                            {nameError && (
+                                <div className="p-3 bg-rose-50 text-rose-800 rounded-xl text-xs">{nameError}</div>
+                            )}
+                            <form onSubmit={handleNameSubmit} className="space-y-4">
+                                <div>
+                                    <label className="text-[11px] font-bold uppercase tracking-wider text-olive-deep block mb-1">
+                                        Your Name *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        placeholder="e.g. Rohan Dusane"
+                                        value={custName}
+                                        onChange={(e) => setCustName(e.target.value)}
+                                        className="w-full px-4 py-3 rounded-xl border border-[#d8d3c5] text-sm focus:outline-none focus:ring-2 focus:ring-olive-deep"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[11px] font-bold uppercase tracking-wider text-olive-deep block mb-1">
+                                        Phone Number *
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        required
+                                        placeholder="10-digit mobile number"
+                                        value={custPhone}
+                                        onChange={(e) => setCustPhone(e.target.value)}
+                                        className="w-full px-4 py-3 rounded-xl border border-[#d8d3c5] text-sm focus:outline-none focus:ring-2 focus:ring-olive-deep"
+                                    />
+                                </div>
+                                <div className="flex gap-2 pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowNameModal(false)}
+                                        className="w-1/2 py-3 rounded-full border border-stone-200 text-xs font-bold uppercase tracking-wider text-stone-600"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="w-1/2 py-3 rounded-full bg-olive-deep text-white text-xs font-bold uppercase tracking-wider shadow-sm"
+                                    >
+                                        Confirm
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </Motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Order Placed Success Modal */}
+            <AnimatePresence>
+                {orderSuccessModal && (
+                    <Motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                    >
+                        <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 border border-[#e8e4d8] shadow-2xl">
+                            <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-600">
+                                <Check size={36} />
+                            </div>
+                            <h3 className="font-serif text-2xl font-bold text-olive-deep">Order Sent to Kitchen!</h3>
+                            <p className="text-xs text-olive-muted leading-relaxed">
+                                Our chefs have received your order. Track preparation progress on your live bill.
+                            </p>
+                            <div className="pt-2 flex flex-col gap-2">
+                                <Link
+                                    to="/bill"
+                                    onClick={() => setOrderSuccessModal(false)}
+                                    className="w-full py-3.5 rounded-full bg-olive-deep text-white text-xs font-bold uppercase tracking-wider shadow-sm"
                                 >
-                                    <X size={16} />
-                                </button>
-                                <div className="mx-auto w-16 h-16 bg-primary/5 border border-primary/20 rounded-full flex items-center justify-center">
-                                    <CheckCircle className="text-primary w-8 h-8" />
-                                </div>
-                                <h3 className="text-xl font-[Playfair_Display] font-bold text-primary">Added to Your Bill!</h3>
-                                <p className="text-xs text-on-surface-variant leading-relaxed">
-                                    Your order is on its way to the kitchen. Continue browsing or settle up whenever you're ready.
-                                </p>
-                                {tableNumber ? (
-                                    <span className="inline-block bg-primary/5 text-primary text-xs font-semibold px-3 py-1 rounded-full">Table: {tableNumber}</span>
-                                ) : placedCustomerName ? (
-                                    <span className="inline-block bg-primary/5 text-primary text-xs font-semibold px-3 py-1 rounded-full">Bill: {placedCustomerName}</span>
-                                ) : null}
-
-                                <div className="space-y-2 pt-2">
-                                    <Link
-                                        to="/bill"
-                                        onClick={() => { setShowOrderModal(false); setIsCartOpen(false); setOrderSuccess(false); }}
-                                        className="flex items-center justify-center gap-2 w-full py-2.5 border border-primary/30 text-primary hover:bg-primary/5 font-semibold text-xs uppercase tracking-wider rounded-lg transition"
-                                    >
-                                        <Receipt size={14} /> View My Bill
-                                    </Link>
-                                    <Link
-                                        to="/"
-                                        onClick={() => { setShowOrderModal(false); setIsCartOpen(false); setOrderSuccess(false); }}
-                                        className="flex items-center justify-center gap-2 w-full py-2.5 bg-primary text-white hover:bg-primary/90 font-semibold text-xs uppercase tracking-wider rounded-lg transition shadow-xs"
-                                    >
-                                        <Compass size={14} /> Explore More About Olive Cafe
-                                    </Link>
-                                </div>
-
+                                    Track Live Bill & Status
+                                </Link>
                                 <button
-                                    type="button"
-                                    onClick={() => { setShowOrderModal(false); setIsCartOpen(false); setOrderSuccess(false); }}
-                                    className="block w-full text-center text-[11px] font-medium text-on-surface-variant hover:text-primary transition pt-0.5"
+                                    onClick={() => setOrderSuccessModal(false)}
+                                    className="w-full py-2.5 text-xs text-olive-muted uppercase font-bold tracking-wider"
                                 >
                                     Continue Browsing Menu
                                 </button>
                             </div>
-                        ) : (
-                            <div className="space-y-4">
-                                <div className="mx-auto w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center">
-                                    <Loader2 className="animate-spin text-primary" size={28} />
-                                </div>
-                                <h3 className="text-lg font-[Playfair_Display] font-bold text-primary">Sending Your Order...</h3>
-                                <p className="text-xs text-on-surface-variant">Please wait while we let the kitchen know.</p>
-                            </div>
-                        )}
-                    </Motion.div>
-                </Motion.div>
-            )}
-            </AnimatePresence>
-
-            {/* ── CUSTOMER NAME PROMPT MODAL ────────────────────────────── */}
-            <AnimatePresence>
-            {showNamePromptModal && (
-                <Motion.div
-                    className="fixed inset-0 bg-primary/20 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-                    role="dialog" aria-modal="true" aria-label="Start your bill"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                >
-                    <Motion.div
-                        className="bg-white rounded-lg border border-surface-border w-full max-w-md p-8 shadow-2xl flex flex-col gap-6"
-                        initial={{ opacity: 0, y: 16, scale: 0.97 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 8, scale: 0.98 }}
-                        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                    >
-                        <div className="text-center space-y-2">
-                            <div className="w-14 h-14 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-2">
-                                <Coffee className="text-primary" size={24} />
-                            </div>
-                            <h3 className="text-2xl font-[Playfair_Display] font-bold text-primary">Welcome to OLIV</h3>
-                            <p className="text-xs text-on-surface-variant">
-                                Please share your details to place your order — we won't ask again during this visit.
-                            </p>
-                        </div>
-
-                        <div className="space-y-4">
-                            {/* Full Name */}
-                            <div className="space-y-1">
-                                <label htmlFor="customer-name" className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant flex items-center gap-1.5">
-                                    <User size={13} className="text-primary" /> Full Name <span className="text-error">*</span>
-                                </label>
-                                <input
-                                    id="customer-name"
-                                    type="text"
-                                    placeholder="Enter your full name"
-                                    value={customerNameInput}
-                                    onChange={(e) => {
-                                        setCustomerNameInput(e.target.value);
-                                        if (namePromptError) setNamePromptError('');
-                                    }}
-                                    className="w-full px-4 py-2.5 rounded-lg bg-surface-container-low border border-surface-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition text-sm"
-                                    maxLength={50}
-                                    autoFocus
-                                />
-                            </div>
-
-                            {/* Phone Number */}
-                            <div className="space-y-1">
-                                <label htmlFor="customer-phone" className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant flex items-center gap-1.5">
-                                    <Phone size={13} className="text-primary" /> Phone Number <span className="text-error">*</span>
-                                </label>
-                                <input
-                                    id="customer-phone"
-                                    type="tel"
-                                    placeholder="Enter 10-digit phone number"
-                                    value={customerPhoneInput}
-                                    onChange={(e) => {
-                                        setCustomerPhoneInput(e.target.value);
-                                        if (namePromptError) setNamePromptError('');
-                                    }}
-                                    className="w-full px-4 py-2.5 rounded-lg bg-surface-container-low border border-surface-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition text-sm"
-                                    maxLength={15}
-                                />
-                            </div>
-
-                            {/* Email ID (Optional) */}
-                            <div className="space-y-1">
-                                <label htmlFor="customer-email" className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant flex items-center gap-1.5">
-                                    <Mail size={13} className="text-primary" /> Email ID <span className="text-xs font-normal opacity-70 normal-case">(Optional)</span>
-                                </label>
-                                <input
-                                    id="customer-email"
-                                    type="email"
-                                    placeholder="Enter email address (optional)"
-                                    value={customerEmailInput}
-                                    onChange={(e) => {
-                                        setCustomerEmailInput(e.target.value);
-                                        if (namePromptError) setNamePromptError('');
-                                    }}
-                                    onKeyDown={(e) => { if (e.key === 'Enter') handleNameSubmit(); }}
-                                    className="w-full px-4 py-2.5 rounded-lg bg-surface-container-low border border-surface-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition text-sm"
-                                    maxLength={80}
-                                />
-                            </div>
-
-                            {namePromptError && (
-                                <p className="text-error text-xs font-medium">{namePromptError}</p>
-                            )}
-                        </div>
-
-                        <div className="flex gap-4">
-                            <button
-                                onClick={() => {
-                                    setShowNamePromptModal(false);
-                                    setCustomerNameInput('');
-                                    setCustomerPhoneInput('');
-                                    setCustomerEmailInput('');
-                                    setNamePromptError('');
-                                }}
-                                className="flex-1 py-3 border border-surface-border text-on-surface-variant hover:bg-surface-container-low font-semibold text-xs uppercase tracking-wider rounded-lg transition"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleNameSubmit}
-                                className="flex-1 py-3 btn-stitch-primary text-xs font-bold uppercase tracking-wider"
-                            >
-                                Confirm & Order
-                            </button>
                         </div>
                     </Motion.div>
-                </Motion.div>
-            )}
+                )}
             </AnimatePresence>
         </div>
     );

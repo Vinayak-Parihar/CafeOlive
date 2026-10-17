@@ -3,16 +3,12 @@ import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
-    Coffee, CheckCircle, AlertCircle, ArrowLeft,
-    ShoppingBag, CreditCard, Loader2, Receipt,
-    ChevronDown, ChevronUp, ChefHat, Clock, Bell,
-    Utensils, RefreshCw, Flame, Sparkles, Timer, Banknote
+    Coffee, CheckCircle2, ArrowLeft, RefreshCw,
+    CreditCard, Banknote, Clock, ChevronDown, ChevronUp,
+    Receipt, Utensils
 } from 'lucide-react';
-import { getBillSession, clearBillSession, clearBillSessionCookie, rotateBillSession } from '../../utils/sessionUtils';
+import { getBillSession, clearBillSessionCookie } from '../../utils/sessionUtils';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Razorpay SDK loader
-// ─────────────────────────────────────────────────────────────────────────────
 const loadRazorpayScript = () =>
     new Promise((resolve) => {
         if (document.querySelector('script[src*="checkout.razorpay"]')) {
@@ -25,21 +21,16 @@ const loadRazorpayScript = () =>
         document.body.appendChild(script);
     });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Preparation time constants
-// ─────────────────────────────────────────────────────────────────────────────
 const MAX_PREP_MINUTES = 25;
 
-// Helper to calculate countdown time and progress percentage
 const calculateOrderProgress = (order, now) => {
     if (!order) {
         return {
             remainingText: `${MAX_PREP_MINUTES} mins max`,
-            progressPercent: 20,
+            progressPercent: 25,
             activeStep: 1,
-            isOvertime: false,
-            headline: 'Order Placed',
-            subline: 'Your order has been sent to the kitchen.'
+            headline: 'Order Received • Queued',
+            subline: 'Kitchen has received your order and is queuing ingredients.'
         };
     }
 
@@ -54,11 +45,10 @@ const calculateOrderProgress = (order, now) => {
 
     if (status === 'served' || status === 'completed') {
         return {
-            remainingText: 'Served · Complete',
+            remainingText: 'Served • Complete',
             progressPercent: 100,
             activeStep: 4,
-            isOvertime: false,
-            headline: 'Served · Bon Appétit!',
+            headline: 'Served • Bon Appétit!',
             subline: 'All dishes delivered to your table. Enjoy your feast!'
         };
     }
@@ -66,9 +56,8 @@ const calculateOrderProgress = (order, now) => {
     if (status === 'ready') {
         return {
             remainingText: 'Ready Now! Coming to table',
-            progressPercent: 92,
+            progressPercent: 75,
             activeStep: 3,
-            isOvertime: false,
             headline: 'Order Confirmed & Ready!',
             subline: 'Chef has plated your order! Service team is bringing it over.'
         };
@@ -76,35 +65,30 @@ const calculateOrderProgress = (order, now) => {
 
     if (status === 'preparing') {
         const timeFraction = Math.min(1, elapsedSec / totalSec);
-        const dynamicPercent = Math.min(85, Math.round(35 + timeFraction * 50));
+        const dynamicPercent = Math.min(70, Math.round(35 + timeFraction * 35));
         const isOvertime = remainingSec <= 0;
         const remainingText = isOvertime
-            ? 'Final Touches · Plating now'
+            ? 'Final Touches • Plating now'
             : `${remainingMins}m ${remainingSecs < 10 ? '0' : ''}${remainingSecs}s remaining`;
         return {
             remainingText,
             progressPercent: dynamicPercent,
             activeStep: 2,
-            isOvertime,
             headline: 'Chef Is Preparing Your Food',
-            subline: 'Freshly crafting your culinary dishes in the kitchen.'
+            subline: 'Freshly crafting your artisanal dishes in the kitchen.'
         };
     }
 
     // Default 'placed'
     return {
         remainingText: `~${MAX_PREP_MINUTES} mins max prep window`,
-        progressPercent: 20,
+        progressPercent: 25,
         activeStep: 1,
-        isOvertime: false,
-        headline: 'Order Received · Queued',
+        headline: 'Order Received • Queued',
         subline: 'Kitchen has received your order and is queuing ingredients.'
     };
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// BillPage Component
-// ─────────────────────────────────────────────────────────────────────────────
 const BillPage = () => {
     const navigate = useNavigate();
     const session = getBillSession();
@@ -117,13 +101,13 @@ const BillPage = () => {
     const [now, setNow] = useState(Date.now());
 
     // Payment state
-    const [paymentState, setPaymentState] = useState('idle'); // idle | processing | success | failed
+    const [paymentState, setPaymentState] = useState('idle');
     const [paymentMessage, setPaymentMessage] = useState('');
-    const [selectedMethod, setSelectedMethod] = useState('online'); // 'online' | 'cash'
+    const [selectedMethod, setSelectedMethod] = useState('online');
     const [cashRequested, setCashRequested] = useState(false);
     const [isUpdatingMethod, setIsUpdatingMethod] = useState(false);
 
-    // ── Fetch the current bill ──────────────────────────────────────────────
+    // Fetch bill
     const fetchBill = useCallback(async (isManual = false) => {
         if (!session?.billSessionId) {
             setLoading(false);
@@ -147,7 +131,6 @@ const BillPage = () => {
             }
         } catch (err) {
             setError('Failed to load your bill. Please try again.');
-            console.error('Bill fetch error:', err);
         } finally {
             setLoading(false);
             if (isManual) {
@@ -156,7 +139,6 @@ const BillPage = () => {
         }
     }, [session?.billSessionId]);
 
-    // Initial fetch + real-time polling every 4 seconds to sync with admin panel
     useEffect(() => {
         fetchBill();
         const pollInterval = setInterval(() => {
@@ -165,20 +147,15 @@ const BillPage = () => {
         return () => clearInterval(pollInterval);
     }, [fetchBill]);
 
-    // Local 1-second ticker for smooth countdown clock
     useEffect(() => {
-        const timer = setInterval(() => {
-            setNow(Date.now());
-        }, 1000);
+        const timer = setInterval(() => setNow(Date.now()), 1000);
         return () => clearInterval(timer);
     }, []);
 
-    // ── Toggle order item accordion ─────────────────────────────────────────
     const toggleOrder = (orderId) => {
         setExpandedOrders(prev => ({ ...prev, [orderId]: !prev[orderId] }));
     };
 
-    // ── Cash / Online Selection Handlers ────────────────────────────────────
     const handleSelectCash = async () => {
         if (!session?.billSessionId) return;
         setIsUpdatingMethod(true);
@@ -189,8 +166,8 @@ const BillPage = () => {
             setCashRequested(true);
             setSelectedMethod('cash');
             toast.success("Cash payment selected. Please hand over cash to staff after dining.");
-        } catch (err) {
-            toast.error("Failed to select cash payment. Please try again.");
+        } catch {
+            toast.error("Failed to select cash payment.");
         } finally {
             setIsUpdatingMethod(false);
         }
@@ -212,18 +189,14 @@ const BillPage = () => {
         }
     };
 
-    // ── Pay Bill ────────────────────────────────────────────────────────────
     const handlePayBill = async () => {
         if (!session?.billSessionId || !billData?.grandTotal) return;
 
         setPaymentState('processing');
-
         try {
-            // 1. Create a Razorpay order on the backend for the session total
             const payRes = await axios.post(`/api/order/bill/${session.billSessionId}/pay`);
             const { razorpayOrder, razorpayKeyId } = payRes.data.data;
 
-            // 2. Load Razorpay SDK
             const loaded = await loadRazorpayScript();
             if (!loaded) {
                 setPaymentState('failed');
@@ -231,18 +204,16 @@ const BillPage = () => {
                 return;
             }
 
-            // 3. Open Razorpay checkout
             const options = {
                 key: razorpayKeyId,
                 amount: razorpayOrder.amount,
                 currency: razorpayOrder.currency,
                 name: 'Café Olive',
-                description: `Bill Settlement — ${billData.orders.length} Order${billData.orders.length > 1 ? 's' : ''}`,
+                description: `Bill Settlement — ${billData.orders?.length || 1} Order(s)`,
                 order_id: razorpayOrder.id,
                 handler: async (paymentResponse) => {
                     setPaymentState('processing');
                     try {
-                        // 4. Verify on backend — this marks all orders as paid
                         const verifyRes = await axios.post(
                             `/api/order/bill/${session.billSessionId}/verify`,
                             {
@@ -253,38 +224,30 @@ const BillPage = () => {
                         );
 
                         if (verifyRes.data.success) {
-                            // 5. Clear the session cookie — bill is settled
                             clearBillSessionCookie();
                             setPaymentState('success');
-                            setPaymentMessage(
-                                `Payment of ₹${billData.grandTotal} received. Thank you, ${billData.customerName || 'valued guest'}!`
-                            );
+                            setPaymentMessage(`Payment of ₹${billData.grandTotal} received. Thank you!`);
                         } else {
                             setPaymentState('failed');
                             setPaymentMessage('Payment verification failed. Contact staff.');
                         }
                     } catch (verifyErr) {
-                        console.error('Verify error:', verifyErr);
                         setPaymentState('failed');
-                        setPaymentMessage(
-                            verifyErr.response?.data?.message || 'Verification error. Please contact staff.'
-                        );
+                        setPaymentMessage(verifyErr.response?.data?.message || 'Verification error.');
                     }
                 },
                 modal: {
-                    ondismiss: () => {
-                        setPaymentState('idle');
-                    }
+                    ondismiss: () => setPaymentState('idle')
                 },
                 prefill: {
                     name: billData.customerName || session.customerName || 'Guest'
                 },
                 theme: {
-                    color: '#0b5d4b'
+                    color: '#1e2a1b'
                 }
             };
 
-            setPaymentState('idle'); // Reset before opening Razorpay
+            setPaymentState('idle');
             const rzp = new window.Razorpay(options);
             rzp.on('payment.failed', () => {
                 setPaymentState('failed');
@@ -292,412 +255,253 @@ const BillPage = () => {
             });
             rzp.open();
         } catch (err) {
-            console.error('Pay bill error:', err);
             setPaymentState('failed');
             setPaymentMessage(err.response?.data?.message || 'Failed to initiate payment.');
         }
     };
 
-    // ── No session state ────────────────────────────────────────────────────
     if (!session) {
         return (
-            <div className="min-h-screen bg-background font-[Montserrat] flex items-center justify-center px-6">
-                <div className="text-center max-w-md space-y-6">
-                    <div className="w-20 h-20 bg-primary/5 rounded-full flex items-center justify-center mx-auto">
-                        <Receipt className="text-primary" size={36} />
+            <div className="min-h-screen bg-transparent font-sans flex items-center justify-center px-4 py-12">
+                <div className="text-center max-w-sm space-y-5 bg-white p-8 rounded-3xl border border-[#e8e4d8] shadow-sm">
+                    <div className="w-16 h-16 bg-olive-light/60 rounded-full flex items-center justify-center mx-auto text-olive-deep">
+                        <Receipt size={32} className="text-gold-accent" />
                     </div>
-                    <h1 className="text-3xl font-[Playfair_Display] font-bold text-primary">No Active Bill</h1>
-                    <p className="text-on-surface-variant text-sm">
-                        You don't have an active bill session. Place an order from the menu to begin.
+                    <h1 className="text-2xl font-serif font-semibold text-olive-deep">No Active Bill</h1>
+                    <p className="text-olive-muted text-xs leading-relaxed">
+                        You don't have an active bill session. Place an order from our artisanal menu to begin.
                     </p>
                     <Link
                         to="/menu"
-                        className="inline-flex items-center gap-2 btn-stitch-primary px-6 py-3 text-xs font-bold uppercase tracking-wider"
+                        className="inline-flex items-center gap-2 py-3 px-6 rounded-full bg-olive-deep hover:bg-olive-rich text-white text-xs font-bold uppercase tracking-wider transition-colors shadow-sm"
                     >
-                        <Coffee size={16} /> Go to Menu
+                        <Coffee size={15} /> Explore Menu
                     </Link>
                 </div>
             </div>
         );
     }
 
-    // ── Payment Success state ───────────────────────────────────────────────
     if (paymentState === 'success') {
         return (
-            <div className="min-h-screen bg-background font-[Montserrat] flex items-center justify-center px-6">
-                <div className="text-center max-w-md space-y-6 animate-fade-in">
-                    <div className="w-24 h-24 bg-green-50 border-2 border-green-200 rounded-full flex items-center justify-center mx-auto">
-                        <CheckCircle className="text-green-600" size={48} />
+            <div className="min-h-screen bg-transparent font-sans flex items-center justify-center px-4 py-12">
+                <div className="text-center max-w-sm space-y-5 bg-white p-8 rounded-3xl border border-[#e8e4d8] shadow-sm">
+                    <div className="w-16 h-16 bg-emerald-50 border border-emerald-200 rounded-full flex items-center justify-center mx-auto">
+                        <CheckCircle2 size={36} className="text-emerald-600" />
                     </div>
-                    <h1 className="text-3xl font-[Playfair_Display] font-bold text-primary">Bill Settled!</h1>
-                    <p className="text-on-surface-variant text-sm leading-relaxed">{paymentMessage}</p>
-                    <p className="text-xs text-gray-400">
-                        Your orders are confirmed and payment is recorded. We hope to see you again soon.
-                    </p>
+                    <h1 className="text-2xl font-serif font-semibold text-olive-deep">Bill Settled!</h1>
+                    <p className="text-olive-muted text-xs leading-relaxed">{paymentMessage}</p>
                     <Link
                         to="/menu"
-                        className="inline-flex items-center gap-2 btn-stitch-primary px-6 py-3 text-xs font-bold uppercase tracking-wider"
+                        className="inline-flex items-center gap-2 py-3 px-6 rounded-full bg-olive-deep hover:bg-olive-rich text-white text-xs font-bold uppercase tracking-wider transition-colors shadow-sm"
                     >
-                        <Coffee size={16} /> Order Again
+                        <Coffee size={15} /> Order Again
                     </Link>
                 </div>
             </div>
         );
     }
 
-    // ── Loading state ───────────────────────────────────────────────────────
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-background font-[Montserrat] flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="animate-spin text-primary" size={40} />
-                    <p className="text-on-surface-variant text-sm">Loading your bill...</p>
-                </div>
-            </div>
-        );
-    }
+    const latestOrder = billData?.orders?.[billData.orders.length - 1];
+    const progress = calculateOrderProgress(latestOrder, now);
+    const tableDisplay = billData?.tableNumber || session.tableNumber || '01';
 
-    // ── Error state ─────────────────────────────────────────────────────────
-    if (error) {
-        return (
-            <div className="min-h-screen bg-background font-[Montserrat] flex items-center justify-center px-6">
-                <div className="text-center max-w-md space-y-4">
-                    <AlertCircle className="text-red-500 mx-auto" size={48} />
-                    <h2 className="text-xl font-[Playfair_Display] font-bold text-primary">Something went wrong</h2>
-                    <p className="text-on-surface-variant text-sm">{error}</p>
-                    <button onClick={fetchBill} className="btn-stitch-primary px-6 py-3 text-xs font-bold uppercase tracking-wider">
-                        Try Again
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    // ── Session already paid ────────────────────────────────────────────────
-    if (billData?.sessionPaid) {
-        return (
-            <div className="min-h-screen bg-background font-[Montserrat] flex items-center justify-center px-6">
-                <div className="text-center max-w-md space-y-6">
-                    <div className="w-20 h-20 bg-green-50 border border-green-200 rounded-full flex items-center justify-center mx-auto">
-                        <CheckCircle className="text-green-600" size={36} />
-                    </div>
-                    <h1 className="text-3xl font-[Playfair_Display] font-bold text-primary">Bill Already Paid</h1>
-                    <p className="text-on-surface-variant text-sm">
-                        This bill session has been settled. Thank you for visiting Café Olive!
-                    </p>
-                    <Link
-                        to="/menu"
-                        onClick={() => {
-                            rotateBillSession();
-                        }}
-                        className="inline-flex items-center gap-2 btn-stitch-primary px-6 py-3 text-xs font-bold uppercase tracking-wider"
-                    >
-                        <Coffee size={16} /> Order Again
-                    </Link>
-                </div>
-            </div>
-        );
-    }
-
-    const { orders, grandTotal, customerName, tableNumber } = billData || {};
-    const displayName = customerName || session.customerName || 'Guest';
-
-    // ── Main Bill View ──────────────────────────────────────────────────────
     return (
-        <div className="min-h-screen bg-background font-[Montserrat] pt-24 pb-32 px-4 sm:px-6">
-            <div className="max-w-2xl mx-auto">
+        <div className="min-h-screen bg-transparent font-sans text-olive-deep antialiased py-6 px-4 sm:px-6 flex justify-center selection:bg-olive-rich selection:text-linen">
+            <main className="w-full max-w-[460px] flex flex-col space-y-4 pb-12">
+                {/* Top Bar Nav */}
+                <header className="flex items-center justify-between px-1">
+                    <Link
+                        to="/menu"
+                        className="inline-flex items-center text-xs font-semibold tracking-wider text-olive-deep uppercase hover:opacity-75 transition-opacity py-1.5"
+                    >
+                        <ArrowLeft className="w-4 h-4 mr-1.5" />
+                        Back to Menu
+                    </Link>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cream-surface border border-[#dce6d7] text-[11px] font-medium text-olive-deep">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block animate-pulse" />
+                        Table {tableDisplay} • Dine-In
+                    </div>
+                </header>
 
-                {/* Back link */}
-                <Link
-                    to="/menu"
-                    className="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary text-xs font-semibold uppercase tracking-wider transition mb-8"
-                >
-                    <ArrowLeft size={14} /> Back to Menu
-                </Link>
-
-                {/* Header */}
-                <div className="text-center mb-10">
-                    <span className="text-soft-gold text-xs font-semibold uppercase tracking-[0.25em] mb-2 block">
+                {/* Customer Identity */}
+                <section className="text-center pt-2 pb-1">
+                    <span className="block text-[11px] font-bold tracking-[0.22em] uppercase text-gold-accent mb-1">
                         Your Café Olive Bill
                     </span>
-                    <h1 className="text-4xl font-[Playfair_Display] font-bold text-primary mb-2">
-                        {tableNumber ? `Table ${tableNumber}` : displayName}
+                    <h1 className="text-2xl sm:text-3xl font-serif font-semibold text-olive-deep tracking-tight">
+                        {billData?.customerName || session.customerName || 'Valued Guest'}
                     </h1>
-                    <div className="h-[2px] w-16 bg-soft-gold mx-auto opacity-70 mb-4" />
-                    <p className="text-on-surface-variant text-xs">
-                        {orders?.length || 0} order{orders?.length !== 1 ? 's' : ''} in your current session
+                    <p className="text-xs text-olive-muted mt-1 font-normal tracking-wide">
+                        {billData?.orders?.length || 1} order(s) in your current session
                     </p>
-                </div>
+                </section>
 
-                {/* Small Clean Order Process & Prep Bar */}
-                {orders && orders.length > 0 && (() => {
-                    const active = orders.slice().reverse().find(o => o.status !== 'served' && o.status !== 'completed') || orders[orders.length - 1];
-                    const { remainingText, progressPercent, activeStep, headline, subline } = calculateOrderProgress(active, now);
-
-                    return (
-                        <div className="bg-white border border-surface-border rounded-xl p-5 shadow-sm mb-6">
-                            <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                    <span className="text-sm font-bold text-primary">{headline}</span>
-                                </div>
-                                <div className="flex items-center gap-1.5 text-xs text-primary font-semibold bg-primary/5 px-2.5 py-1 rounded-full border border-primary/10">
-                                    <Timer size={13} className={activeStep === 2 ? "animate-spin text-orange-500" : ""} />
-                                    <span>{remainingText}</span>
-                                </div>
-                            </div>
-
-                            <p className="text-xs text-on-surface-variant mb-3">{subline}</p>
-
-                            {/* Small Bar */}
-                            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden mb-3">
-                                <div
-                                    className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-amber-500 via-orange-500 to-emerald-600"
-                                    style={{ width: `${progressPercent}%` }}
-                                />
-                            </div>
-
-                            {/* 4 Steps */}
-                            <div className="grid grid-cols-4 text-center text-[11px] gap-1 pt-1 border-t border-gray-100">
-                                {[
-                                    { label: 'Placed', step: 1 },
-                                    { label: 'Making', step: 2 },
-                                    { label: 'Ready', step: 3 },
-                                    { label: 'Served', step: 4 },
-                                ].map(({ label, step }) => (
-                                    <div
-                                        key={step}
-                                        className={`py-1 rounded font-semibold transition-colors ${
-                                            activeStep === step
-                                                ? 'text-orange-600 font-bold bg-orange-50'
-                                                : activeStep > step
-                                                ? 'text-emerald-700'
-                                                : 'text-gray-400'
-                                        }`}
-                                    >
-                                        {activeStep > step ? '✓ ' : activeStep === step ? '● ' : ''}{step}. {label}
-                                    </div>
-                                ))}
-                            </div>
+                {/* Live Order Tracker Card */}
+                <section className="bg-white rounded-3xl p-5 shadow-sm border border-[#ece8df] relative overflow-hidden">
+                    <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center space-x-2">
+                            <span className="relative flex h-2.5 w-2.5">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600" />
+                            </span>
+                            <h2 className="text-sm font-bold text-olive-deep tracking-tight">
+                                {progress.headline}
+                            </h2>
                         </div>
-                    );
-                })()}
-
-                {/* Orders List */}
-                {!orders || orders.length === 0 ? (
-                    <div className="text-center py-16 space-y-4">
-                        <ShoppingBag className="mx-auto text-gray-300" size={48} />
-                        <p className="text-on-surface-variant">No orders in your current bill.</p>
-                        <Link to="/menu" className="btn-stitch-primary px-6 py-3 text-xs font-bold uppercase tracking-wider inline-block">
-                            Browse Menu
-                        </Link>
+                        <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#f1f5ee] border border-[#dce6d7] text-olive-deep text-[11px] font-medium whitespace-nowrap">
+                            <Clock className="w-3 h-3 mr-1 text-gold-accent" />
+                            {progress.remainingText}
+                        </div>
                     </div>
-                ) : (
-                    <div className="space-y-4 mb-8">
-                        {orders.map((order, idx) => {
-                            const isExpanded = expandedOrders[order._id] !== false; // default open
-                            return (
-                                <div
-                                    key={order._id}
-                                    className="bg-white border border-surface-border rounded-xl overflow-hidden shadow-sm"
-                                >
-                                    {/* Order header */}
-                                    <button
-                                        onClick={() => toggleOrder(order._id)}
-                                        className="w-full flex items-center justify-between p-5 hover:bg-surface-container-lowest transition text-left"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                                                {idx + 1}
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
-                                                        {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                    </p>
-                                                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                                                        order.status === 'ready'
-                                                            ? 'bg-emerald-100 text-emerald-800'
-                                                            : order.status === 'preparing'
-                                                            ? 'bg-orange-100 text-orange-800'
-                                                            : order.status === 'served'
-                                                            ? 'bg-green-100 text-green-800'
-                                                            : 'bg-blue-100 text-blue-800'
-                                                    }`}>
-                                                        {order.status === 'preparing' ? 'Chef Making' : order.status === 'ready' ? 'Ready' : order.status === 'served' ? 'Served' : 'Placed'}
-                                                    </span>
-                                                </div>
-                                                <p className="text-sm font-semibold text-primary mt-0.5">
-                                                    {order.items.length} item{order.items.length !== 1 ? 's' : ''}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-lg font-[Playfair_Display] font-bold text-primary">
-                                                ₹{order.totalAmount}
-                                            </span>
-                                            {isExpanded
-                                                ? <ChevronUp size={16} className="text-on-surface-variant" />
-                                                : <ChevronDown size={16} className="text-on-surface-variant" />
-                                            }
-                                        </div>
-                                    </button>
 
-                                    {/* Order items */}
+                    <p className="text-xs text-olive-muted mt-2 leading-relaxed">
+                        {progress.subline}
+                    </p>
+
+                    {/* Stepper Progress Bar */}
+                    <div className="mt-4 pt-1">
+                        <div className="w-full bg-stone-100 h-2 rounded-full overflow-hidden p-0.5">
+                            <div
+                                className="bg-gradient-to-r from-gold-accent via-emerald-600 to-emerald-700 h-full rounded-full transition-all duration-700"
+                                style={{ width: `${progress.progressPercent}%` }}
+                            />
+                        </div>
+                        <div className="grid grid-cols-4 mt-2.5 text-center text-[10.5px]">
+                            <span className={progress.activeStep >= 1 ? 'font-bold text-olive-deep' : 'text-stone-400'}>1. Placed</span>
+                            <span className={progress.activeStep >= 2 ? 'font-bold text-olive-deep' : 'text-stone-400'}>2. Making</span>
+                            <span className={progress.activeStep >= 3 ? 'font-bold text-olive-deep' : 'text-stone-400'}>3. Ready</span>
+                            <span className={progress.activeStep >= 4 ? 'font-bold text-olive-deep' : 'text-stone-400'}>4. Served</span>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Orders Itemized Accordion */}
+                <section className="bg-white rounded-3xl p-5 shadow-sm border border-[#ece8df]">
+                    <div className="flex items-center justify-between pb-3 border-b border-[#f1eee7]">
+                        <h3 className="text-xs font-bold tracking-wider uppercase text-olive-deep">
+                            Dishes in Session ({billData?.orders?.length || 0})
+                        </h3>
+                        <button
+                            onClick={() => fetchBill(true)}
+                            className="p-1 text-olive-muted hover:text-olive-deep transition"
+                            title="Refresh bill"
+                        >
+                            <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+                        </button>
+                    </div>
+
+                    <div className="divide-y divide-[#f5f2eb]">
+                        {(billData?.orders || []).map((ord, idx) => {
+                            const isExpanded = expandedOrders[ord._id] ?? true;
+                            return (
+                                <div key={ord._id || idx} className="py-3">
+                                    <div
+                                        onClick={() => toggleOrder(ord._id)}
+                                        className="flex items-center justify-between cursor-pointer"
+                                    >
+                                        <div>
+                                            <span className="text-xs font-semibold text-olive-deep">
+                                                Order #{idx + 1}
+                                            </span>
+                                            <span className="text-[10px] text-olive-muted ml-2">
+                                                {ord.status || 'placed'}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-bold text-olive-deep">
+                                                ₹{ord.totalAmount}
+                                            </span>
+                                            {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                        </div>
+                                    </div>
+
                                     {isExpanded && (
-                                        <div className="px-5 pb-5 border-t border-surface-border/50">
-                                            <div className="pt-4 space-y-2">
-                                                {order.items.map((item, iIdx) => (
-                                                    <div
-                                                        key={iIdx}
-                                                        className="flex justify-between items-center text-sm"
-                                                    >
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-on-surface-variant font-medium">{item.quantity}×</span>
-                                                            <span className="text-primary font-medium">{item.name}</span>
-                                                        </div>
-                                                        <span className="text-on-surface-variant text-xs font-semibold">
-                                                            ₹{item.price * item.quantity}
-                                                        </span>
-                                                    </div>
-                                                ))}
-                                            </div>
+                                        <div className="mt-2.5 space-y-1.5 pl-2 border-l-2 border-[#e8e4d8]">
+                                            {ord.items?.map((it, itIdx) => (
+                                                <div key={itIdx} className="flex justify-between text-xs text-olive-muted">
+                                                    <span>{it.quantity}x {it.name}</span>
+                                                    <span>₹{(it.price || 0) * (it.quantity || 1)}</span>
+                                                </div>
+                                            ))}
                                         </div>
                                     )}
                                 </div>
                             );
                         })}
                     </div>
-                )}
+                </section>
 
-                {/* Grand Total & Payment Section */}
-                {orders && orders.length > 0 && (
-                    <div className="bg-white border border-surface-border rounded-xl p-6 shadow-sm space-y-6">
-                        {/* Breakdown */}
-                        <div className="space-y-2">
-                            {orders.map((order, idx) => (
-                                <div key={order._id} className="flex justify-between text-xs text-on-surface-variant">
-                                    <span>Order {idx + 1} ({order.items.length} items)</span>
-                                    <span>₹{order.totalAmount}</span>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="border-t border-surface-border pt-4 flex justify-between items-center">
-                            <span className="text-sm font-semibold uppercase tracking-wider text-on-surface-variant">
-                                Grand Total
-                            </span>
-                            <span className="text-4xl font-[Playfair_Display] font-bold text-primary">
-                                ₹{grandTotal}
-                            </span>
-                        </div>
-
-                        {/* Payment Method Selector */}
-                        <div className="space-y-3">
-                            <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant block">
-                                Select Payment Method
-                            </span>
-                            <div className="grid grid-cols-2 gap-3">
-                                <button
-                                    type="button"
-                                    onClick={handleSelectOnline}
-                                    disabled={isUpdatingMethod}
-                                    className={`p-3.5 rounded-xl border-2 text-left transition flex flex-col justify-between gap-2 ${
-                                        selectedMethod === 'online' && !cashRequested
-                                            ? 'border-primary bg-primary/5 text-primary shadow-sm'
-                                            : 'border-surface-border hover:border-gray-300 text-on-surface-variant bg-white'
-                                    }`}
-                                >
-                                    <div className="flex items-center justify-between w-full">
-                                        <CreditCard size={20} className={selectedMethod === 'online' && !cashRequested ? 'text-primary' : 'text-gray-400'} />
-                                        {selectedMethod === 'online' && !cashRequested && (
-                                            <span className="w-2.5 h-2.5 rounded-full bg-primary" />
-                                        )}
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-xs">Pay Online</p>
-                                        <p className="text-[10px] opacity-75">UPI, Cards, NetBanking</p>
-                                    </div>
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={handleSelectCash}
-                                    disabled={isUpdatingMethod}
-                                    className={`p-3.5 rounded-xl border-2 text-left transition flex flex-col justify-between gap-2 ${
-                                        selectedMethod === 'cash' || cashRequested
-                                            ? 'border-emerald-600 bg-emerald-50 text-emerald-900 shadow-sm'
-                                            : 'border-surface-border hover:border-gray-300 text-on-surface-variant bg-white'
-                                    }`}
-                                >
-                                    <div className="flex items-center justify-between w-full">
-                                        <Banknote size={20} className={selectedMethod === 'cash' || cashRequested ? 'text-emerald-700' : 'text-gray-400'} />
-                                        {(selectedMethod === 'cash' || cashRequested) && (
-                                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
-                                        )}
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-xs">Pay by Cash</p>
-                                        <p className="text-[10px] opacity-75">Pay to waiter after dining</p>
-                                    </div>
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Payment failed notice */}
-                        {paymentState === 'failed' && paymentMessage && (
-                            <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                <AlertCircle size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
-                                <p className="text-red-700 text-xs">{paymentMessage}</p>
-                            </div>
-                        )}
-
-                        {/* Action buttons based on choice */}
-                        {cashRequested ? (
-                            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center space-y-3">
-                                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-700">
-                                    <Banknote size={22} />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-emerald-900 text-sm">Cash Payment Selected</h3>
-                                    <p className="text-xs text-emerald-800 mt-1">
-                                        Please pay <strong>₹{grandTotal}</strong> in cash to your waiter or at the counter after your meal. Staff will update your bill once received.
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={handleSelectOnline}
-                                    className="text-xs font-semibold text-primary underline hover:opacity-80 transition block mx-auto"
-                                >
-                                    Switch to Online Payment instead
-                                </button>
-                            </div>
-                        ) : (
-                            <div>
-                                <button
-                                    onClick={handlePayBill}
-                                    disabled={paymentState === 'processing'}
-                                    className="w-full btn-stitch-primary py-4 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-                                >
-                                    {paymentState === 'processing' ? (
-                                        <>
-                                            <Loader2 size={16} className="animate-spin" />
-                                            Processing...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <CreditCard size={16} />
-                                            Pay ₹{grandTotal} via Razorpay
-                                        </>
-                                    )}
-                                </button>
-                                <p className="text-center text-[10px] text-gray-400 mt-2">
-                                    Secured by Razorpay · All orders in this session will be settled.
-                                </p>
-                            </div>
-                        )}
+                {/* Bill Breakdown Summary Card */}
+                <section className="bg-white rounded-3xl p-5 shadow-sm border border-[#ece8df] space-y-3">
+                    <div className="flex justify-between text-xs text-olive-muted">
+                        <span>Items Subtotal</span>
+                        <span>₹{billData?.subtotal || billData?.grandTotal || 0}</span>
                     </div>
-                )}
-            </div>
+                    {billData?.taxAmount > 0 && (
+                        <div className="flex justify-between text-xs text-olive-muted">
+                            <span>Taxes & GST</span>
+                            <span>₹{billData.taxAmount}</span>
+                        </div>
+                    )}
+                    <div className="pt-2 border-t border-[#f1eee7] flex justify-between items-baseline">
+                        <span className="font-serif text-base font-semibold text-olive-deep">Grand Total</span>
+                        <span className="font-serif text-2xl font-bold text-olive-deep">
+                            ₹{billData?.grandTotal || 0}
+                        </span>
+                    </div>
+
+                    {/* Payment Mode Selector */}
+                    {!billData?.sessionPaid && (
+                        <div className="pt-3 border-t border-[#f1eee7] grid grid-cols-2 gap-2">
+                            <button
+                                type="button"
+                                onClick={handleSelectOnline}
+                                className={`py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                                    selectedMethod === 'online'
+                                        ? 'border-olive-deep bg-olive-light/70 text-olive-deep'
+                                        : 'border-stone-200 text-stone-600'
+                                }`}
+                            >
+                                <CreditCard size={14} /> UPI / Online
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleSelectCash}
+                                className={`py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                                    selectedMethod === 'cash'
+                                        ? 'border-olive-deep bg-olive-light/70 text-olive-deep'
+                                        : 'border-stone-200 text-stone-600'
+                                }`}
+                            >
+                                <Banknote size={14} /> Pay Cash
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Pay Button / Status */}
+                    {!billData?.sessionPaid ? (
+                        selectedMethod === 'online' ? (
+                            <button
+                                type="button"
+                                onClick={handlePayBill}
+                                disabled={paymentState === 'processing'}
+                                className="w-full py-3.5 rounded-full bg-olive-deep hover:bg-olive-rich text-white text-xs font-bold tracking-widest uppercase transition shadow-sm mt-2 disabled:opacity-50"
+                            >
+                                {paymentState === 'processing' ? 'Processing...' : `Pay ₹${billData?.grandTotal || 0} Now`}
+                            </button>
+                        ) : (
+                            <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-xs text-center mt-2 font-medium">
+                                Cash payment chosen. Please inform your server or pay at the billing counter.
+                            </div>
+                        )
+                    ) : (
+                        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-2xl text-xs text-center mt-2 font-medium">
+                            ✓ Bill Settled & Paid. Thank you for dining with us!
+                        </div>
+                    )}
+                </section>
+            </main>
         </div>
     );
 };

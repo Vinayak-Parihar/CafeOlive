@@ -1,38 +1,87 @@
 import React, { useState, useMemo } from 'react';
-import { Camera, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Camera, X, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import { AnimatePresence, motion as Motion } from 'motion/react';
 import { ManagedImage, usePublicMediaList } from './utils/mediaUtils';
 import Reveal from './components/motion/Reveal';
-import { StaggerGrid, StaggerItem } from './components/motion/StaggerGrid';
+
+const DEFAULT_GALLERY_ITEMS = [
+    {
+        id: 'def-1',
+        title: 'Bungalow Lounge',
+        category: 'Ambience',
+        subtitle: 'Atmospheric interior with mood lighting and plush banquettes.',
+        imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80'
+    },
+    {
+        id: 'def-2',
+        title: 'Garden Patio Seating',
+        category: 'Ambience',
+        subtitle: 'Sun-dappled open air dining amidst lush greenery.',
+        imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80'
+    },
+    {
+        id: 'def-3',
+        title: 'Artisanal Espresso Brew',
+        category: 'Food & Drinks',
+        subtitle: 'Single-origin beans paired with silky organic milk art.',
+        imageUrl: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=1200&q=80'
+    },
+    {
+        id: 'def-4',
+        title: 'Curated Pour-over Coffee',
+        category: 'Food & Drinks',
+        subtitle: 'Shared afternoon coffee tastings with roasts from Jaén and Ethiopia.',
+        imageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=1200&q=80'
+    },
+    {
+        id: 'def-5',
+        title: 'Private Screen Seating',
+        category: 'Mini Theatre',
+        subtitle: 'Exclusive cinematic chamber equipped with bespoke audio & recliners.',
+        imageUrl: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&fit=crop&w=1200&q=80'
+    },
+    {
+        id: 'def-6',
+        title: 'Celebration Banquet Pavilion',
+        category: 'Party Halls',
+        subtitle: 'Bespoke event decor, warm brass chandeliers, and private dining.',
+        imageUrl: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80'
+    }
+];
 
 const GalleryPage = () => {
-    const [selectedCategory, setSelectedCategory] = useState("All");
+    const [selectedCategory, setSelectedCategory] = useState('All');
     const [lightboxIndex, setLightboxIndex] = useState(null);
     const { mediaList } = usePublicMediaList();
 
-    const categories = ["All", "Ambience", "Food & Drinks", "Mini Theatre", "Party Halls", "Gallery"];
+    const categories = ['All', 'Ambience', 'Food & Drinks', 'Mini Theatre', 'Party Halls', 'Curations'];
 
     const managedImages = useMemo(() => {
-        return (mediaList || [])
+        const fromBackend = (mediaList || [])
             .filter((item) => (item.section === 'gallery' || item.section === 'reservations' || item.isGallery === true) && item.isEnabled !== false && item.imageUrl)
             .map((item) => {
-                const category = item.category || (item.section === 'reservations' ? 'Party Halls' : 'Gallery');
+                const category = item.category || (item.section === 'reservations' ? 'Party Halls' : 'Ambience');
                 const cleanTitle = item.label ? item.label.replace(/^Reservation:\s*/i, '').trim() : 'Olive Sanctuary';
                 return {
-                    id: item.imageKey,
-                    imageKey: item.imageKey,
-                    url: item.imageUrl,
+                    id: item.imageKey || item._id,
+                    title: cleanTitle,
                     category,
-                    title: cleanTitle
+                    subtitle: item.description || 'Curated sanctuary experience at Café Olive.',
+                    imageUrl: item.imageUrl
                 };
             });
+
+        return fromBackend.length > 0 ? fromBackend : DEFAULT_GALLERY_ITEMS;
     }, [mediaList]);
 
     const filteredImages = useMemo(() => {
-        return managedImages.filter(img =>
-            selectedCategory === "All" || img.category === selectedCategory
-        );
+        return managedImages.filter(img => {
+            if (selectedCategory === 'All') return true;
+            return img.category?.toLowerCase() === selectedCategory.toLowerCase();
+        });
     }, [managedImages, selectedCategory]);
+
+    const activeImage = lightboxIndex !== null ? filteredImages[lightboxIndex] : null;
 
     const handlePrev = (e) => {
         e.stopPropagation();
@@ -45,126 +94,155 @@ const GalleryPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background pt-32 pb-24 px-6 font-[Montserrat]">
-            <div className="max-w-container-max mx-auto">
-                
-                {/* Header */}
-                <Reveal className="text-center mb-16">
-                    <span className="text-soft-gold text-xs font-semibold uppercase tracking-[0.25em] mb-2 block">Visual Sanctuary</span>
-                    <h1 className="text-4xl md:text-6xl font-[Playfair_Display] text-primary font-bold mb-4">Gallery</h1>
-                    <div className="h-[2px] w-24 bg-soft-gold mx-auto opacity-70"></div>
-                    <p className="mt-6 text-on-surface-variant font-light text-base md:text-lg max-w-2xl mx-auto">
-                        Peer into our aesthetic spaces, freshly brewed single-origin coffees, and memorable hostings.
+        <div className="min-h-screen bg-transparent font-sans text-olive-deep antialiased selection:bg-olive-rich selection:text-linen">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24">
+                {/* Header Section */}
+                <Reveal className="pt-6 pb-10 text-center max-w-4xl mx-auto">
+                    <div className="inline-flex items-center gap-3 mb-3">
+                        <span className="w-8 h-[1px] bg-gold-accent" />
+                        <span className="text-[11px] uppercase tracking-[0.3em] font-semibold text-gold-accent">
+                            Moments & Atmosphere
+                        </span>
+                        <span className="w-8 h-[1px] bg-gold-accent" />
+                    </div>
+                    <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-medium text-olive-deep tracking-tight mb-4">
+                        Visual Journal & Sanctuary Spaces
+                    </h1>
+                    <p className="max-w-2xl mx-auto text-olive-muted text-sm sm:text-base font-light leading-relaxed mb-8">
+                        Immerse yourself in our botanical courtyards, hand-pulled espresso bars, intimate mini-theatre sanctuaries, and bespoke celebration pavilions.
                     </p>
+
+                    {/* Filter Pills */}
+                    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 pt-2" role="tablist">
+                        {categories.map(cat => {
+                            const isSelected = selectedCategory === cat;
+                            return (
+                                <button
+                                    key={cat}
+                                    onClick={() => setSelectedCategory(cat)}
+                                    className={`px-5 py-2 rounded-full text-xs tracking-wider uppercase transition-all duration-300 ${
+                                        isSelected
+                                            ? 'bg-olive-deep text-linen shadow-md font-semibold'
+                                            : 'bg-white/70 hover:bg-white text-olive-deep border border-[#e8e1d5] hover:border-gold-accent font-medium'
+                                    }`}
+                                >
+                                    {cat}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    <div className="mt-5 text-xs tracking-widest text-olive-muted uppercase">
+                        <span className="font-semibold text-olive-deep">{filteredImages.length}</span> Archways on display
+                    </div>
                 </Reveal>
 
-                {/* Filter Tabs */}
-                <div className="flex flex-wrap justify-center gap-3 mb-16">
-                    {categories.map(cat => (
-                        <button
-                            key={cat}
-                            onClick={() => setSelectedCategory(cat)}
-                            className={`px-6 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${
-                                selectedCategory === cat
-                                ? 'bg-primary text-white shadow-xs'
-                                : 'bg-white text-on-surface-variant border border-surface-border hover:bg-surface-container-low'
-                            }`}
-                        >
-                            {cat}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Masonry / Grid */}
-                <StaggerGrid as="div" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                {/* Arched Photo Gallery Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                     {filteredImages.map((img, idx) => (
-                        <StaggerItem
-                            as="button"
-                            key={img.id}
+                        <article
+                            key={img.id || idx}
                             onClick={() => setLightboxIndex(idx)}
-                            className="group bg-white rounded-lg border border-surface-border p-4 soft-shadow cursor-pointer overflow-hidden relative text-left"
-                            aria-label={`Open ${img.title} in gallery viewer`}
+                            className="group bg-white/70 hover:bg-white p-3.5 sm:p-4 rounded-3xl border border-[#e8e1d5] shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer"
                         >
-                            <div className="aspect-[4/5] arch-frame overflow-hidden w-full relative">
+                            <div className="w-full aspect-[4/5] rounded-t-full rounded-b-xl overflow-hidden relative bg-olive-light/50">
                                 <ManagedImage
-                                    src={img.url}
-                                    alt={img.title} 
-                                    className="w-full h-full object-cover transition-transform duration-750 group-hover:scale-105"
+                                    src={img.imageUrl}
+                                    alt={img.title}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-95 group-hover:brightness-100"
                                 />
-                                <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <div className="bg-white p-3 rounded-full text-primary shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform">
-                                        <Camera size={20} />
-                                    </div>
+                                <div className="absolute inset-0 bg-olive-deep/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                    <span className="p-3 rounded-full bg-white/95 text-olive-deep shadow-md transform translate-y-3 group-hover:translate-y-0 transition-transform">
+                                        <ZoomIn className="w-5 h-5 text-gold-accent" />
+                                    </span>
                                 </div>
                             </div>
-                            <div className="mt-4 text-center">
-                                <span className="text-[10px] text-soft-gold font-bold uppercase tracking-wider">{img.category}</span>
-                                <h3 className="text-sm font-semibold text-primary mt-1">{img.title}</h3>
+                            <div className="pt-4 pb-2 text-center">
+                                <span className="text-[10px] uppercase font-bold tracking-[0.25em] text-gold-accent block mb-1">
+                                    {img.category}
+                                </span>
+                                <h2 className="font-serif text-xl font-normal text-olive-deep group-hover:text-olive-rich transition-colors">
+                                    {img.title}
+                                </h2>
+                                {img.subtitle && (
+                                    <p className="text-xs text-olive-muted font-light mt-1 line-clamp-1">
+                                        {img.subtitle}
+                                    </p>
+                                )}
                             </div>
-                        </StaggerItem>
+                        </article>
                     ))}
-                </StaggerGrid>
-            </div>
+                </div>
+            </main>
 
-            {/* LIGHTBOX OVERLAY */}
+            {/* Lightbox Modal */}
             <AnimatePresence>
-            {lightboxIndex !== null && (
-                <Motion.div
-                    className="fixed inset-0 bg-primary/95 backdrop-blur-md z-[10000] flex flex-col items-center justify-center p-4 text-white"
-                    onClick={() => setLightboxIndex(null)}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.25 }}
-                >
-                    <button
-                        className="absolute top-4 right-4 md:top-6 md:right-6 p-3 bg-white/10 rounded-full hover:bg-white/20 transition"
+                {activeImage && (
+                    <Motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
                         onClick={() => setLightboxIndex(null)}
-                        aria-label="Close gallery viewer"
+                        className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-8"
                     >
-                        <X size={24} />
-                    </button>
-
-                    <div className="relative max-w-4xl max-h-[75vh] flex items-center justify-center">
-                        <button
-                            className="absolute left-2 md:left-[-80px] p-3 bg-primary/70 md:bg-white/10 rounded-full hover:bg-white/20 transition z-10"
-                            onClick={handlePrev}
-                            aria-label="Previous gallery image"
+                        <div
+                            onClick={(e) => e.stopPropagation()}
+                            className="relative max-w-4xl w-full bg-linen rounded-3xl overflow-hidden shadow-2xl border border-gold-accent/20 flex flex-col"
                         >
-                            <ChevronLeft size={28} />
-                        </button>
-
-                        <AnimatePresence mode="wait">
-                            <Motion.div
-                                key={lightboxIndex}
-                                initial={{ opacity: 0, scale: 0.97 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.97 }}
-                                transition={{ duration: 0.2 }}
+                            <button
+                                onClick={() => setLightboxIndex(null)}
+                                className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/40 text-white hover:bg-black/60 transition"
+                                aria-label="Close lightbox"
                             >
-                                <ManagedImage
-                                    src={filteredImages[lightboxIndex].url}
-                                    alt={filteredImages[lightboxIndex].title}
-                                    className="max-w-full max-h-[70vh] object-contain rounded-lg border border-white/10 shadow-2xl"
+                                <X size={20} />
+                            </button>
+
+                            <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full bg-black flex items-center justify-center overflow-hidden">
+                                <img
+                                    src={activeImage.imageUrl}
+                                    alt={activeImage.title}
+                                    className="w-full h-full object-contain"
                                 />
-                            </Motion.div>
-                        </AnimatePresence>
 
-                        <button
-                            className="absolute right-2 md:right-[-80px] p-3 bg-primary/70 md:bg-white/10 rounded-full hover:bg-white/20 transition z-10"
-                            onClick={handleNext}
-                            aria-label="Next gallery image"
-                        >
-                            <ChevronRight size={28} />
-                        </button>
-                    </div>
+                                {filteredImages.length > 1 && (
+                                    <>
+                                        <button
+                                            onClick={handlePrev}
+                                            className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/75 transition"
+                                            aria-label="Previous image"
+                                        >
+                                            <ChevronLeft size={24} />
+                                        </button>
+                                        <button
+                                            onClick={handleNext}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/75 transition"
+                                            aria-label="Next image"
+                                        >
+                                            <ChevronRight size={24} />
+                                        </button>
+                                    </>
+                                )}
+                            </div>
 
-                    <div className="text-center mt-6 space-y-1">
-                        <span className="text-xs text-soft-gold font-bold tracking-widest uppercase">{filteredImages[lightboxIndex].category}</span>
-                        <h4 className="text-lg font-[Playfair_Display] font-medium">{filteredImages[lightboxIndex].title}</h4>
-                    </div>
-                </Motion.div>
-            )}
+                            <div className="p-6 bg-cream-surface flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div>
+                                    <span className="text-[10px] uppercase font-bold tracking-[0.25em] text-gold-accent block mb-1">
+                                        {activeImage.category}
+                                    </span>
+                                    <h3 className="font-serif text-2xl text-olive-deep font-medium">
+                                        {activeImage.title}
+                                    </h3>
+                                    <p className="text-xs text-olive-muted font-light mt-0.5">
+                                        {activeImage.subtitle}
+                                    </p>
+                                </div>
+                                <span className="text-xs text-olive-muted font-mono tracking-wider">
+                                    {(lightboxIndex + 1).toString().padStart(2, '0')} / {filteredImages.length.toString().padStart(2, '0')}
+                                </span>
+                            </div>
+                        </div>
+                    </Motion.div>
+                )}
             </AnimatePresence>
         </div>
     );

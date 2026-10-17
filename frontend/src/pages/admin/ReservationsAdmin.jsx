@@ -67,25 +67,26 @@ const ReservationsAdmin = () => {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold font-serif text-oliv-green dark:text-soft-gold">Reservations Dashboard</h1>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">Review and manage slot bookings for private theatre, halls, and inquiries.</p>
+                    <span className="text-[10px] uppercase tracking-[0.3em] text-[#c2a677] font-semibold">Venue Sanctuary</span>
+                    <h1 className="text-3xl font-serif font-bold text-[#1e2a1b] tracking-tight">Reservations Dashboard</h1>
+                    <p className="text-stone-500 text-sm mt-0.5">Review and manage bookings for the private mini theatre, celebration halls, and bespoke inquiries.</p>
                 </div>
                 <button 
                     onClick={fetchReservations}
-                    className="px-4 py-2 bg-oliv-green text-white text-sm font-semibold rounded-lg hover:bg-primary transition"
+                    className="px-5 py-2.5 bg-[#1e2a1b] hover:bg-[#2d3e29] text-white text-xs uppercase tracking-wider font-semibold rounded-xl shadow-xs transition duration-200"
                 >
                     Refresh List
                 </button>
             </div>
 
             {/* Filter controls */}
-            <div className="flex flex-wrap gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 transition-colors shadow-xs">
+            <div className="flex flex-wrap gap-4 p-5 bg-white rounded-2xl border border-[#e8e2d5] shadow-xs">
                 <div>
-                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1">Status Filter</label>
+                    <label className="block text-[10px] font-semibold text-stone-500 uppercase tracking-wider mb-1.5">Status Filter</label>
                     <select 
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm text-gray-700 dark:text-white focus:outline-none"
+                        className="bg-[#FAF8F3] border border-[#e8e2d5] rounded-xl px-3.5 py-2 text-xs font-medium text-[#1e2a1b] focus:outline-none focus:border-[#c2a677]"
                     >
                         <option value="all">All statuses</option>
                         <option value="pending">Pending</option>
@@ -94,11 +95,11 @@ const ReservationsAdmin = () => {
                     </select>
                 </div>
                 <div>
-                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1">Space Type Filter</label>
+                    <label className="block text-[10px] font-semibold text-stone-500 uppercase tracking-wider mb-1.5">Space Type Filter</label>
                     <select 
                         value={typeFilter}
                         onChange={(e) => setTypeFilter(e.target.value)}
-                        className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm text-gray-700 dark:text-white focus:outline-none"
+                        className="bg-[#FAF8F3] border border-[#e8e2d5] rounded-xl px-3.5 py-2 text-xs font-medium text-[#1e2a1b] focus:outline-none focus:border-[#c2a677]"
                     >
                         <option value="all">All spaces</option>
                         <option value="theatre">Mini Theatre</option>
@@ -110,68 +111,68 @@ const ReservationsAdmin = () => {
             </div>
 
             {loading ? (
-                <div className="flex justify-center items-center h-64 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-orange-500"></div>
+                <div className="flex justify-center items-center h-64 bg-white rounded-2xl border border-[#e8e2d5]">
+                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#1e2a1b]"></div>
                 </div>
             ) : filteredReservations.length === 0 ? (
-                <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400">
-                    <Calendar size={48} className="mx-auto mb-4 opacity-55 text-gray-300" />
-                    <p className="text-lg">No reservations matching your filter options were found.</p>
+                <div className="text-center py-20 bg-white rounded-2xl border border-[#e8e2d5] text-stone-500">
+                    <Calendar size={44} className="mx-auto mb-3 opacity-40 text-stone-400" />
+                    <p className="text-base font-serif">No reservations found matching your selected filters.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {filteredReservations.map((res) => (
                         <div 
                             key={res._id}
-                            className={`p-6 bg-white dark:bg-gray-800 border rounded-xl shadow-xs transition duration-300 ${
-                                res.status === 'confirmed' ? 'border-l-4 border-l-green-500 border-gray-200 dark:border-gray-700' :
-                                res.status === 'cancelled' ? 'border-l-4 border-l-red-500 border-gray-200 dark:border-gray-700' :
-                                'border-l-4 border-l-orange-500 border-gray-200 dark:border-gray-700'
+                            className={`p-6 bg-white border rounded-2xl shadow-xs transition duration-200 ${
+                                res.status === 'confirmed' ? 'border-[#c4dec0] border-l-4 border-l-[#2d5a27]' :
+                                res.status === 'cancelled' ? 'border-[#f7cdcd] border-l-4 border-l-[#9b2c2c]' :
+                                'border-[#f5dfb8] border-l-4 border-l-[#c2a677]'
                             }`}
                         >
                             <div className="flex justify-between items-start mb-4">
-                                <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full border border-gray-200/50 dark:border-gray-600/30">
+                                <div className="flex items-center gap-2 bg-[#f6f4ee] px-3 py-1 rounded-full border border-[#ece7dc]">
                                     {getSpaceIcon(res.type)}
-                                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{getSpaceLabel(res.type)}</span>
+                                    <span className="text-xs font-semibold text-[#1e2a1b]">{getSpaceLabel(res.type)}</span>
                                 </div>
-                                <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md ${
-                                    res.status === 'confirmed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                                    res.status === 'cancelled' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
-                                    'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
+                                <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${
+                                    res.status === 'confirmed' ? 'bg-[#eaf3e8] text-[#245220] border-[#cbe4c7]' :
+                                    res.status === 'cancelled' ? 'bg-[#fdeeed] text-[#9a2c2c] border-[#f7cdcd]' :
+                                    'bg-[#fef7ea] text-[#935a16] border-[#f5dfb8]'
                                 }`}>
                                     {res.status}
                                 </span>
                             </div>
 
-                            <h3 className="text-xl font-bold font-serif text-gray-900 dark:text-white mb-2">{res.name}</h3>
+                            <h3 className="text-xl font-bold font-serif text-[#1e2a1b] mb-2">{res.name}</h3>
                             
-                            <div className="grid grid-cols-2 gap-3 text-xs text-gray-600 dark:text-gray-300 mb-4 font-medium">
-                                <span className="flex items-center gap-1.5"><Phone size={14} /> {res.phone}</span>
-                                <span className="flex items-center gap-1.5 className='truncate'"><Mail size={14} /> {res.email}</span>
-                                <span className="flex items-center gap-1.5"><Calendar size={14} /> {res.date}</span>
-                                <span className="flex items-center gap-1.5"><Clock size={14} /> {res.startTime} ({res.duration}h)</span>
-                                <span className="flex items-center gap-1.5"><Users size={14} /> {res.guests} Guests</span>
-                                <span className="font-bold text-orange-600 dark:text-orange-500">₹{res.totalAmount} ({res.paymentStatus})</span>
-                                {res.occasion && <span className="truncate col-span-2">🎉 {res.occasion}</span>}
+                            <div className="grid grid-cols-2 gap-3 text-xs text-stone-600 mb-4 font-medium">
+                                <span className="flex items-center gap-1.5"><Phone size={13} className="text-[#c2a677]" /> {res.phone}</span>
+                                <span className="flex items-center gap-1.5 truncate"><Mail size={13} className="text-[#c2a677]" /> {res.email}</span>
+                                <span className="flex items-center gap-1.5"><Calendar size={13} className="text-[#c2a677]" /> {res.date}</span>
+                                <span className="flex items-center gap-1.5"><Clock size={13} className="text-[#c2a677]" /> {res.startTime} ({res.duration}h)</span>
+                                <span className="flex items-center gap-1.5"><Users size={13} className="text-[#c2a677]" /> {res.guests} Guests</span>
+                                <span className="font-bold text-[#1e2a1b]">₹{res.totalAmount} <span className="text-[10px] uppercase font-normal text-stone-400">({res.paymentStatus})</span></span>
+                                {res.occasion && <span className="truncate col-span-2 text-stone-700">✨ {res.occasion}</span>}
                             </div>
 
                             {res.specialRequests && (
-                                <div className="bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700/60 p-3 rounded-lg text-xs text-gray-600 dark:text-gray-300 italic mb-4 leading-relaxed">
-                                    " {res.specialRequests} "
+                                <div className="bg-[#FAF8F3] border border-[#ece7dc] p-3 rounded-xl text-xs text-stone-600 italic mb-4 leading-relaxed">
+                                    "{res.specialRequests}"
                                 </div>
                             )}
 
                             {res.status === 'pending' && (
-                                <div className="flex gap-3 pt-2 border-t border-gray-100 dark:border-gray-700">
+                                <div className="flex gap-3 pt-3 border-t border-[#ece7dc]">
                                     <button 
                                         onClick={() => updateStatus(res._id, 'confirmed')}
-                                        className="flex-1 flex items-center justify-center gap-1 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold uppercase rounded-lg transition"
+                                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-[#2d5a27] hover:bg-[#23471f] text-white text-xs font-semibold uppercase tracking-wider rounded-xl transition duration-200"
                                     >
                                         <Check size={14} /> Confirm
                                     </button>
                                     <button 
                                         onClick={() => updateStatus(res._id, 'cancelled')}
-                                        className="flex-1 flex items-center justify-center gap-1 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold uppercase rounded-lg transition"
+                                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-stone-100 hover:bg-[#fdeeed] text-stone-700 hover:text-[#9a2c2c] border border-stone-200 text-xs font-semibold uppercase tracking-wider rounded-xl transition duration-200"
                                     >
                                         <X size={14} /> Cancel
                                     </button>

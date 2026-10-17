@@ -1,0 +1,872 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_standard" name="shell-type"><title>OLIV — Artisanal Cafe &amp; Micro-Roastery</title><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "outline": "#75786f", "on-tertiary-fixed-variant": "#3d4b2c", "inverse-primary": "#bdccaa", "inverse-on-surface": "#f2f1eb", "inverse-surface": "#30312d", "surface": "#fbf9f3", "surface-bright": "#fbf9f3", "surface-container-low": "#f5f3ee", "surface-container-lowest": "#ffffff", "background": "#fbf9f3", "tertiary-container": "#3c4a2b", "on-surface-variant": "#454840", "on-primary-container": "#aab998", "on-surface": "#1b1c19", "on-error-container": "#93000a", "on-primary": "#ffffff", "primary-fixed": "#d8e8c4", "tertiary-fixed-dim": "#bccca3", "secondary-fixed": "#d4eab7", "secondary-container": "#d4eab7", "on-secondary-container": "#576a42", "tertiary-fixed": "#d8e9be", "tertiary": "#263316", "secondary": "#52643c", "on-primary-fixed": "#131f09", "on-primary-fixed-variant": "#3e4b31", "primary": "#27331b", "on-tertiary": "#ffffff", "surface-variant": "#e4e2dd", "on-secondary-fixed-variant": "#3a4c27", "primary-container": "#3d4a30", "surface-tint": "#556347", "on-tertiary-container": "#a9b991", "on-error": "#ffffff", "on-background": "#1b1c19", "surface-container": "#f0eee8", "on-tertiary-fixed": "#131f05", "secondary-fixed-dim": "#b8ce9d", "on-secondary": "#ffffff", "outline-variant": "#c5c8bd", "surface-container-high": "#eae8e2", "primary-fixed-dim": "#bdccaa", "error-container": "#ffdad6", "surface-dim": "#dcdad4", "on-secondary-fixed": "#102002", "error": "#ba1a1a", "surface-container-highest": "#e4e2dd" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "gutter-mobile": "1rem", "space-xl": "2.5rem", "margin": "3rem", "gutter": "1.5rem", "space-xs": "0.25rem", "margin-mobile": "1.25rem", "space-sm": "0.5rem", "space-lg": "1.5rem", "space-md": "1rem" }, "fontFamily": { "display": [ "Playfair Display" ], "label-sm": [ "Plus Jakarta Sans" ], "body-sm": [ "Plus Jakarta Sans" ], "display-mobile": [ "Playfair Display" ], "title-md": [ "Plus Jakarta Sans" ], "body-md": [ "Plus Jakarta Sans" ], "headline-lg-mobile": [ "Playfair Display" ], "body-lg": [ "Plus Jakarta Sans" ], "title-lg": [ "Plus Jakarta Sans" ], "headline-sm": [ "Playfair Display" ], "headline-lg": [ "Playfair Display" ], "label-md": [ "Plus Jakarta Sans" ], "headline-md": [ "Playfair Display" ] }, "fontSize": { "display": [ "3.5rem", { "lineHeight": "4rem", "letterSpacing": "-0.02em", "fontWeight": "600" } ], "label-sm": [ "0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.06em", "fontWeight": "600" } ], "body-sm": [ "0.875rem", { "lineHeight": "1.375rem", "letterSpacing": "0em", "fontWeight": "400" } ], "display-mobile": [ "2.5rem", { "lineHeight": "3rem", "letterSpacing": "-0.01em", "fontWeight": "600" } ], "title-md": [ "1.125rem", { "lineHeight": "1.5rem", "letterSpacing": "0em", "fontWeight": "600" } ], "body-md": [ "1rem", { "lineHeight": "1.6rem", "letterSpacing": "0em", "fontWeight": "400" } ], "headline-lg-mobile": [ "1.875rem", { "lineHeight": "2.25rem", "letterSpacing": "0em", "fontWeight": "600" } ], "body-lg": [ "1.125rem", { "lineHeight": "1.75rem", "letterSpacing": "0.01em", "fontWeight": "400" } ], "title-lg": [ "1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "0em", "fontWeight": "600" } ], "headline-sm": [ "1.5rem", { "lineHeight": "2rem", "letterSpacing": "0em", "fontWeight": "500" } ], "headline-lg": [ "2.5rem", { "lineHeight": "3rem", "letterSpacing": "-0.01em", "fontWeight": "600" } ], "label-md": [ "0.875rem", { "lineHeight": "1.25rem", "letterSpacing": "0.04em", "fontWeight": "600" } ], "headline-md": [ "2rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.01em", "fontWeight": "500" } ] } } } };</script></head><body class="bg-background font-body-md text-on-surface antialiased selection:bg-secondary-fixed selection:text-on-secondary-fixed"><header class="fixed top-0 left-0 w-full z-50 bg-surface/90 backdrop-blur-md shadow-[0_1px_8px_rgba(61,74,48,0.05)] transition-all"><div class="h-20 max-w-7xl mx-auto px-6 lg:px-12 flex items-center justify-between gap-4"><div class="flex items-center gap-6"><a class="group flex flex-col" data-path="home" href="#"><span class="font-headline-sm text-headline-sm text-primary tracking-wider uppercase transition-colors group-hover:text-secondary">OLIV</span><span class="font-label-sm text-[0.625rem] tracking-[0.2em] uppercase text-outline -mt-1">Artisanal Roastery</span></a><div class="hidden xl:flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-low text-secondary"><span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span><span class="font-label-sm text-label-sm tracking-wide">Open Daily 7:30 AM – 9:00 PM</span></div></div><nav class="hidden lg:flex items-center gap-7" data-active-classes="text-primary font-semibold relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-[1.5px] after:bg-primary"><a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors tracking-wide" data-path="home" href="#">Home</a><a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors tracking-wide" data-path="artisanal-menu" href="#">Artisanal Menu</a><a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors tracking-wide" data-path="your-order-and-cart" href="#">Your Order &amp; Cart</a><a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors tracking-wide" data-path="reserve-table" href="#">Reserve Table</a><a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors tracking-wide" data-path="gallery-and-spaces" href="#">Gallery &amp; Spaces</a><a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors tracking-wide" data-path="inquiry" href="#">Inquiry</a></nav><div class="flex items-center gap-3"><a aria-label="Cart and Status" class="relative p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all flex items-center justify-center" data-path="your-order-and-cart" href="#"><span class="material-symbols-outlined text-[22px]">local_mall</span><span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary"></span></a><a class="hidden sm:inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-primary-container text-surface hover:bg-primary transition-all font-label-md text-label-md tracking-wider uppercase shadow-[0_2px_8px_-2px_rgba(61,74,48,0.2)]" data-path="reserve-table" href="#">Reserve Table</a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center cursor-pointer shadow-sm hover:opacity-95 transition-opacity"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-20 bg-background min-h-screen"><div class="flex flex-col w-full">
+<!-- 1. DYNAMIC ANNOUNCEMENT & HARVEST TICKER -->
+<aside aria-label="Daily harvest bulletin" class="w-full bg-tertiary text-on-tertiary py-2.5 px-4 shadow-sm relative overflow-hidden z-20">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
+<div class="flex items-center gap-3">
+<span class="inline-flex items-center justify-center w-2 h-2 rounded-full bg-secondary-fixed animate-ping"></span>
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary-fixed">Live From The Hearth</span>
+<span class="hidden sm:inline text-tertiary-fixed-dim/40">•</span>
+<p class="font-body-sm text-body-sm text-tertiary-fixed font-light">
+          Morning Levain Drops: <strong class="font-semibold text-surface">7:00 AM &amp; 1:00 PM</strong> • Now Pouring: <em class="italic">Single-Estate Finca El Paraíso Geisha</em>
+</p>
+</div>
+<div class="flex items-center gap-4 text-tertiary-fixed-dim">
+<span class="font-label-sm text-label-sm uppercase tracking-wider hidden lg:inline">Peloponnese 1st Cold-Press Reserve</span>
+<a class="font-label-sm text-label-sm uppercase tracking-widest text-secondary-fixed hover:text-surface transition-colors flex items-center gap-1" href="#reserve-widget">
+<span class="">Table Bookings Open</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- 2. SHOWSTOPPER HERO SANCTUARY (VISUAL IMMERSION) -->
+<section class="relative w-full overflow-hidden bg-surface py-12 lg:py-20">
+<div class="max-w-7xl mx-auto px-6 lg:px-12">
+<!-- Upper Hero Layout: Asymmetric Typography + Micro Credential -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end mb-12 lg:mb-16">
+<div class="lg:col-span-8 space-y-6">
+<div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-surface-container-high text-secondary">
+<span class="material-symbols-outlined text-[16px]">eco</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[0.2em]">Organic Sophistication • London &amp; Athens</span>
+</div>
+<h1 class="font-display text-display text-primary leading-[1.08] tracking-tight">
+            Where Slow Living Meets Botanical Mastery
+          </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl leading-relaxed">
+            Step out of the metropolitan rush into OLIV. A sun-dappled sanctuary where century-old olive groves, 72-hour stoneground levain, and single-origin micro-lot coffees converge in unhurried harmony.
+          </p>
+<!-- CTAs -->
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
+<a class="inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-lg bg-primary-container text-surface hover:bg-primary transition-all shadow-md group" href="#reserve-widget">
+<span class="font-label-md text-label-md uppercase tracking-wider">Reserve Your Sanctuary Table</span>
+<span class="material-symbols-outlined text-[18px] transition-transform group-hover:translate-x-1">north_east</span>
+</a>
+<a class="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary transition-all" href="#menu-showcase">
+<span class="font-label-md text-label-md uppercase tracking-wider">Explore Artisanal Menu</span>
+<span class="material-symbols-outlined text-[18px]">restaurant_menu</span>
+</a>
+</div>
+<!-- Micro Stats Strip -->
+<div class="pt-4 flex flex-wrap items-center gap-y-2 gap-x-6 text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[18px]">check_circle</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wide">Zero Chemical Additives</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[18px]">check_circle</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wide">100% Regenerative Spelt &amp; Khorasan</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[18px]">check_circle</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wide">First Cold Press Extra Virgin Harvest</span>
+</div>
+</div>
+</div>
+<!-- Right Side Sensory Index Note -->
+<div class="lg:col-span-4 flex flex-col justify-between p-6 rounded-2xl bg-surface-container-low shadow-sm">
+<div class="flex items-center justify-between pb-4">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-outline">Today's Atelier Index</span>
+<span class="px-2.5 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">Harvest No. 24</span>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between text-on-surface">
+<span class="font-body-sm text-body-sm">Hearth Oven Temperature</span>
+<span class="font-title-md text-title-md text-primary">265°C / Beechwood</span>
+</div>
+<div class="flex items-center justify-between text-on-surface">
+<span class="font-body-sm text-body-sm">Levain Hydration Level</span>
+<span class="font-title-md text-title-md text-primary">82% Heritage Blend</span>
+</div>
+<div class="flex items-center justify-between text-on-surface">
+<span class="font-body-sm text-body-sm">Roastery Brew Calibration</span>
+<span class="font-title-md text-title-md text-primary">TDS 1.38% • 93.5°C</span>
+</div>
+</div>
+<div class="pt-4 mt-4 bg-surface rounded-lg p-3 flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary text-[24px]">spa</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-snug">
+              Freshly cold-pressed Koroneiki olive oil poured tableside with every morning bread service.
+            </p>
+</div>
+</div>
+</div>
+<!-- Hero Visual Masterpiece: 3-Panel Editorial Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8">
+<!-- Panel 1: Sunlit Morning Space -->
+<div class="md:col-span-4 relative group overflow-hidden rounded-2xl bg-surface-container h-[420px] shadow-sm">
+<img alt="Morning at OLIV Atelier" class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" data-alt="Sun-drenched Mediterranean artisan cafe corner with light timber furniture, natural linen curtains, potted Tuscan olive tree, textured lime-wash stone walls, minimalist ceramic coffee cups and soft morning light casting organic leaf shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXavt3tgL3pO3R4xsA7FstPr04zh3O97ISaS2KEihoUV8u0iZC-JkuJrBiP5VSV2Yt5zluEUdnI-I1x_EiDc4WqOBQwQ122r7W17ikZk_kcLdeYUUQtw5oVHNRLyLJSt4yDf8rtqXETAezmmX55zR3VtPBe0r4fm5s3cQKkUmbZu4xv7Cpkx5DdTBcwUifKUb5RZyY5wOniKRJ_qbGH5qTHYDvd1HbLfToYJSd5PlQprllLoGR6zw">
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/20 to-transparent"></div>
+<div class="absolute top-4 left-4">
+<span class="px-3 py-1 rounded-full bg-surface/90 backdrop-blur-md text-primary font-label-sm text-label-sm uppercase tracking-wider shadow-sm">
+              7:30 AM Morning Glow
+            </span>
+</div>
+<div class="absolute bottom-6 left-6 right-6 text-surface">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary-fixed">Space Architecture</span>
+<h3 class="font-headline-sm text-headline-sm text-surface mt-1">Sunroom &amp; Reading Solarium</h3>
+<p class="font-body-sm text-body-sm text-surface/80 mt-1 line-clamp-2">Acoustic linen drapes and filtered northern light designed for quiet contemplation.</p>
+</div>
+</div>
+<!-- Panel 2: Golden Hearth & Sourdough Olive Oil Ritual -->
+<div class="md:col-span-5 relative group overflow-hidden rounded-2xl bg-surface-container h-[420px] shadow-md md:-mt-6">
+<img alt="Artisan Baker Pouring Olive Oil on Warm Focaccia" class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" data-alt="Close up artisan baker hands slowly drizzling luminous emerald-golden early harvest cold-pressed olive oil over freshly baked blistered sourdough focaccia studded with fresh rosemary sprigs and flaky Maldon sea salt on a rustic marble counter in soft atmospheric bakery lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDu6ljoI2ZSl5LAyt6SJjc82-GcVp3ST_8X2FppWREwEx27lv_P96VsvwqNDHGrVarVVKXiA0g6mtyAQ-8tTzcX-jhOovH92t0OnP7vaFZLVUduUIlyOdC-ZNaIwkX0M7iu3pAI43tomPQgXVPdotYdrV1effeBRxl28TjOJCZ_66MWYT3ogx2qf03CpbbTxPbCyyFZ_T1WyLx7-d-3by6pMFD0mERJCwO6cxaH2VggrmhzlrDcf0">
+<div class="absolute inset-0 bg-gradient-to-t from-primary/85 via-primary/25 to-transparent"></div>
+<div class="absolute top-4 left-4">
+<span class="px-3 py-1 rounded-full bg-surface/90 backdrop-blur-md text-primary font-label-sm text-label-sm uppercase tracking-wider shadow-sm">
+              300-Yr Grove Provenance
+            </span>
+</div>
+<div class="absolute bottom-6 left-6 right-6 text-surface">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary-fixed">The Hearth Ritual</span>
+<h3 class="font-headline-sm text-headline-sm text-surface mt-1">Wild Levain &amp; First Press Koroneiki</h3>
+<p class="font-body-sm text-body-sm text-surface/80 mt-1 line-clamp-2">Baked on granite stones every sunrise using 100% ancient regenerative Khorasan grain.</p>
+</div>
+</div>
+<!-- Panel 3: Signature Olive Silk Latte Ceramic -->
+<div class="md:col-span-3 relative group overflow-hidden rounded-2xl bg-surface-container h-[420px] shadow-sm">
+<img alt="Signature Olive Silk Latte" class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" data-alt="Artisanal wheel-thrown speckled ceramic mug filled with silky microfoam latte, intricate olive leaf latte art rosette, a translucent droplet of green cold-pressed olive oil glistening on surface, placed on raw walnut wooden saucer alongside dried botanicals" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbrSsbVnLVHjRfad6VKE9pk3ypv9usqM1uEFFGrHX6P2_JVkkG7l3Nv8KSMYZNqXq6Wvz8dewcvZ6YF-ZbBzvbS0MLuI5eAElFbvgGn6ObcNroDmFxGK2T0BV31kBTxrWCwJfmWU4dD2LazF_b_CvdBP1rJx7JgY4GZuSWGBP5jjvNHx3yvjuhf95jxSFDnki__jvsp7enCqcRKug4ZNPpd4yxm35vxb0An8bTyu-7PZ32jYYEg_0">
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/20 to-transparent"></div>
+<div class="absolute top-4 left-4">
+<span class="px-3 py-1 rounded-full bg-surface/90 backdrop-blur-md text-primary font-label-sm text-label-sm uppercase tracking-wider shadow-sm">
+              SCA 89+ Micro-Lot
+            </span>
+</div>
+<div class="absolute bottom-6 left-6 right-6 text-surface">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary-fixed">Roastery Reserve</span>
+<h3 class="font-headline-sm text-headline-sm text-surface mt-1">Olive Silk Latte</h3>
+<p class="font-body-sm text-body-sm text-surface/80 mt-1 line-clamp-2">Double ristretto, oat silk, finished with Picual olive essence and sea salt.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. THE OLIV PHILOSOPHY & INTERACTIVE FLAVOR TASTING BAR -->
+<section class="w-full py-16 lg:py-24 bg-surface-container-low">
+<div class="max-w-7xl mx-auto px-6 lg:px-12 space-y-16">
+<!-- Section Header -->
+<div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 max-w-4xl">
+<div class="space-y-3">
+<span class="font-label-sm text-label-sm uppercase tracking-[0.25em] text-secondary">The Culinary Ethos</span>
+<h2 class="font-headline-lg text-headline-lg text-primary">Patience Is Our Primary Ingredient</h2>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-lg leading-relaxed">
+          We reject fast food conventions. From our 72-hour dough maturation to monovarietal olive oil extractions harvested strictly before dawn, every sensory note is calibrated to honor soil and sun.
+        </p>
+</div>
+<!-- 4-Pillar Craft Counter -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="p-8 rounded-2xl bg-surface shadow-sm space-y-4 hover:-translate-y-1 transition-transform">
+<span class="font-display text-display text-secondary/30">01</span>
+<h3 class="font-title-lg text-title-lg text-primary">72hr Cold Ferment</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            Prebiotic wild levain matured in temperature-controlled marble cellars to ensure peak digestibility and complex crumb depth.
+          </p>
+<div class="pt-2 flex items-center gap-2 text-secondary">
+<span class="material-symbols-outlined text-[18px]">grain</span>
+<span class="font-label-sm text-label-sm font-semibold">Zero Baker's Yeast</span>
+</div>
+</div>
+<div class="p-8 rounded-2xl bg-surface shadow-sm space-y-4 hover:-translate-y-1 transition-transform">
+<span class="font-display text-display text-secondary/30">02</span>
+<h3 class="font-title-lg text-title-lg text-primary">1st Cold-Press Harvest</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            Estate-bottled monovarietals pressed within four hours of picking with certified &lt;0.18% oleic acidity for unmatched polyphenol density.
+          </p>
+<div class="pt-2 flex items-center gap-2 text-secondary">
+<span class="material-symbols-outlined text-[18px]">water_drop</span>
+<span class="font-label-sm text-label-sm font-semibold">High Polyphenol Count</span>
+</div>
+</div>
+<div class="p-8 rounded-2xl bg-surface shadow-sm space-y-4 hover:-translate-y-1 transition-transform">
+<span class="font-display text-display text-secondary/30">03</span>
+<h3 class="font-title-lg text-title-lg text-primary">Regenerative Heritage Grain</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            Ancient Khorasan, Spelt, and Einkorn grains harvested from organic family farms practicing regenerative topsoil restoration.
+          </p>
+<div class="pt-2 flex items-center gap-2 text-secondary">
+<span class="material-symbols-outlined text-[18px]">agriculture</span>
+<span class="font-label-sm text-label-sm font-semibold">Biodiversity Certified</span>
+</div>
+</div>
+<div class="p-8 rounded-2xl bg-surface shadow-sm space-y-4 hover:-translate-y-1 transition-transform">
+<span class="font-display text-display text-secondary/30">04</span>
+<h3 class="font-title-lg text-title-lg text-primary">88+ SCA Micro-Lots</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            Ethically traded coffee beans sourced directly from independent high-altitude estates, roasted in-house in small 6kg batches twice weekly.
+          </p>
+<div class="pt-2 flex items-center gap-2 text-secondary">
+<span class="material-symbols-outlined text-[18px]">coffee</span>
+<span class="font-label-sm text-label-sm font-semibold">Omni-Roast Calibration</span>
+</div>
+</div>
+</div>
+<!-- Interactive Olive Oil & Roastery Tasting Bar -->
+<div class="rounded-3xl bg-surface p-8 lg:p-12 shadow-sm">
+<div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-8">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-outline">Interactive Sommelier Flight</span>
+<h3 class="font-headline-md text-headline-md text-primary mt-1">The Olive &amp; Roast Harmonization Bar</h3>
+</div>
+<!-- Pairing Switcher Tabs -->
+<div class="inline-flex p-1.5 rounded-xl bg-surface-container-low" id="tasting-tab-group" role="tablist">
+<button class="px-5 py-2.5 rounded-lg text-surface bg-primary-container font-label-md text-label-md tracking-wider transition-all tasting-tab-btn" data-target="pairing-picual">
+              Pairing 01 • Picual Andaluz
+            </button>
+<button class="px-5 py-2.5 rounded-lg text-on-surface-variant hover:text-primary font-label-md text-label-md tracking-wider transition-all tasting-tab-btn" data-target="pairing-koroneiki">
+              Pairing 02 • Koroneiki Peloponnese
+            </button>
+<button class="px-5 py-2.5 rounded-lg text-on-surface-variant hover:text-primary font-label-md text-label-md tracking-wider transition-all tasting-tab-btn" data-target="pairing-nocellara">
+              Pairing 03 • Nocellara del Belice
+            </button>
+</div>
+</div>
+<!-- Tasting Panel Contents -->
+<!-- Panel 1: Picual -->
+<div class="tasting-panel grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-4" id="pairing-picual">
+<div class="lg:col-span-5 relative h-72 rounded-2xl overflow-hidden bg-surface-container">
+<img alt="Picual and Khorasan Tasting Pair" class="w-full h-full object-cover" data-alt="Close up still life of deep dark green glass bottle of Picual extra virgin olive oil next to thick warm toasted slice of Khorasan sourdough bread with wild tomato pulp and green olive sprigs on light limestone background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWjJnmEeInRYKQS5X7LwshZxykYfpIOKiTql92P9L1HCbIhge2toMP-CAnfFXzSWrGVx98Iwr_ttyHbJYUf1ETOUEHNeawbHzgDc1cm35bJoIxM5pU9wPWKZ68NumQGsMLxjfGp0GA1cT5l956Ho44z6wQbslEUuMkvH4JoSl6uGTYQe9Z1X7g8vutqXyeDCqUIvFwfxV__PKchnO9PI6L_OeuQ65oGgO8mikOkltxDXfdTABFY20">
+<span class="absolute bottom-4 left-4 px-3 py-1 rounded-full bg-surface/90 backdrop-blur-md text-primary font-label-sm text-label-sm">
+              Early October 2024 Press
+            </span>
+</div>
+<div class="lg:col-span-7 space-y-6">
+<div class="flex items-center gap-3">
+<span class="px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold uppercase">Profile: Herbaceous &amp; Peppery</span>
+<span class="text-outline font-label-sm text-label-sm">Acidity: 0.14%</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-primary">Picual Andaluz × Toasted Khorasan Levain</h4>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+              Green tomato vine and freshly cut meadow grasses meet the caramelized nutty crust of our slow-milled Khorasan loaf. Finished with crystallized salt crystals that release burst-like notes of artichoke and peppery warmth.
+            </p>
+<div class="grid grid-cols-3 gap-4 pt-2">
+<div class="p-3 rounded-lg bg-surface-container-low">
+<span class="block font-label-sm text-label-sm text-outline uppercase">Top Notes</span>
+<span class="font-body-sm text-body-sm font-semibold text-primary">Tomato Leaf, Fig Tree</span>
+</div>
+<div class="p-3 rounded-lg bg-surface-container-low">
+<span class="block font-label-sm text-label-sm text-outline uppercase">Palate Feel</span>
+<span class="font-body-sm text-body-sm font-semibold text-primary">Crisp, Piquant Finish</span>
+</div>
+<div class="p-3 rounded-lg bg-surface-container-low">
+<span class="block font-label-sm text-label-sm text-outline uppercase">Companion Sip</span>
+<span class="font-body-sm text-body-sm font-semibold text-primary">Ethiopian Yirgacheffe V60</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Panel 2: Koroneiki (Hidden by default) -->
+<div class="tasting-panel hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-4" id="pairing-koroneiki">
+<div class="lg:col-span-5 relative h-72 rounded-2xl overflow-hidden bg-surface-container">
+<img alt="Koroneiki Olive Oil with Fig Tartine" class="w-full h-full object-cover" data-alt="Artisanal open-faced sourdough tartine topped with fresh creamy whipped goat curd, ripe sliced Adriatic black figs, fresh wild thyme leaves and shimmering golden Koroneiki olive oil on handmade ceramic plate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDlC12OE5igbN2MvHLvM1009Uv8vUus9VMrsdmtXlH3m2-o1fXxoJTR_PXAUUt8MbNRNO6H-A5F3yC0bbufK5wuH5xqcFVe93LMIGDP-fS7vFceNUXFmy_jA5zVIO7PIX-cyQBTrUlFeKSZDAZ4T2OTTjU3gD4JrZ4R6-K8E4RstfcioYCdHLqm1JVGyAFL6y-wS6fs7Bpu6eQeTLteBn5r00wPrVgHiZgRX_QoKz-BqeAyqr8NzE">
+<span class="absolute bottom-4 left-4 px-3 py-1 rounded-full bg-surface/90 backdrop-blur-md text-primary font-label-sm text-label-sm">
+              Mani Peninsula Harvest
+            </span>
+</div>
+<div class="lg:col-span-7 space-y-6">
+<div class="flex items-center gap-3">
+<span class="px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold uppercase">Profile: Wild Floral &amp; Golden</span>
+<span class="text-outline font-label-sm text-label-sm">Acidity: 0.16%</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-primary">Koroneiki Peloponnese × Mission Fig &amp; Chèvre Tartine</h4>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+              Harvested from coastal terraced groves in Southern Greece. Imparts a sweet floral bouquet of wild sage and green almond, lifting the natural sweetness of caramelized figs and tangy cultured goat curd.
+            </p>
+<div class="grid grid-cols-3 gap-4 pt-2">
+<div class="p-3 rounded-lg bg-surface-container-low">
+<span class="block font-label-sm text-label-sm text-outline uppercase">Top Notes</span>
+<span class="font-body-sm text-body-sm font-semibold text-primary">Green Almond, Wild Sage</span>
+</div>
+<div class="p-3 rounded-lg bg-surface-container-low">
+<span class="block font-label-sm text-label-sm text-outline uppercase">Palate Feel</span>
+<span class="font-body-sm text-body-sm font-semibold text-primary">Velvety &amp; Lingering</span>
+</div>
+<div class="p-3 rounded-lg bg-surface-container-low">
+<span class="block font-label-sm text-label-sm text-outline uppercase">Companion Sip</span>
+<span class="font-body-sm text-body-sm font-semibold text-primary">Geisha Natural Nitro Brew</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Panel 3: Nocellara (Hidden by default) -->
+<div class="tasting-panel hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-4" id="pairing-nocellara">
+<div class="lg:col-span-5 relative h-72 rounded-2xl overflow-hidden bg-surface-container">
+<img alt="Nocellara with Spiced Flat White" class="w-full h-full object-cover" data-alt="Artisanal flat white coffee served with a delicate glass dropper vial of luminous Sicilian Nocellara olive oil on a slate serving board with raw cocoa nibs and whole cardamom pods" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjNUCrkOb4Jeg76Bx2MvNMp_e26Agf3ZuSPreEpUopz9vgguPvDOJd3Udkxw6f8KHgp7A3TZO1vB0L_ns9suz4cVACXBhnf1o_X8HC3saXjlTi-Zx9BwmpcZJ9_xTEXnYcH0r4HRBIpQ2u_VT_N1a49s5UmomcHmUo6w-JUWS3PF0bmwkpDCuS1l6KDQ1iigeff4aYz-zSeAbSQ0G4YKYe30Twu1OL5_Ca0aKFgHtsvKS-owK5-xw">
+<span class="absolute bottom-4 left-4 px-3 py-1 rounded-full bg-surface/90 backdrop-blur-md text-primary font-label-sm text-label-sm">
+              Valle del Belice Reserve
+            </span>
+</div>
+<div class="lg:col-span-7 space-y-6">
+<div class="flex items-center gap-3">
+<span class="px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold uppercase">Profile: Creamy Butter &amp; Green Apple</span>
+<span class="text-outline font-label-sm text-label-sm">Acidity: 0.12%</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-primary">Nocellara del Belice × Cardamom-Spiced Flat White</h4>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+              The buttery, round softness of Sicilian Nocellara emulsifies effortlessly with textured oat milk, enhancing the cocoa and crushed green cardamom notes in our house espresso roast without masking its character.
+            </p>
+<div class="grid grid-cols-3 gap-4 pt-2">
+<div class="p-3 rounded-lg bg-surface-container-low">
+<span class="block font-label-sm text-label-sm text-outline uppercase">Top Notes</span>
+<span class="font-body-sm text-body-sm font-semibold text-primary">Granny Smith, Sweet Butter</span>
+</div>
+<div class="p-3 rounded-lg bg-surface-container-low">
+<span class="block font-label-sm text-label-sm text-outline uppercase">Palate Feel</span>
+<span class="font-body-sm text-body-sm font-semibold text-primary">Silk &amp; Velour</span>
+</div>
+<div class="p-3 rounded-lg bg-surface-container-low">
+<span class="block font-label-sm text-label-sm text-outline uppercase">Companion Sip</span>
+<span class="font-body-sm text-body-sm font-semibold text-primary">Guatemala Huehuetenango</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. SIGNATURE HEARTH & STILL CREATIONS (INTERACTIVE CAROUSEL / GRID) -->
+<section class="w-full py-16 lg:py-24 bg-surface" id="menu-showcase">
+<div class="max-w-7xl mx-auto px-6 lg:px-12 space-y-12">
+<!-- Section Title & Category Filter Pills -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="space-y-3">
+<span class="font-label-sm text-label-sm uppercase tracking-[0.25em] text-secondary">Hearth, Still &amp; Pantry</span>
+<h2 class="font-headline-lg text-headline-lg text-primary">Signature House Offerings</h2>
+</div>
+<!-- Filter Pills -->
+<div class="flex flex-wrap items-center gap-2" id="menu-filter-container">
+<button class="menu-filter-btn px-4 py-2 rounded-full bg-primary-container text-surface font-label-sm text-label-sm tracking-wide transition-all shadow-sm" data-category="all">
+            All Signatures (6)
+          </button>
+<button class="menu-filter-btn px-4 py-2 rounded-full bg-surface-container-low text-on-surface-variant hover:text-primary font-label-sm text-label-sm tracking-wide transition-all" data-category="bakery">
+            Morning Hearth
+          </button>
+<button class="menu-filter-btn px-4 py-2 rounded-full bg-surface-container-low text-on-surface-variant hover:text-primary font-label-sm text-label-sm tracking-wide transition-all" data-category="coffee">
+            Roastery Elixirs
+          </button>
+<button class="menu-filter-btn px-4 py-2 rounded-full bg-surface-container-low text-on-surface-variant hover:text-primary font-label-sm text-label-sm tracking-wide transition-all" data-category="savory">
+            Savory Plates
+          </button>
+<button class="menu-filter-btn px-4 py-2 rounded-full bg-surface-container-low text-on-surface-variant hover:text-primary font-label-sm text-label-sm tracking-wide transition-all" data-category="cold">
+            Cold Extractions
+          </button>
+</div>
+</div>
+<!-- Food & Beverage Grid (6 High Aesthetic Cards) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Item 1: Pistachio & Olive Oil Tea Cake -->
+<div class="menu-card group rounded-2xl bg-surface-container-low overflow-hidden shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md" data-category="bakery">
+<div class="relative h-64 overflow-hidden bg-surface-container">
+<img alt="Pistachio and Olive Oil Tea Cake" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="Artisanal square pistachio and extra virgin olive oil tea cake slice topped with crushed vivid green Sicilian pistachios, crystalline sweet citrus hydrosol glaze and edible calendula petals on speckled ceramic plate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTBWAWeSSsz8GHaK2K1raJLIoKD4tElW8c9tD7gMFITk885KxF4wBak74nLnD528D_hAYZn-f2J79zN6RB77H60Mmj97Ercz0SGtojvn7VCA1jEDjCmqH5NxGPh1kJcm_EM_7aMqGR7dvYRbsspKlZq5_YvdDpJy1ifHU_kbzkr9m9iVv8TMhbDWtkODL3TPx5M6TE_EgfqkLCDTJL2jii8VjSQ7WEZMiXGoa0c-yicfw1gEhRH9s">
+<span class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-surface/90 backdrop-blur-sm text-primary font-label-sm text-label-sm font-medium">Hearth Pâtisserie</span>
+</div>
+<div class="p-6 space-y-4">
+<div class="flex items-start justify-between gap-2">
+<div>
+<h3 class="font-title-lg text-title-lg text-primary">Pistachio &amp; Olive Oil Tea Cake</h3>
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Bronte Pistachio • Seville Orange Hydrosol</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-primary font-semibold">$9.50</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              Tender crumb infused with early harvest Koroneiki oil, stoneground pistachio flour, finished with orange blossom essence and Maldon crystals.
+            </p>
+<div class="pt-2 flex items-center justify-between">
+<span class="px-2.5 py-1 rounded-full bg-surface text-outline font-label-sm text-label-sm">Nut-rich • Dairy Free</span>
+<button class="px-3.5 py-1.5 rounded-lg bg-surface text-primary hover:bg-primary-container hover:text-surface transition-colors font-label-sm text-label-sm uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">add</span> Add To Order
+              </button>
+</div>
+</div>
+</div>
+<!-- Item 2: Signature Olive Silk Latte -->
+<div class="menu-card group rounded-2xl bg-surface-container-low overflow-hidden shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md" data-category="coffee">
+<div class="relative h-64 overflow-hidden bg-surface-container">
+<img alt="Signature Olive Silk Latte" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="Artisan micro-batch olive latte in textured stone-toned ceramic cup with glossy layered foam, swirl of olive oil droplet reflecting natural sunlight on rustic wooden table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlFG7X6j3seb6swy9gpUChuYILWncFlmABMhuFodVpgw9q6doFKU3nl9TikPybfvddGIJ08WOlqsKS0zyynLzln1xkWuaBa4_PC3s7yzcBhz3UkwUY4jRbftGuZ2zEd0s-2EZAoRjYEccSiLumYElFvNJDyCWhiLr_o6JyHva5IC4N6yalg9REln3iE7l3MKGjBsBkMnrs9Bg-C_ubreAJhDT09HDBeBlhR635TEBY9pym-bDyBMo">
+<span class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-surface/90 backdrop-blur-sm text-primary font-label-sm text-label-sm font-medium">House Signature</span>
+</div>
+<div class="p-6 space-y-4">
+<div class="flex items-start justify-between gap-2">
+<div>
+<h3 class="font-title-lg text-title-lg text-primary">Signature Olive Silk Latte</h3>
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Double Ristretto • Micro-Milled Oat</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-primary font-semibold">$8.50</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              Our signature pairing: slow-extracted Colombian anaerobic ristretto spun with velvety oat milk, cold-pressed Picual drizzle, and sea salt.
+            </p>
+<div class="pt-2 flex items-center justify-between">
+<span class="px-2.5 py-1 rounded-full bg-surface text-outline font-label-sm text-label-sm">Vegan • Low Acidity</span>
+<button class="px-3.5 py-1.5 rounded-lg bg-surface text-primary hover:bg-primary-container hover:text-surface transition-colors font-label-sm text-label-sm uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">add</span> Add To Order
+              </button>
+</div>
+</div>
+</div>
+<!-- Item 3: 48hr Rosemary & Flaky Sea Salt Focaccia -->
+<div class="menu-card group rounded-2xl bg-surface-container-low overflow-hidden shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md" data-category="bakery">
+<div class="relative h-64 overflow-hidden bg-surface-container">
+<img alt="Rosemary &amp; Sea Salt Focaccia" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="Golden crisp deep dimpled sourdough focaccia square glistening with golden olive oil pools, fresh mountain rosemary needles and crunchy sea salt crystals resting on natural linen napkin" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkAtFoWWYDxbmPScxzF3aBKVWVMjilHPZ3Uw41MGdYc0i9X26pg4ZqiEaPWLLx_y54lOF4ubmmSS_8ozMYqDg1SePBx5XbpEKK3smU4TyWPKrIFeLa5m8fsDjRC8fkKtLf2PAQ5yN5oUy0Js_2BwKXRJIHOnVK7sZKyX4zGNHFVXwMHc6TnX44XhyjZvtEC2NkHRDTG-2lXIv9j562BPER5PeCpq5XLea3pd_2D5GpUh4h47GQS_M">
+<span class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-surface/90 backdrop-blur-sm text-primary font-label-sm text-label-sm font-medium">Fresh Out at 7:00 AM</span>
+</div>
+<div class="p-6 space-y-4">
+<div class="flex items-start justify-between gap-2">
+<div>
+<h3 class="font-title-lg text-title-lg text-primary">48hr Rosemary Focaccia</h3>
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Ancient Emmer • Koroneiki Olive Bath</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-primary font-semibold">$8.00</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              Wild levain fermented across 48 hours for an airy honeycomb crumb. Deep dimples generously bathed in single-estate oil and wild Greek rosemary.
+            </p>
+<div class="pt-2 flex items-center justify-between">
+<span class="px-2.5 py-1 rounded-full bg-surface text-outline font-label-sm text-label-sm">100% Wild Levain</span>
+<button class="px-3.5 py-1.5 rounded-lg bg-surface text-primary hover:bg-primary-container hover:text-surface transition-colors font-label-sm text-label-sm uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">add</span> Add To Order
+              </button>
+</div>
+</div>
+</div>
+<!-- Item 4: Green Shakshuka & Za'atar -->
+<div class="menu-card group rounded-2xl bg-surface-container-low overflow-hidden shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md" data-category="savory">
+<div class="relative h-64 overflow-hidden bg-surface-container">
+<img alt="Green Shakshuka &amp; Zaatar" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="Cast iron skillet green shakshuka with wilted cavolo nero, braised garden leeks, soft poached organic pasture eggs with vibrant runny yolks, chunks of barrel-aged Greek feta and fragrant wild zaatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRytZu4lvYDR-T-5452dB8Ry4iRA7ekOto0Us_l5biC0AyoF0G_8WFGJDeVairS6XQRCtqQt-fi49ftmNd5gVKnMU8JsKWt7l0forqE_FMKHiA_9poVkwpzJIL8BwiKsQLiM4QHFLjBN_F5jAgxvnBrp0V89Oe-QmlI-K5ewoQduouaS2UndlzCPS6CxGZC-FzwMLqtufDgw1Q8oJTOutpeHcZ8ADGbtK_fHoQQPg54mOJ4YmfBnY">
+<span class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-surface/90 backdrop-blur-sm text-primary font-label-sm text-label-sm font-medium">Midday Kitchen</span>
+</div>
+<div class="p-6 space-y-4">
+<div class="flex items-start justify-between gap-2">
+<div>
+<h3 class="font-title-lg text-title-lg text-primary">Green Shakshuka &amp; Za'atar</h3>
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Cavolo Nero • Barrel-Aged Feta</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-primary font-semibold">$18.50</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              Slow-braised winter greens, roasted leeks, pasture eggs poached to velvety runniness, wild za'atar herbs, served alongside warm grilled levain.
+            </p>
+<div class="pt-2 flex items-center justify-between">
+<span class="px-2.5 py-1 rounded-full bg-surface text-outline font-label-sm text-label-sm">Pasture Raised • Vegetarian</span>
+<button class="px-3.5 py-1.5 rounded-lg bg-surface text-primary hover:bg-primary-container hover:text-surface transition-colors font-label-sm text-label-sm uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">add</span> Add To Order
+              </button>
+</div>
+</div>
+</div>
+<!-- Item 5: Sparkling Olive Leaf & Verbena Tisane -->
+<div class="menu-card group rounded-2xl bg-surface-container-low overflow-hidden shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md" data-category="cold">
+<div class="relative h-64 overflow-hidden bg-surface-container">
+<img alt="Sparkling Olive Leaf and Verbena Tisane" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="Tall fluted crystalline glassware filled with effervescent pale golden-green sparkling herbal tisane, sprig of fresh lemon verbena, thin olive leaf garnish, rising bubbles in natural soft light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOHqbves-g4hAJ68_A5vJa-lK3YWKJKZSdv8x6tnLfEP-2JllhmUdxmig3sIKdrECSPkbTmhJ3BgyKCTV27zvZRoEevURy_VlQI626ayYpChG3HoNVi9-cG_gjMnET6bBwomPJA1pw5FElIaEA_8KVCFeV_vUemSU26aoLoex7GFyOATNFCT_CAsQg8IVZI_CfFS_2kLlblTL_rsEg4AHz4aoqKbwXpWJ0ReVTG08t1P1yeqTMURY">
+<span class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-surface/90 backdrop-blur-sm text-primary font-label-sm text-label-sm font-medium">Botanical Still</span>
+</div>
+<div class="p-6 space-y-4">
+<div class="flex items-start justify-between gap-2">
+<div>
+<h3 class="font-title-lg text-title-lg text-primary">Olive Leaf &amp; Verbena Tisane</h3>
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">24-hr Cold Steeping • Mountain Spring</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-primary font-semibold">$7.00</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              Wild sun-dried olive leaves steeped at 4°C with fresh French verbena and gentle mountain carbonation. Crisp, restorative, and caffeine-free.
+            </p>
+<div class="pt-2 flex items-center justify-between">
+<span class="px-2.5 py-1 rounded-full bg-surface text-outline font-label-sm text-label-sm">Antioxidant Dense • Zero Sugar</span>
+<button class="px-3.5 py-1.5 rounded-lg bg-surface text-primary hover:bg-primary-container hover:text-surface transition-colors font-label-sm text-label-sm uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">add</span> Add To Order
+              </button>
+</div>
+</div>
+</div>
+<!-- Item 6: Smoked Burrata & Warm Fig Tartine -->
+<div class="menu-card group rounded-2xl bg-surface-container-low overflow-hidden shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md" data-category="savory">
+<div class="relative h-64 overflow-hidden bg-surface-container">
+<img alt="Smoked Burrata &amp; Warm Fig Tartine" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="Rustic olive wood board holding an open-face toasted sourdough tartine with torn creamy smoked burrata cheese, caramelized mission figs, roasted pine nuts and wild mountain thyme honey drizzle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUPmZnlZKhRHnsIXJ-Vi2kY0LZPwe-EFfoe-mc6maSgE0SahekjdmEce1lTsX1YHc_anMx9OVDkI1alfOO12BIEA2q0vH1SDa-AiOh0uCP2dq9HTNAkFl7_dC9EPUvvdiLQ-g1FOjFWvFF69u0gUhj3jyf8SGpXGDnn-dICf_Fno2JbuilLx5jotmkvKOYVhO0yyfeVUOXpNUTPC5pZaBWAHHkzIigyBqJTwtMAnmOq3RRIF3esHQ">
+<span class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-surface/90 backdrop-blur-sm text-primary font-label-sm text-label-sm font-medium">Atelier Provision</span>
+</div>
+<div class="p-6 space-y-4">
+<div class="flex items-start justify-between gap-2">
+<div>
+<h3 class="font-title-lg text-title-lg text-primary">Smoked Burrata &amp; Fig Tartine</h3>
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Puglia Burrata • Wild Thyme Honey</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-primary font-semibold">$16.00</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              Gently wood-smoked artisan burrata, blistered black mission figs, roasted Aleppo pine nuts, and wildflower honey on thick-cut hearth sourdough.
+            </p>
+<div class="pt-2 flex items-center justify-between">
+<span class="px-2.5 py-1 rounded-full bg-surface text-outline font-label-sm text-label-sm">Artisan Cheese • Seasonal</span>
+<button class="px-3.5 py-1.5 rounded-lg bg-surface text-primary hover:bg-primary-container hover:text-surface transition-colors font-label-sm text-label-sm uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">add</span> Add To Order
+              </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 5. SPACES OF SERENITY (ATMOSPHERIC ROOM EXPLORER) -->
+<section class="w-full py-16 lg:py-24 bg-surface-container">
+<div class="max-w-7xl mx-auto px-6 lg:px-12 space-y-12">
+<div class="max-w-3xl space-y-3">
+<span class="font-label-sm text-label-sm uppercase tracking-[0.25em] text-secondary">The Atelier Grounds</span>
+<h2 class="font-headline-lg text-headline-lg text-primary">Three Distinct Atmospheres For Contemplation</h2>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+          Whether you seek the soft quietude of morning pages, the theatrical choreography of the hearth baker, or an open-air olive pergola in twilight.
+        </p>
+</div>
+<!-- 3 Space Cards Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Space 1: The Sunroom Parlour -->
+<div class="rounded-2xl bg-surface p-6 shadow-sm flex flex-col justify-between space-y-6">
+<div class="space-y-4">
+<div class="relative h-60 rounded-xl overflow-hidden bg-surface-container-high">
+<img alt="The Sunroom Parlour" class="w-full h-full object-cover" data-alt="High ceiling greenhouse style cafe interior with 4 meter black steel framed glass arches, acoustic Belgian linen seating, reading tables, indoor potted ficus and olive trees in soft natural diffused light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_fGwIuV7waszPWXKWJj_lWoJM2FQ0Fp_OvmHy9ikcXRJ_17oq8gv9iVcljFuXJBdmtkg5zRgkxq0fkmwXJdxeWsbRKMBXMF6qnO7RsDurReVO79J9btBASnVHJlgHMIjstci0ZqSOCQ7TlnspuJtmvIzhz6faGhTYyETTO2o5ErBujq11LGp0rFrJBlVln9FEugzGg7izYbzCiV3a7Ga9n3-4SLgzH_uJu3SodlXdqWQr7mI_sHs">
+<span class="absolute top-3 left-3 px-3 py-1 rounded-full bg-surface/90 backdrop-blur-md text-primary font-label-sm text-label-sm">Acoustic Whisper Space</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary">The Sunroom Parlour</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              Arched 4-meter steel-framed glass windows filtering soft morning light. Fitted with sound-absorbing linen banquettes and reading tables designed for peaceful solitary mornings.
+            </p>
+</div>
+<div class="pt-4 space-y-3 bg-surface-container-low p-4 rounded-xl">
+<div class="flex items-center justify-between text-on-surface font-body-sm text-body-sm">
+<span class="text-outline">Capacity:</span>
+<span class="font-semibold text-primary">24 Guests (Tables of 1-4)</span>
+</div>
+<div class="flex items-center justify-between text-on-surface font-body-sm text-body-sm">
+<span class="text-outline">Atmosphere:</span>
+<span class="font-semibold text-primary">Quiet / Contemplative</span>
+</div>
+<a class="mt-2 block w-full text-center py-2.5 rounded-lg bg-surface hover:bg-primary hover:text-surface text-primary transition-all font-label-sm text-label-sm uppercase tracking-wider" href="#reserve-widget">
+              Reserve In The Sunroom
+            </a>
+</div>
+</div>
+<!-- Space 2: The Hearth Counter -->
+<div class="rounded-2xl bg-surface p-6 shadow-sm flex flex-col justify-between space-y-6">
+<div class="space-y-4">
+<div class="relative h-60 rounded-xl overflow-hidden bg-surface-container-high">
+<img alt="The Hearth Counter" class="w-full h-full object-cover" data-alt="Front row artisanal bakery counter made of honed travertine stone facing an open wood fired brick hearth oven with bakers working in linen aprons and copper pour over coffee stations" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlgT_KKHJnzBZTvO-Mm8VEdt2TKw25wspb92-14htEwVlILFS2caJM-puttYvB7QMK3JVL4mMweKkPpSQ9iWObLoHG_YBN8IvH4c3ABu3KaLYuz8H4Uh4rXWG3edLn_sOm3Kg1pPFonW3O7_J_UJqeA1FjMpsb2QJ6dbgq_y8_XIf7-zxzwjdz623zzY3XcXsaQZC0qqDimtbErl9aAG8sPYZ7qWMtLjdk9Z_0x1VXiLu3fofrHHQ">
+<span class="absolute top-3 left-3 px-3 py-1 rounded-full bg-surface/90 backdrop-blur-md text-primary font-label-sm text-label-sm">The Chef's Row</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary">The Hearth Counter</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              Front-row view of our stone hearth oven and single-origin pour-over bar. Watch our bakers score proofed sourdough loaves while sommeliers guide olive oil flights.
+            </p>
+</div>
+<div class="pt-4 space-y-3 bg-surface-container-low p-4 rounded-xl">
+<div class="flex items-center justify-between text-on-surface font-body-sm text-body-sm">
+<span class="text-outline">Capacity:</span>
+<span class="font-semibold text-primary">12 Counter Seats</span>
+</div>
+<div class="flex items-center justify-between text-on-surface font-body-sm text-body-sm">
+<span class="text-outline">Atmosphere:</span>
+<span class="font-semibold text-primary">Interactive &amp; Sensory</span>
+</div>
+<a class="mt-2 block w-full text-center py-2.5 rounded-lg bg-surface hover:bg-primary hover:text-surface text-primary transition-all font-label-sm text-label-sm uppercase tracking-wider" href="#reserve-widget">
+              Reserve At The Counter
+            </a>
+</div>
+</div>
+<!-- Space 3: The Olive Pergola Terrace -->
+<div class="rounded-2xl bg-surface p-6 shadow-sm flex flex-col justify-between space-y-6">
+<div class="space-y-4">
+<div class="relative h-60 rounded-xl overflow-hidden bg-surface-container-high">
+<img alt="The Olive Pergola Terrace" class="w-full h-full object-cover" data-alt="Outdoor garden terrace surrounded by century old gnarled olive trees in terracotta urns, stone heated benches, warm overhead amber string lights and evening aperitivo setting in dusk atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3p-qXJ5mo4vgBmxKX9mFPo-f9n4xZbZt8dykvGEi0dJmiEfFKqwds82v8O-IY5ySx3nBUaCPVswZzpknlbY_wA-kvNhaSzZzIngCO2pZjQGsL9Sa_bF0FhVCdYjPrVHv-F53ySoY0nz7graJs-Nh7bLqWJGopYiI2gZBrYeh0OpP1kQ2XAMWMywlb1-0Ta2SE1icQtyLBWK580qTKV6LXS1Q22_dW-hTjBQoMJq9Hw4SJ0PTib5E">
+<span class="absolute top-3 left-3 px-3 py-1 rounded-full bg-surface/90 backdrop-blur-md text-primary font-label-sm text-label-sm">Open Air Sanctuary</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary">The Olive Pergola Terrace</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              Surrounded by mature olive trees in terracotta urns, featuring radiant heated limestone benches. Transforms from a sunny morning retreat to a candlelit botanical aperitivo haven at dusk.
+            </p>
+</div>
+<div class="pt-4 space-y-3 bg-surface-container-low p-4 rounded-xl">
+<div class="flex items-center justify-between text-on-surface font-body-sm text-body-sm">
+<span class="text-outline">Capacity:</span>
+<span class="font-semibold text-primary">30 Guests (Heated Enclave)</span>
+</div>
+<div class="flex items-center justify-between text-on-surface font-body-sm text-body-sm">
+<span class="text-outline">Atmosphere:</span>
+<span class="font-semibold text-primary">Lush Al Fresco Calm</span>
+</div>
+<a class="mt-2 block w-full text-center py-2.5 rounded-lg bg-surface hover:bg-primary hover:text-surface text-primary transition-all font-label-sm text-label-sm uppercase tracking-wider" href="#reserve-widget">
+              Reserve On The Pergola
+            </a>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 6. SEAMLESS INSTANT TABLE RESERVATION MODULE -->
+<section class="w-full py-16 lg:py-24 bg-surface" id="reserve-widget">
+<div class="max-w-5xl mx-auto px-6 lg:px-12">
+<div class="rounded-3xl bg-surface-container-low p-8 lg:p-14 shadow-md space-y-10">
+<!-- Widget Header -->
+<div class="text-center max-w-2xl mx-auto space-y-3">
+<span class="font-label-sm text-label-sm uppercase tracking-[0.25em] text-secondary">A Dedicated Seat In The Sanctuary</span>
+<h2 class="font-headline-lg text-headline-lg text-primary">Reserve Your Table At OLIV</h2>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            Select your preferred gathering size, time slot, and sanctuary atmosphere. Zero reservation deposits required.
+          </p>
+</div>
+<form class="space-y-8" id="reservation-form" onsubmit="event.preventDefault(); document.getElementById('reservation-feedback').classList.remove('hidden');">
+<!-- Step 1: Party Size -->
+<div class="space-y-3">
+<label class="block font-label-md text-label-md uppercase tracking-wider text-primary">1. Number of Guests</label>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="guest-pills">
+<button class="guest-pill py-3 px-4 rounded-xl bg-primary text-surface font-label-md text-label-md text-center transition-all" type="button">
+                1 Solo Visitor
+              </button>
+<button class="guest-pill py-3 px-4 rounded-xl bg-surface hover:bg-surface-container text-on-surface font-label-md text-label-md text-center transition-all" type="button">
+                2 Companions
+              </button>
+<button class="guest-pill py-3 px-4 rounded-xl bg-surface hover:bg-surface-container text-on-surface font-label-md text-label-md text-center transition-all" type="button">
+                4 Gatherers
+              </button>
+<button class="guest-pill py-3 px-4 rounded-xl bg-surface hover:bg-surface-container text-on-surface font-label-md text-label-md text-center transition-all" type="button">
+                6+ Private Table
+              </button>
+</div>
+</div>
+<!-- Step 2: Date & Service Selection -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-3">
+<label class="block font-label-md text-label-md uppercase tracking-wider text-primary">2. Date</label>
+<div class="relative">
+<input class="w-full px-4 py-3.5 rounded-xl bg-surface text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary shadow-sm" type="date" value="2025-05-18">
+</div>
+</div>
+<div class="space-y-3">
+<label class="block font-label-md text-label-md uppercase tracking-wider text-primary">3. Seating Service</label>
+<select class="w-full px-4 py-3.5 rounded-xl bg-surface text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary shadow-sm">
+<option>Morning Hearth &amp; Coffee (8:00 AM – 11:30 AM)</option>
+<option>Midday Harvest &amp; Tartines (12:00 PM – 3:30 PM)</option>
+<option>Golden Hour Aperitivo &amp; Crumbles (4:00 PM – 7:00 PM)</option>
+<option>Evening Sourdough &amp; Wine (7:30 PM – 9:30 PM)</option>
+</select>
+</div>
+</div>
+<!-- Step 3: Atmosphere Preference -->
+<div class="space-y-3">
+<label class="block font-label-md text-label-md uppercase tracking-wider text-primary">4. Preferred Atmosphere</label>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="space-preference-pills">
+<label class="relative flex items-center p-3.5 rounded-xl bg-surface cursor-pointer hover:bg-surface-container transition-all">
+<input checked="" class="text-primary focus:ring-0 mr-3" name="atmosphere" type="radio">
+<div>
+<span class="block font-title-md text-title-md text-primary">The Sunroom</span>
+<span class="block font-body-sm text-body-sm text-outline">Quiet natural daylight</span>
+</div>
+</label>
+<label class="relative flex items-center p-3.5 rounded-xl bg-surface cursor-pointer hover:bg-surface-container transition-all">
+<input class="text-primary focus:ring-0 mr-3" name="atmosphere" type="radio">
+<div>
+<span class="block font-title-md text-title-md text-primary">The Hearth</span>
+<span class="block font-body-sm text-body-sm text-outline">Bakery front-row action</span>
+</div>
+</label>
+<label class="relative flex items-center p-3.5 rounded-xl bg-surface cursor-pointer hover:bg-surface-container transition-all">
+<input class="text-primary focus:ring-0 mr-3" name="atmosphere" type="radio">
+<div>
+<span class="block font-title-md text-title-md text-primary">The Pergola</span>
+<span class="block font-body-sm text-body-sm text-outline">Heated garden greenery</span>
+</div>
+</label>
+</div>
+</div>
+<!-- Contact Details (Minimal) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<input class="px-4 py-3.5 rounded-xl bg-surface text-on-surface font-body-md text-body-md placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary shadow-sm" placeholder="Your full name" required="" type="text">
+<input class="px-4 py-3.5 rounded-xl bg-surface text-on-surface font-body-md text-body-md placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary shadow-sm" placeholder="Email address for digital pass" required="" type="email">
+</div>
+<!-- Submit Button -->
+<div class="pt-2">
+<button class="w-full py-4 rounded-xl bg-primary text-surface hover:bg-primary-container transition-all font-label-md text-label-md uppercase tracking-widest shadow-md flex items-center justify-center gap-2" type="submit">
+<span class="">Reserve Table Now — Instant Confirmation</span>
+<span class="material-symbols-outlined text-[18px]">verified</span>
+</button>
+<p class="font-body-sm text-body-sm text-center text-outline mt-3">
+              Complimentary cancellation up to 30 minutes prior. Tables held for 15 minutes past scheduled arrival.
+            </p>
+</div>
+<!-- Feedback Toast Message -->
+<div class="hidden p-4 rounded-xl bg-secondary-container text-on-secondary-container flex items-center gap-3" id="reservation-feedback">
+<span class="material-symbols-outlined text-[24px]">task_alt</span>
+<div>
+<p class="font-title-md text-title-md font-semibold">Table Held In The Sanctuary</p>
+<p class="font-body-sm text-body-sm">Your reservation pass has been dispatched to your email. We look forward to welcoming you.</p>
+</div>
+</div>
+</form>
+</div>
+</div>
+</section>
+<!-- 7. CRITICAL RECOGNITION & REVIEWS RIBBON -->
+<section class="w-full py-16 bg-surface-container-low overflow-hidden">
+<div class="max-w-7xl mx-auto px-6 lg:px-12 space-y-12">
+<!-- Press Badges -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+<div class="space-y-3 p-6 rounded-2xl bg-surface shadow-sm">
+<div class="flex items-center justify-center md:justify-start gap-1 text-secondary">
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+</div>
+<blockquote class="font-display text-headline-sm text-primary italic leading-snug">
+            "A rare temple of botanical coffee and sourdough mastery."
+          </blockquote>
+<span class="block font-label-sm text-label-sm uppercase tracking-widest text-outline">Michelin Guide Gastronomy 2024</span>
+</div>
+<div class="space-y-3 p-6 rounded-2xl bg-surface shadow-sm">
+<div class="flex items-center justify-center md:justify-start gap-1 text-secondary">
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+</div>
+<blockquote class="font-display text-headline-sm text-primary italic leading-snug">
+            "The best botanical cafe concept in Europe without contest."
+          </blockquote>
+<span class="block font-label-sm text-label-sm uppercase tracking-widest text-outline">Condé Nast Traveler</span>
+</div>
+<div class="space-y-3 p-6 rounded-2xl bg-surface shadow-sm">
+<div class="flex items-center justify-center md:justify-start gap-1 text-secondary">
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+</div>
+<blockquote class="font-display text-headline-sm text-primary italic leading-snug">
+            "Reinventing the olive oil pairing from sacred tradition into modern art."
+          </blockquote>
+<span class="block font-label-sm text-label-sm uppercase tracking-widest text-outline">World of Coffee Editorial</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 8. THE ROASTER'S GUILD & PANTRY SUBSCRIPTION DISPATCH -->
+<section class="w-full py-16 lg:py-24 bg-tertiary text-on-tertiary relative overflow-hidden">
+<div class="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+<div class="lg:col-span-7 space-y-6">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-tertiary-container text-secondary-fixed">
+<span class="material-symbols-outlined text-[16px]">local_shipping</span>
+<span class="font-label-sm text-label-sm uppercase tracking-widest">Doorstep Atelier Subscriptions</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-surface leading-tight">
+            The Roaster's Guild &amp; Pantry Parcel
+          </h2>
+<p class="font-body-md text-body-md text-tertiary-fixed font-light max-w-xl leading-relaxed">
+            Receive two 250g bags of whole-bean micro-lot roasts alongside a hand-numbered 250ml flask of our latest early-harvest extra virgin olive oil every month. Direct from our groves to your morning ritual.
+          </p>
+<ul class="space-y-3 text-surface">
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary-fixed text-[20px]">check</span>
+<span class="font-body-sm text-body-sm">Exclusive micro-lots never sold in public menu rotation</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary-fixed text-[20px]">check</span>
+<span class="font-body-sm text-body-sm">Detailed cupping notes, olive pairing cards &amp; bread recipe guide</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary-fixed text-[20px]">check</span>
+<span class="font-body-sm text-body-sm">Complimentary invitations to seasonal cupping events in London &amp; Athens</span>
+</li>
+</ul>
+<div class="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+<input class="px-5 py-3.5 rounded-lg bg-surface text-on-surface font-body-md text-body-md placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-secondary-fixed w-full sm:w-80 shadow-inner" placeholder="Enter email for guild membership" type="email">
+<button class="px-6 py-3.5 rounded-lg bg-secondary text-surface hover:bg-secondary-fixed hover:text-on-secondary-fixed transition-all font-label-md text-label-md uppercase tracking-wider whitespace-nowrap shadow-md">
+              Join The Guild ($38/mo)
+            </button>
+</div>
+</div>
+<div class="lg:col-span-5 relative">
+<div class="relative h-96 rounded-2xl overflow-hidden shadow-2xl bg-tertiary-container">
+<img alt="The Roaster Guild Monthly Parcel" class="w-full h-full object-cover" data-alt="Minimalist luxury subscription box for OLIV coffee and olive oil unboxing with two brown kraft paper coffee bags, stamped brass wax seal, matte black ceramic flask of olive oil, dried olive sprig and linen ties" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJte-XexeRXzu36Il6Yx241t6g0nPBPkpe2gr1uvF0vT1cWg_tjbqTlF7hBubH3A-CDCV4_Q6Jyy4GVPkFjF_ln4_IZNu2w1wlo9k_GjKlKG8FSKj3A5Wt3Oxcvf_JdGoV5n7rCLrKv6Ps148rFIkZ0zfGD9xgGBp_kFlSnAkr_gbrGUXuG5HE899gopJA6Y4pXjfFiWwjYrvd54spTODRhNNGEFOaWZ02pYh6svltpII9QoKOl3Q">
+<div class="absolute inset-0 bg-gradient-to-t from-tertiary via-transparent to-transparent"></div>
+<div class="absolute bottom-6 left-6 right-6 p-4 rounded-xl bg-tertiary/90 backdrop-blur-md">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary-fixed">Next Dispatch: June 1st</span>
+<p class="font-title-md text-title-md text-surface mt-1">Ethiopia Sidama Bensa + Kalamata First Cold Press</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SCRIPT FOR INTERACTIVE TAB AND FILTER FUNCTIONALITY -->
+<script>
+    (function() {
+      // Tasting bar tab toggling
+      const tastingTabs = document.querySelectorAll('.tasting-tab-btn');
+      const tastingPanels = document.querySelectorAll('.tasting-panel');
+
+      tastingTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const targetId = tab.getAttribute('data-target');
+          
+          tastingTabs.forEach(t => {
+            t.classList.remove('bg-primary-container', 'text-surface');
+            t.classList.add('text-on-surface-variant');
+          });
+          tab.classList.add('bg-primary-container', 'text-surface');
+          tab.classList.remove('text-on-surface-variant');
+
+          tastingPanels.forEach(p => {
+            if (p.id === targetId) {
+              p.classList.remove('hidden');
+            } else {
+              p.classList.add('hidden');
+            }
+          });
+        });
+      });
+
+      // Menu category filtering
+      const filterBtns = document.querySelectorAll('.menu-filter-btn');
+      const menuCards = document.querySelectorAll('.menu-card');
+
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const category = btn.getAttribute('data-category');
+
+          filterBtns.forEach(b => {
+            b.classList.remove('bg-primary-container', 'text-surface', 'shadow-sm');
+            b.classList.add('bg-surface-container-low', 'text-on-surface-variant');
+          });
+          btn.classList.add('bg-primary-container', 'text-surface', 'shadow-sm');
+          btn.classList.remove('bg-surface-container-low', 'text-on-surface-variant');
+
+          menuCards.forEach(card => {
+            if (category === 'all' || card.getAttribute('data-category') === category) {
+              card.style.display = 'block';
+            } else {
+              card.style.display = 'none';
+            }
+          });
+        });
+      });
+
+      // Reservation guest pills
+      const guestPills = document.querySelectorAll('.guest-pill');
+      guestPills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          guestPills.forEach(p => {
+            p.classList.remove('bg-primary', 'text-surface');
+            p.classList.add('bg-surface', 'text-on-surface');
+          });
+          pill.classList.add('bg-primary', 'text-surface');
+          pill.classList.remove('bg-surface', 'text-on-surface');
+        });
+      });
+    })();
+  </script>
+</div></main><footer class="w-full bg-[#1e2617] text-[#e8e6df] mt-24 relative overflow-hidden border-t border-[#343e27]"><div class="absolute inset-0 pointer-events-none opacity-5 bg-[radial-gradient(#d4eab7_1px,transparent_1px)] [background-size:24px_24px]"></div><div class="relative max-w-7xl mx-auto px-6 lg:px-12 pt-20 pb-12"><div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10 pb-16 border-b border-[#313c24]"><div class="lg:col-span-4 space-y-6"><div class="space-y-2"><a class="inline-flex flex-col group" data-path="home" href="#"><span class="font-headline-lg text-headline-lg text-[#fbf9f3] tracking-widest uppercase">OLIV</span><span class="font-label-sm text-[0.6875rem] tracking-[0.28em] uppercase text-[#bccca3] -mt-1">Sanctuary, Hearth &amp; Micro-Roastery</span></a><p class="font-body-sm text-body-sm text-[#c2c6b9] leading-relaxed max-w-sm pt-1">Where century-old olive groves, 72-hour stoneground levain, and single-origin micro-lot coffees converge in unhurried, mindful harmony.</p></div><div class="space-y-3 pt-2 text-[#b5baa9]"><div class="flex items-start gap-3"><span class="material-symbols-outlined text-[#bccca3] text-[18px] mt-0.5">location_on</span><div><p class="font-body-sm text-body-sm text-[#f5f3ee] font-medium">Flagship Atelier</p><p class="font-body-sm text-body-sm text-[#a6ab9c]">428 St. Amandine Way, North Quarter, London EC2A 4NE</p></div></div><div class="flex items-start gap-3"><span class="material-symbols-outlined text-[#bccca3] text-[18px] mt-0.5">schedule</span><div><p class="font-body-sm text-body-sm text-[#f5f3ee] font-medium">Hours &amp; Hearth Service</p><p class="font-body-sm text-body-sm text-[#a6ab9c]">Mon – Fri: 7:30 AM – 9:00 PM</p><p class="font-body-sm text-body-sm text-[#a6ab9c]">Sat – Sun: 8:00 AM – 9:00 PM</p><p class="font-label-sm text-[0.75rem] text-[#d4eab7] pt-0.5">Daily Levain Drops at 7:00 AM &amp; 1:00 PM</p></div></div><div class="flex items-center gap-3 pt-1"><span class="material-symbols-outlined text-[#bccca3] text-[18px]">mail</span><a class="font-body-sm text-body-sm text-[#c5c8bd] hover:text-[#d4eab7] transition-colors" href="mailto:concierge@oliv-atelier.com">concierge@oliv-atelier.com</a><span class="text-[#52643c]">•</span><span class="font-body-sm text-body-sm text-[#a6ab9c]">+44 (0) 20 7946 0831</span></div></div></div><div class="lg:col-span-5 grid grid-cols-2 sm:grid-cols-3 gap-8"><div class="space-y-4"><h4 class="font-label-sm text-label-sm uppercase tracking-[0.2em] text-[#d4eab7] font-semibold">Culinary &amp; Hearth</h4><ul class="space-y-2.5"><li class="font-body-sm text-body-sm text-[#bccca3] hover:text-[#fbf9f3] transition-colors cursor-pointer"><a href="#" class="">Morning Viennoiserie</a></li><li class="font-body-sm text-body-sm text-[#bccca3] hover:text-[#fbf9f3] transition-colors cursor-pointer"><a href="#" class="">Sourdough &amp; Tartines</a></li><li class="font-body-sm text-body-sm text-[#bccca3] hover:text-[#fbf9f3] transition-colors cursor-pointer"><a href="#" class="">Midday Provisions</a></li><li class="font-body-sm text-body-sm text-[#bccca3] hover:text-[#fbf9f3] transition-colors cursor-pointer"><a href="#" class="">Evening Small Plates</a></li><li class="font-body-sm text-body-sm text-[#bccca3] hover:text-[#fbf9f3] transition-colors cursor-pointer"><a href="#" class="">Olive Oil Flights</a></li><li class="font-body-sm text-body-sm text-[#bccca3] hover:text-[#fbf9f3] transition-colors cursor-pointer"><a href="#" class="">Pâtisserie Cellar</a></li></ul></div><div class="space-y-4"><h4 class="font-label-sm text-label-sm uppercase tracking-[0.2em] text-[#d4eab7] font-semibold">Micro-Roastery</h4><ul class="space-y-2.5"><li class="font-body-sm text-body-sm text-[#bccca3] hover:text-[#fbf9f3] transition-colors cursor-pointer"><a href="#" class="">Single-Origin Lots</a></li><li class="font-body-sm text-body-sm text-[#bccca3] hover:text-[#fbf9f3] transition-colors cursor-pointer"><a href="#" class="">The Hearth Ritual</a></li><li class="font-body-sm text-body-sm text-[#bccca3] hover:text-[#fbf9f3] transition-colors cursor-pointer"><a href="#" class="">Cold-Extraction Elixirs</a></li><li class="font-body-sm text-body-sm text-[#bccca3] hover:text-[#fbf9f3] transition-colors cursor-pointer"><a href="#" class="">Roaster's Guild Box</a></li><li class="font-body-sm text-body-sm text-[#bccca3] hover:text-[#fbf9f3] transition-colors cursor-pointer"><a href="#" class="">Seasonal Brew Guides</a></li><li class="font-body-sm text-body-sm text-[#bccca3] hover:text-[#fbf9f3] transition-colors cursor-pointer"><a href="#" class="">Sensory Cuppings</a></li></ul></div><div class="space-y-4"><h4 class="font-label-sm text-label-sm uppercase tracking-[0.2em] text-[#d4eab7] font-semibold">Sanctuary &amp; Table</h4><ul class="space-y-2.5"><li class="font-body-sm text-body-sm text-[#bccca3] hover:text-[#fbf9f3] transition-colors cursor-pointer"><a href="#reserve-widget" class="">Reserve a Table</a></li><li class="font-body-sm text-body-sm text-[#bccca3] hover:text-[#fbf9f3] transition-colors cursor-pointer"><a href="#" class="">The Sunroom Parlour</a></li><li class="font-body-sm text-body-sm text-[#bccca3] hover:text-[#fbf9f3] transition-colors cursor-pointer"><a href="#" class="">The Hearth Counter</a></li><li class="font-body-sm text-body-sm text-[#bccca3] hover:text-[#fbf9f3] transition-colors cursor-pointer"><a href="#" class="">Olive Pergola Terrace</a></li><li class="font-body-sm text-body-sm text-[#bccca3] hover:text-[#fbf9f3] transition-colors cursor-pointer"><a href="#" class="">Private Buyouts</a></li><li class="font-body-sm text-body-sm text-[#bccca3] hover:text-[#fbf9f3] transition-colors cursor-pointer"><a href="#" class="">Press &amp; Accolades</a></li></ul></div></div><div class="lg:col-span-3 space-y-4"><div class="p-6 rounded-2xl bg-[#27321e] border border-[#3c4a2b] space-y-4"><div class="space-y-1.5"><span class="font-label-sm text-[0.6875rem] uppercase tracking-[0.22em] text-[#d4eab7]">The Tasting Gazette</span><h4 class="font-title-lg text-title-lg text-[#fbf9f3]">Letters From The Grove</h4><p class="font-body-sm text-body-sm text-[#c2c6b9] leading-relaxed">Receive seasonal harvest notes, private cupping invitations, and hearth cellar dispatches. Zero spam.</p></div><form class="space-y-2.5 pt-1" onsubmit="event.preventDefault(); this.querySelector('button').innerText = 'Subscribed ✓';"><div class="relative"><input class="w-full px-4 py-3 rounded-lg bg-[#1c2415] text-[#fbf9f3] border border-[#3e4b31] font-body-sm text-body-sm placeholder:text-[#75786f] focus:outline-none focus:ring-1 focus:ring-[#d4eab7] shadow-inner" placeholder="Your email address" required="" type="email"></div><button class="w-full py-2.5 px-4 rounded-lg bg-[#d4eab7] text-[#102002] hover:bg-[#bdccaa] transition-all font-label-md text-label-md tracking-wider uppercase font-semibold text-center flex items-center justify-center gap-1.5 shadow-sm" type="submit"><span class="">Join The Gazette</span><span class="material-symbols-outlined text-[16px]">arrow_forward</span></button></form><p class="font-label-sm text-[0.6875rem] text-[#8e9483] text-center pt-1">Monthly cadence • Immediate unsubscribe anytime</p></div></div></div><div class="py-8 border-b border-[#313c24] flex flex-wrap items-center justify-between gap-6"><div class="flex flex-wrap items-center gap-6 lg:gap-8"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-[#d4eab7] text-[18px]">verified</span><span class="font-label-sm text-label-sm uppercase tracking-wider text-[#dcdad4]">Michelin Guide Selected 2024</span></div><div class="flex items-center gap-2"><span class="material-symbols-outlined text-[#d4eab7] text-[18px]">award_star</span><span class="font-label-sm text-label-sm uppercase tracking-wider text-[#dcdad4]">Condé Nast Traveler — Best Botanical Concept</span></div><div class="flex items-center gap-2"><span class="material-symbols-outlined text-[#d4eab7] text-[18px]">coffee</span><span class="font-label-sm text-label-sm uppercase tracking-wider text-[#dcdad4]">SCA 88+ Specialty Roasts</span></div><div class="flex items-center gap-2"><span class="material-symbols-outlined text-[#d4eab7] text-[18px]">spa</span><span class="font-label-sm text-label-sm uppercase tracking-wider text-[#dcdad4]">100% Regenerative Khorasan</span></div><div class="flex items-center gap-2"><span class="material-symbols-outlined text-[#d4eab7] text-[18px]">eco</span><span class="font-label-sm text-label-sm uppercase tracking-wider text-[#dcdad4]">First Cold-Press Extra Virgin</span></div></div><div class="flex items-center gap-5 text-[#bccca3]"><a aria-label="Instagram" class="hover:text-[#fbf9f3] transition-colors flex items-center gap-1.5 font-label-sm text-label-sm uppercase tracking-wider" href="#"><span class="material-symbols-outlined text-[18px]">photo_camera</span><span class="">Instagram</span></a><span class="text-[#454840]">•</span><a aria-label="Journal" class="hover:text-[#fbf9f3] transition-colors flex items-center gap-1.5 font-label-sm text-label-sm uppercase tracking-wider" href="#"><span class="material-symbols-outlined text-[18px]">auto_stories</span><span class="">Journal</span></a><span class="text-[#454840]">•</span><a aria-label="Playlists" class="hover:text-[#fbf9f3] transition-colors flex items-center gap-1.5 font-label-sm text-label-sm uppercase tracking-wider" href="#"><span class="material-symbols-outlined text-[18px]">graphic_eq</span><span class="">Spotify Soundscape</span></a></div></div><div class="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-[#9da393]"><p class="font-label-sm text-label-sm">© 2025 OLIV Atelier &amp; Micro-Roastery Ltd. All culinary and artisanal rites reserved.</p><div class="flex flex-wrap items-center gap-6 font-label-sm text-label-sm"><a class="hover:text-[#fbf9f3] transition-colors" href="#">Privacy Policy</a><a class="hover:text-[#fbf9f3] transition-colors" href="#">Terms of Hospitality</a><a class="hover:text-[#fbf9f3] transition-colors" href="#">Dietary &amp; Allergen Protocol</a><a class="hover:text-[#fbf9f3] transition-colors" href="#">Accessibility Statement</a></div></div></div></footer>
+
+</body></html>

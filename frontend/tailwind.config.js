@@ -74,6 +74,19 @@ module.exports = {
         'on-error': '#ffffff',
         'error-container': '#ffdad6',
         'on-error-container': '#93000a',
+
+        // ── Design Cafe tokens ──
+        linen: '#fbf9f3',
+        'linen-dark': '#f3efe6',
+        'cream-surface': '#f5f3ee',
+        'olive-deep': '#1e2a1b',
+        'olive-rich': '#253723',
+        'olive-muted': '#4a5b46',
+        'olive-light': '#e9ede6',
+        'sage-accent': '#8b9d83',
+        'gold-accent': '#c2a677',
+        'gold-subtle': '#e7d8bd',
+        'charcoal-soft': '#2c2d2b',
       },
       fontFamily: {
         // Stitch typography
@@ -81,12 +94,12 @@ module.exports = {
         'headline-lg': ['"Playfair Display"', 'serif'],
         'headline-lg-mobile': ['"Playfair Display"', 'serif'],
         'headline-md': ['"Playfair Display"', 'serif'],
-        'body-lg': ['"Montserrat"', 'sans-serif'],
-        'body-md': ['"Montserrat"', 'sans-serif'],
-        'label-caps': ['"Montserrat"', 'sans-serif'],
+        'body-lg': ['"Plus Jakarta Sans"', '"Montserrat"', 'sans-serif'],
+        'body-md': ['"Plus Jakarta Sans"', '"Montserrat"', 'sans-serif'],
+        'label-caps': ['"Plus Jakarta Sans"', '"Montserrat"', 'sans-serif'],
         // Existing tokens
         serif: ['"Playfair Display"', 'serif'],
-        sans: ['"Montserrat"', '"Inter"', '"Poppins"', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', '"Montserrat"', '"Inter"', '"Poppins"', 'sans-serif'],
       },
       fontSize: {
         // Stitch type scale

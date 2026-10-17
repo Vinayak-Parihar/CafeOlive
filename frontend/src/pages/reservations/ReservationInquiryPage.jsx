@@ -1,209 +1,234 @@
 import React, { useState } from 'react';
-import { HelpCircle, ArrowLeft, Send } from 'lucide-react';
+import { HelpCircle, ArrowLeft, Send, CheckCircle2, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 const ReservationInquiryPage = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    inquiryType: '',
-    preferredDate: '',
-    message: ''
-  });
-  const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setSuccessMessage('');
-    setErrorMessage('');
-    try {
-      await axios.post('/api/inquiries', formData);
-      setSuccessMessage('Thank you for your inquiry! Our events team will review your request and contact you shortly. You can expect a response within 24 hours.');
-      setFormData({
+    const [formData, setFormData] = useState({
         name: '',
         phone: '',
         email: '',
         inquiryType: '',
         preferredDate: '',
         message: ''
-      });
-    } catch (error) {
-      setErrorMessage('Failed to send inquiry. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    });
+    const [loading, setLoading] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
 
-  return (
-    <div className="min-h-screen bg-background pt-32 pb-24 px-6 font-[Montserrat]">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <Link to="/reservations" className="inline-flex items-center text-sm font-semibold uppercase tracking-wider text-on-surface-variant hover:text-primary transition">
-          <ArrowLeft className="w-4 h-4 mr-2" /> Back to Reservations
-        </Link>
+    const handleChange = (e) => {
+        setFormData(prev => ({
+            ...prev,
+            [e.target.name]: e.target.value
+        }));
+    };
 
-        {/* Hero Banner */}
-        <div className="bg-white border border-surface-border rounded-xl p-10 soft-shadow text-center">
-          <div className="flex justify-center mb-6">
-            <div className="bg-primary/5 p-4 rounded-full text-primary">
-              <HelpCircle className="w-10 h-10" />
-            </div>
-          </div>
-          <h1 className="text-3xl font-[Playfair_Display] font-bold text-primary mb-4">Reservation Inquiry</h1>
-          <p className="text-on-surface-variant max-w-2xl mx-auto mb-6 leading-relaxed">
-            Have a question before booking? Whether it's about our Private Mini Theatre, Party Halls, or special event packages — we're here to help. Submit your inquiry and our events team will get back to you promptly.
-          </p>
-          <div className="text-xs text-soft-gold font-semibold tracking-wide flex flex-wrap justify-center gap-2">
-            <span>Private Mini Theatre</span> &middot; 
-            <span>Party Halls</span> &middot; 
-            <span>Birthday</span> &middot; 
-            <span>Corporate</span> &middot; 
-            <span>Special Occasions</span> &middot; 
-            <span>Pricing</span>
-          </div>
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setSuccessMessage('');
+        setErrorMessage('');
+        try {
+            await axios.post('/api/inquiries', formData);
+            setSuccessMessage('Thank you for your inquiry! Our events team will review your request and get back to you shortly.');
+            setFormData({
+                name: '',
+                phone: '',
+                email: '',
+                inquiryType: '',
+                preferredDate: '',
+                message: ''
+            });
+        } catch (error) {
+            setErrorMessage('Failed to send inquiry. Please check your connection and try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-transparent text-olive-deep font-sans antialiased selection:bg-olive-rich selection:text-linen">
+            <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 md:py-12 space-y-8">
+                {/* Breadcrumb Navigation */}
+                <div>
+                    <Link
+                        to="/reservations"
+                        className="inline-flex items-center text-xs tracking-[0.18em] uppercase font-semibold text-olive-muted hover:text-olive-deep transition-colors group"
+                    >
+                        <ArrowLeft className="w-4 h-4 mr-2 transform transition-transform group-hover:-translate-x-1" />
+                        Back to Reservations
+                    </Link>
+                </div>
+
+                {/* Hero Card */}
+                <section className="bg-white rounded-3xl p-7 md:p-10 shadow-sm border border-[#e8e4d8] text-center relative overflow-hidden">
+                    <div className="relative z-10 flex flex-col items-center">
+                        <div className="w-14 h-14 rounded-full bg-olive-light/60 border border-olive-muted/20 flex items-center justify-center text-olive-deep mb-5 shadow-inner">
+                            <HelpCircle className="w-7 h-7 text-gold-accent" />
+                        </div>
+                        <h1 className="font-serif text-3xl sm:text-4xl font-semibold text-olive-deep tracking-wide mb-3">
+                            Reservation Inquiry
+                        </h1>
+                        <p className="text-olive-muted text-sm sm:text-base leading-relaxed max-w-xl font-light">
+                            Have a question before booking? Whether it’s about our Private Mini Theatre, Party Halls, or bespoke celebration packages — we’re here to help.
+                        </p>
+                        <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-[11px] sm:text-xs font-medium text-olive-muted uppercase tracking-wider">
+                            <span>Private Mini Theatre</span>
+                            <span className="text-gold-accent">•</span>
+                            <span>Party Halls</span>
+                            <span className="text-gold-accent">•</span>
+                            <span>Birthday & Anniversaries</span>
+                            <span className="text-gold-accent">•</span>
+                            <span>Custom Menus</span>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Inquiry Form Card */}
+                <section className="bg-white rounded-3xl p-7 md:p-10 shadow-sm border border-[#e8e4d8]">
+                    <div className="mb-7 pb-4 border-b border-[#ece7dc] flex items-center justify-between">
+                        <div>
+                            <h2 className="font-serif text-2xl sm:text-3xl font-semibold text-olive-deep tracking-wide">
+                                Inquiry Form
+                            </h2>
+                            <p className="text-xs text-olive-muted mt-1 font-light">
+                                Please fill in your details; required fields are marked with (*)
+                            </p>
+                        </div>
+                        <div className="hidden sm:flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-olive-deep bg-olive-light/50 px-3 py-1.5 rounded-full border border-olive-muted/20 font-medium">
+                            <Clock className="w-3.5 h-3.5 text-gold-accent" />
+                            Avg. Reply: &lt; 2 Hours
+                        </div>
+                    </div>
+
+                    {successMessage && (
+                        <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-2xl flex items-center gap-3 text-sm">
+                            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                            <span>{successMessage}</span>
+                        </div>
+                    )}
+
+                    {errorMessage && (
+                        <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-sm">
+                            {errorMessage}
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+                            <div>
+                                <label className="block text-xs font-bold tracking-wider uppercase text-olive-deep mb-2" htmlFor="name">
+                                    Full Name <span className="text-gold-accent">*</span>
+                                </label>
+                                <input
+                                    id="name"
+                                    name="name"
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    placeholder="e.g. Rohan Dusane"
+                                    required
+                                    className="w-full px-4 py-3 rounded-2xl border border-[#d8d3c5] bg-linen/50 text-olive-deep placeholder:text-stone-400 text-sm focus:outline-none focus:ring-2 focus:ring-olive-deep"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold tracking-wider uppercase text-olive-deep mb-2" htmlFor="phone">
+                                    Phone Number <span className="text-gold-accent">*</span>
+                                </label>
+                                <input
+                                    id="phone"
+                                    name="phone"
+                                    type="tel"
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                    placeholder="+91 98765 43210"
+                                    required
+                                    className="w-full px-4 py-3 rounded-2xl border border-[#d8d3c5] bg-linen/50 text-olive-deep placeholder:text-stone-400 text-sm focus:outline-none focus:ring-2 focus:ring-olive-deep"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold tracking-wider uppercase text-olive-deep mb-2" htmlFor="email">
+                                    Email <span className="text-olive-muted font-normal">(Optional)</span>
+                                </label>
+                                <input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    placeholder="name@example.com"
+                                    className="w-full px-4 py-3 rounded-2xl border border-[#d8d3c5] bg-linen/50 text-olive-deep placeholder:text-stone-400 text-sm focus:outline-none focus:ring-2 focus:ring-olive-deep"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold tracking-wider uppercase text-olive-deep mb-2" htmlFor="inquiryType">
+                                    Inquiry Type <span className="text-gold-accent">*</span>
+                                </label>
+                                <select
+                                    id="inquiryType"
+                                    name="inquiryType"
+                                    value={formData.inquiryType}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full px-4 py-3 rounded-2xl border border-[#d8d3c5] bg-linen/50 text-olive-deep text-sm focus:outline-none focus:ring-2 focus:ring-olive-deep cursor-pointer"
+                                >
+                                    <option value="" disabled>Select inquiry type...</option>
+                                    <option value="theatre">Private Mini Theatre</option>
+                                    <option value="hall-1">Party Hall 1 (Up to 50 Guests)</option>
+                                    <option value="hall-2">Party Hall 2 (Grand Celebrations)</option>
+                                    <option value="corporate">Corporate Event / Workshop</option>
+                                    <option value="pricing">Custom Package & Pricing</option>
+                                    <option value="other">Other Inquiry</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold tracking-wider uppercase text-olive-deep mb-2" htmlFor="preferredDate">
+                                Preferred Date <span className="text-olive-muted font-normal">(Optional)</span>
+                            </label>
+                            <input
+                                id="preferredDate"
+                                name="preferredDate"
+                                type="date"
+                                value={formData.preferredDate}
+                                onChange={handleChange}
+                                className="w-full px-4 py-3 rounded-2xl border border-[#d8d3c5] bg-linen/50 text-olive-deep text-sm focus:outline-none focus:ring-2 focus:ring-olive-deep"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold tracking-wider uppercase text-olive-deep mb-2" htmlFor="message">
+                                Message & Questions <span className="text-gold-accent">*</span>
+                            </label>
+                            <textarea
+                                id="message"
+                                name="message"
+                                rows={4}
+                                value={formData.message}
+                                onChange={handleChange}
+                                placeholder="Tell us about your event, expected guest count, food preferences..."
+                                required
+                                className="w-full px-4 py-3 rounded-2xl border border-[#d8d3c5] bg-linen/50 text-olive-deep placeholder:text-stone-400 text-sm focus:outline-none focus:ring-2 focus:ring-olive-deep"
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full py-4 rounded-full bg-olive-deep hover:bg-olive-rich text-white text-xs font-bold tracking-widest uppercase transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                            <Send className="w-4 h-4" />
+                            {loading ? 'Submitting...' : 'Submit Inquiry'}
+                        </button>
+                    </form>
+                </section>
+            </main>
         </div>
-
-        {/* Form Section */}
-        <div className="bg-white border border-surface-border rounded-xl p-10 soft-shadow">
-          <h2 className="text-2xl font-[Playfair_Display] font-semibold text-primary mb-6">Inquiry Form</h2>
-          
-          {successMessage && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-800 rounded-lg text-sm">
-              {successMessage}
-            </div>
-          )}
-          
-          {errorMessage && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm">
-              {errorMessage}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-6 text-sm">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-1">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 rounded-lg bg-surface-container-low border border-surface-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-1">
-                  Phone Number *
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 rounded-lg bg-surface-container-low border border-surface-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
-                />
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-1">
-                  Email (Optional)
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg bg-surface-container-low border border-surface-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-1">
-                  Inquiry Type *
-                </label>
-                <select
-                  name="inquiryType"
-                  value={formData.inquiryType}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 rounded-lg bg-surface-container-low border border-surface-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
-                >
-                  <option value="" disabled>Select inquiry type...</option>
-                  <option value="Private Mini Theatre">Private Mini Theatre</option>
-                  <option value="Party Hall 1">Party Hall 1</option>
-                  <option value="Party Hall 2">Party Hall 2</option>
-                  <option value="Birthday Celebrations">Birthday Celebrations</option>
-                  <option value="Corporate Events">Corporate Events</option>
-                  <option value="Special Occasions">Special Occasions</option>
-                  <option value="Booking Availability">Booking Availability</option>
-                  <option value="Pricing">Pricing</option>
-                  <option value="Custom Decorations">Custom Decorations</option>
-                  <option value="General Questions">General Questions</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-1">
-                Preferred Event Date (Optional)
-              </label>
-              <input
-                type="date"
-                name="preferredDate"
-                value={formData.preferredDate}
-                onChange={handleChange}
-                className="w-full md:w-[calc(50%-12px)] px-4 py-3 rounded-lg bg-surface-container-low border border-surface-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-1">
-                Message *
-              </label>
-              <textarea
-                name="message"
-                value={formData.message}
-                onChange={handleChange}
-                required
-                placeholder="Tell us about your event requirements, questions about availability, pricing, or any special requests..."
-                className="w-full px-4 py-3 rounded-lg bg-surface-container-low border border-surface-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition h-36 resize-y"
-              ></textarea>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full btn-stitch-primary py-4 text-xs font-bold uppercase tracking-wider flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                'Sending Inquiry...'
-              ) : (
-                <>
-                  <Send className="w-4 h-4 mr-2" /> Send Inquiry
-                </>
-              )}
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default ReservationInquiryPage;

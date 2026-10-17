@@ -1,44 +1,36 @@
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import Lenis from 'lenis';
-import { gsap, ScrollTrigger } from '../../lib/gsap';
-import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 
 /**
- * Adds inertia-based smooth scrolling to the public site and keeps it in
- * lockstep with GSAP's ticker so ScrollTrigger stays in sync. Disabled
- * entirely under prefers-reduced-motion, falling back to native scroll.
+ * SmoothScrollProvider ensures healthy, fluid scrolling across route transitions
+ * and page renders without hijacking the browser's native wheel/touch events.
+ * Eliminates virtual scroll locking and stuck scroll states.
  */
 const SmoothScrollProvider = ({ children }) => {
-    const reducedMotion = usePrefersReducedMotion();
     const location = useLocation();
 
     useEffect(() => {
-        if (reducedMotion) return undefined;
+        // Ensure html and body are never stuck in an overflow-locked state
+        document.documentElement.classList.remove('lenis', 'lenis-stopped', 'lenis-scrolling');
+        document.body.classList.remove('lenis', 'lenis-stopped', 'lenis-scrolling');
 
-        const lenis = new Lenis({
-            duration: 1.1,
-            smoothWheel: true,
+        if (document.documentElement.style.overflow === 'hidden') {
+            document.documentElement.style.overflow = '';
+        }
+        if (document.body.style.overflow === 'hidden') {
+            document.body.style.overflow = '';
+        }
+
+        // Scroll to top cleanly on route change
+        window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: 'instant'
         });
-
-        lenis.on('scroll', ScrollTrigger.update);
-
-        const update = (time) => lenis.raf(time * 1000);
-        gsap.ticker.add(update);
-        gsap.ticker.lagSmoothing(0);
-
-        return () => {
-            gsap.ticker.remove(update);
-            lenis.destroy();
-        };
-    }, [reducedMotion]);
-
-    useEffect(() => {
-        window.scrollTo(0, 0);
-        ScrollTrigger.refresh();
     }, [location.pathname]);
 
     return children;
 };
 
 export default SmoothScrollProvider;
+
