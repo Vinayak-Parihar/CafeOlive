@@ -157,14 +157,28 @@ const getAvailability = asyncHandler(async (req, res) => {
 
 // 2. Create Razorpay Payment Order for Booking (POST /api/reservations/book / /create-payment-order)
 const createPaymentOrder = asyncHandler(async (req, res) => {
-    const { type, name, phone, email, date, startTime, duration, guests, occasion, specialRequests } = req.body;
+    const {
+        type, name, phone, email, date, startTime, duration, guests, occasion, specialRequests,
+        hasDecoration, decorationAgreement, mealPlan, paymentPlan, paymentMethod = 'online'
+    } = req.body;
 
     if (!type || !name || !phone || !email || !date || !startTime || !duration || !guests) {
         throw new ApiError(400, "All booking fields are required.");
     }
 
+    if (hasDecoration && !decorationAgreement) {
+        throw new ApiError(400, "You must acknowledge and agree that hall decoration requires booking 1 hour early for setup.");
+    }
+
     const hourlyRate = RATES[type] || 1000;
-    const totalAmount = hourlyRate * duration;
+    const baseTotal = hourlyRate * duration;
+    const decorationFee = hasDecoration ? 1500 : 0;
+    const totalAmount = baseTotal + decorationFee;
+
+    const isHalfPayment = paymentPlan === 'half';
+    const payableAmount = isHalfPayment ? Math.round(totalAmount / 2) : totalAmount;
+    const advanceAmount = payableAmount;
+    const balanceDue = totalAmount - payableAmount;
 
     // Check if slot is already double booked in DB (including midnight rollover across adjacent days + 30m buffer)
     const { startMs: reqStart, endMs: reqEnd } = getReservationTimeRange(date, startTime, duration);
@@ -189,11 +203,47 @@ const createPaymentOrder = asyncHandler(async (req, res) => {
         throw new ApiError(400, "The selected slot conflicts with an existing reservation (including required 30-minute preparation buffer). Please select a different time.");
     }
 
-    // Create Razorpay Order
+    // Direct Cash Payment at Venue
+    if (paymentMethod === 'cash') {
+        const reservation = await Reservation.create({
+            type,
+            name,
+            phone,
+            email,
+            date,
+            startTime,
+            duration,
+            guests,
+            totalAmount,
+            hasDecoration: Boolean(hasDecoration),
+            decorationAgreement: Boolean(decorationAgreement),
+            mealPlan: Array.isArray(mealPlan) ? mealPlan : [],
+            paymentPlan: isHalfPayment ? 'half' : 'full',
+            paymentMethod: 'cash',
+            advanceAmount: isHalfPayment ? payableAmount : 0,
+            balanceDue: isHalfPayment ? balanceDue : totalAmount,
+            paymentStatus: 'pending',
+            status: 'confirmed',
+            occasion,
+            specialRequests
+        });
+
+        // Trigger email & WhatsApp confirmation notifications
+        await sendReservationConfirmationNotifications(reservation);
+
+        return res.status(201).json(
+            new ApiResponce(201, {
+                reservation,
+                isCash: true
+            }, "Reservation confirmed with Cash payment at venue")
+        );
+    }
+
+    // Create Razorpay Order for Online Payment
     let rzpOrder = null;
     try {
         const options = {
-            amount: Math.round(totalAmount * 100), // in paise
+            amount: Math.round(payableAmount * 100), // in paise
             currency: "INR",
             receipt: `res_receipt_${Date.now()}`
         };
@@ -214,6 +264,13 @@ const createPaymentOrder = asyncHandler(async (req, res) => {
         duration,
         guests,
         totalAmount,
+        hasDecoration: Boolean(hasDecoration),
+        decorationAgreement: Boolean(decorationAgreement),
+        mealPlan: Array.isArray(mealPlan) ? mealPlan : [],
+        paymentPlan: isHalfPayment ? 'half' : 'full',
+        paymentMethod: 'online',
+        advanceAmount,
+        balanceDue,
         razorpayOrderId: rzpOrder.id,
         paymentStatus: 'pending',
         status: 'pending',
@@ -287,14 +344,9 @@ const getAllReservations = asyncHandler(async (req, res) => {
     );
 });
 
-// 5. Update Status manually (e.g. Cancel booking from admin side)
 const updateReservationStatus = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { status } = req.body;
-
-    if (!['confirmed', 'cancelled', 'pending'].includes(status)) {
-        throw new ApiError(400, "Invalid status.");
-    }
+    const { status, paymentStatus, balanceDue } = req.body;
 
     const reservation = await Reservation.findById(id);
     if (!reservation) {
@@ -302,7 +354,17 @@ const updateReservationStatus = asyncHandler(async (req, res) => {
     }
 
     const wasAlreadyConfirmed = reservation.status === 'confirmed';
-    reservation.status = status;
+
+    if (status && ['confirmed', 'cancelled', 'pending'].includes(status)) {
+        reservation.status = status;
+    }
+    if (paymentStatus && ['pending', 'paid', 'failed'].includes(paymentStatus)) {
+        reservation.paymentStatus = paymentStatus;
+    }
+    if (typeof balanceDue === 'number') {
+        reservation.balanceDue = balanceDue;
+    }
+
     await reservation.save();
 
     if (status === 'confirmed' && !wasAlreadyConfirmed) {
@@ -311,7 +373,7 @@ const updateReservationStatus = asyncHandler(async (req, res) => {
     }
 
     return res.status(200).json(
-        new ApiResponce(200, reservation, `Reservation status updated to ${status}`)
+        new ApiResponce(200, reservation, `Reservation updated successfully`)
     );
 });
 

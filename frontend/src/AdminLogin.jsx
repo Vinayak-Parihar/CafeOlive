@@ -34,6 +34,8 @@ const AdminLogin = () => {
                     navigate('/admin/kitchen');
                 } else if (user.role === 'waiter') {
                     navigate('/admin/service');
+                } else if (user.role === 'cashier') {
+                    navigate('/admin/billing');
                 } else {
                     navigate('/admin/dashboard');
                 }

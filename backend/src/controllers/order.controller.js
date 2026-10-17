@@ -543,6 +543,77 @@ const settleBillSession = asyncHandler(async (req, res) => {
     );
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 11. Get Consolidated Cashier Billing Sessions
+//     GET /api/order/billing/sessions
+// ─────────────────────────────────────────────────────────────────────────────
+const getCashierBillingSessions = asyncHandler(async (req, res) => {
+    // Fetch all active orders + all recent settled orders
+    const orders = await Order.find({
+        status: { $ne: 'cancelled' }
+    }).sort({ createdAt: -1 }).limit(200);
+
+    // Group orders by billSessionId (or order _id if no billSessionId)
+    const sessionMap = new Map();
+
+    for (const order of orders) {
+        const key = order.billSessionId || `order_${order._id}`;
+        if (!sessionMap.has(key)) {
+            sessionMap.set(key, {
+                billSessionId: order.billSessionId || null,
+                primaryOrderId: order._id,
+                tableNumber: order.tableNumber || 'Walk-in',
+                customerName: order.customerName || order.guestDetails?.name || 'Guest',
+                customerPhone: order.customerPhone || order.guestDetails?.phone || '',
+                items: [],
+                grandTotal: 0,
+                orderIds: [],
+                status: order.status,
+                paymentStatus: order.paymentStatus,
+                paymentMethod: order.paymentMethod || null,
+                createdAt: order.createdAt,
+                updatedAt: order.updatedAt,
+                isSession: Boolean(order.billSessionId)
+            });
+        }
+
+        const session = sessionMap.get(key);
+        session.orderIds.push(order._id);
+        session.grandTotal += (order.totalAmount || 0);
+
+        if (order.items && Array.isArray(order.items)) {
+            order.items.forEach(item => {
+                session.items.push({
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    subtotal: (item.price || 0) * (item.quantity || 1),
+                    specialInstructions: item.specialInstructions || ''
+                });
+            });
+        }
+
+        if (order.paymentStatus === 'paid') {
+            session.paymentStatus = 'paid';
+        }
+        if (order.paymentMethod) {
+            session.paymentMethod = order.paymentMethod;
+        }
+        if (!session.customerName || session.customerName === 'Guest') {
+            if (order.customerName) session.customerName = order.customerName;
+        }
+        if (!session.customerPhone && order.customerPhone) {
+            session.customerPhone = order.customerPhone;
+        }
+    }
+
+    const sessions = Array.from(sessionMap.values());
+
+    return res.status(200).json(
+        new ApiResponce(200, sessions, "Cashier billing sessions fetched successfully")
+    );
+});
+
 export {
     placeOrder,
     getKitchenOrders,
@@ -554,5 +625,6 @@ export {
     createBillPayment,
     verifyBillPayment,
     updateBillPaymentMethod,
-    settleBillSession
+    settleBillSession,
+    getCashierBillingSessions
 };

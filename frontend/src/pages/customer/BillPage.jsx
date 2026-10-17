@@ -5,9 +5,10 @@ import toast from 'react-hot-toast';
 import {
     Coffee, CheckCircle2, ArrowLeft, RefreshCw,
     CreditCard, Banknote, Clock, ChevronDown, ChevronUp,
-    Receipt, Utensils
+    Receipt, Utensils, MessageSquareShare
 } from 'lucide-react';
 import { getBillSession, clearBillSessionCookie } from '../../utils/sessionUtils';
+import { sendWhatsAppReceipt } from '../../utils/whatsappReceipt';
 
 const loadRazorpayScript = () =>
     new Promise((resolve) => {
@@ -165,7 +166,7 @@ const BillPage = () => {
             });
             setCashRequested(true);
             setSelectedMethod('cash');
-            toast.success("Cash payment selected. Please hand over cash to staff after dining.");
+            toast.success("Cash payment selected. Admin & staff notified.");
         } catch {
             toast.error("Failed to select cash payment.");
         } finally {
@@ -182,8 +183,13 @@ const BillPage = () => {
             });
             setCashRequested(false);
             setSelectedMethod('online');
+            // Directly trigger Razorpay payment popup
+            setTimeout(() => {
+                handlePayBill();
+            }, 50);
         } catch (err) {
             console.error("Failed to update payment method:", err);
+            handlePayBill();
         } finally {
             setIsUpdatingMethod(false);
         }
@@ -227,6 +233,9 @@ const BillPage = () => {
                             clearBillSessionCookie();
                             setPaymentState('success');
                             setPaymentMessage(`Payment of ₹${billData.grandTotal} received. Thank you!`);
+                            setTimeout(() => {
+                                handleSendWhatsApp();
+                            }, 500);
                         } else {
                             setPaymentState('failed');
                             setPaymentMessage('Payment verification failed. Contact staff.');
@@ -257,6 +266,25 @@ const BillPage = () => {
         } catch (err) {
             setPaymentState('failed');
             setPaymentMessage(err.response?.data?.message || 'Failed to initiate payment.');
+        }
+    };
+
+    const handleSendWhatsApp = () => {
+        const phone = billData?.customerPhone || session?.customerPhone || billData?.orders?.[0]?.customerPhone;
+        const allItems = billData?.orders?.flatMap(o => o.items || []) || [];
+        const ok = sendWhatsAppReceipt({
+            customerPhone: phone,
+            customerName: billData?.customerName || session?.customerName || 'Valued Guest',
+            tableNumber: billData?.tableNumber || session?.tableNumber || '01',
+            items: allItems,
+            totalAmount: billData?.grandTotal || 0,
+            paymentMethod: billData?.orders?.[0]?.paymentMethod || (selectedMethod === 'cash' ? 'Cash' : 'Online (Razorpay)'),
+            paymentStatus: billData?.sessionPaid || paymentState === 'success' ? 'paid' : 'pending'
+        });
+        if (!ok) {
+            toast.error("Phone number not found in session");
+        } else {
+            toast.success("Opening WhatsApp bill!");
         }
     };
 
@@ -291,9 +319,18 @@ const BillPage = () => {
                     </div>
                     <h1 className="text-2xl font-serif font-semibold text-olive-deep">Bill Settled!</h1>
                     <p className="text-olive-muted text-xs leading-relaxed">{paymentMessage}</p>
+
+                    <button
+                        type="button"
+                        onClick={handleSendWhatsApp}
+                        className="w-full py-3.5 px-4 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition"
+                    >
+                        <MessageSquareShare size={15} /> Send Bill to WhatsApp
+                    </button>
+
                     <Link
                         to="/menu"
-                        className="inline-flex items-center gap-2 py-3 px-6 rounded-full bg-olive-deep hover:bg-olive-rich text-white text-xs font-bold uppercase tracking-wider transition-colors shadow-sm"
+                        className="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-full bg-olive-deep hover:bg-olive-rich text-white text-xs font-bold uppercase tracking-wider transition-colors shadow-sm w-full"
                     >
                         <Coffee size={15} /> Order Again
                     </Link>
@@ -332,8 +369,12 @@ const BillPage = () => {
                     <h1 className="text-2xl sm:text-3xl font-serif font-semibold text-olive-deep tracking-tight">
                         {billData?.customerName || session.customerName || 'Valued Guest'}
                     </h1>
-                    <p className="text-xs text-olive-muted mt-1 font-normal tracking-wide">
-                        {billData?.orders?.length || 1} order(s) in your current session
+                    <p className="text-xs text-olive-muted mt-1 font-normal tracking-wide flex items-center justify-center gap-2">
+                        <span className="font-mono text-stone-600 bg-cream-surface px-2 py-0.5 rounded-md border border-[#dce6d7]">
+                            {new Date(billData?.orders?.[0]?.createdAt || Date.now()).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </span>
+                        <span>•</span>
+                        <span>{billData?.orders?.length || 1} order(s)</span>
                     </p>
                 </section>
 
@@ -482,22 +523,43 @@ const BillPage = () => {
                     {/* Pay Button / Status */}
                     {!billData?.sessionPaid ? (
                         selectedMethod === 'online' ? (
-                            <button
-                                type="button"
-                                onClick={handlePayBill}
-                                disabled={paymentState === 'processing'}
-                                className="w-full py-3.5 rounded-full bg-olive-deep hover:bg-olive-rich text-white text-xs font-bold tracking-widest uppercase transition shadow-sm mt-2 disabled:opacity-50"
-                            >
-                                {paymentState === 'processing' ? 'Processing...' : `Pay ₹${billData?.grandTotal || 0} Now`}
-                            </button>
+                            <div className="space-y-2 mt-2">
+                                <button
+                                    type="button"
+                                    onClick={handlePayBill}
+                                    disabled={paymentState === 'processing'}
+                                    className="w-full py-3.5 rounded-full bg-olive-deep hover:bg-olive-rich text-white text-xs font-bold tracking-widest uppercase transition shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    <CreditCard size={15} />
+                                    {paymentState === 'processing' ? 'Opening Razorpay...' : `Pay ₹${billData?.grandTotal || 0} Online Now`}
+                                </button>
+                                <p className="text-[10px] text-center text-stone-400">
+                                    Secured via Razorpay (UPI, Google Pay, PhonePe, Cards)
+                                </p>
+                            </div>
                         ) : (
-                            <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-xs text-center mt-2 font-medium">
-                                Cash payment chosen. Please inform your server or pay at the billing counter.
+                            <div className="p-3.5 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-xs space-y-1 mt-2">
+                                <div className="font-bold flex items-center gap-1.5 text-amber-950">
+                                    <Banknote size={15} className="text-amber-700" />
+                                    <span>Cash Payment Chosen</span>
+                                </div>
+                                <p className="text-[11px] text-amber-800 leading-relaxed">
+                                    Admin & staff have been notified that you are paying ₹{billData?.grandTotal || 0} in cash. Please hand over cash to your server or counter.
+                                </p>
                             </div>
                         )
                     ) : (
-                        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-2xl text-xs text-center mt-2 font-medium">
-                            ✓ Bill Settled & Paid. Thank you for dining with us!
+                        <div className="space-y-2 mt-2">
+                            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-2xl text-xs text-center font-medium">
+                                ✓ Bill Settled & Paid. Thank you for dining with us!
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleSendWhatsApp}
+                                className="w-full py-3 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition"
+                            >
+                                <MessageSquareShare size={15} /> Get Bill on WhatsApp
+                            </button>
                         </div>
                     )}
                 </section>

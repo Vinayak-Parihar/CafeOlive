@@ -36,7 +36,7 @@ const userSchema = new Schema(
         },
         role: {
             type: String,
-            enum: ['admin', 'manager', 'chef', 'waiter', 'customer'],
+            enum: ['admin', 'manager', 'chef', 'waiter', 'cashier', 'customer'],
             required: true,
             lowercase: true,
             trim: true

@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Calendar, Film, PartyPopper, HelpCircle, Check, X, Clock, Users, Phone, Mail } from 'lucide-react';
+import { 
+    Calendar, Film, PartyPopper, HelpCircle, Check, X, Clock, Users, Phone, Mail, 
+    Sparkles, Utensils, CreditCard, Banknote, MessageSquareShare 
+} from 'lucide-react';
+import { sendReservationWhatsAppReceipt } from '../../utils/whatsappReceipt';
 
 const ReservationsAdmin = () => {
     const [reservations, setReservations] = useState([]);
@@ -35,6 +39,18 @@ const ReservationsAdmin = () => {
         } catch (error) {
             console.error("Error updating status:", error);
             alert("Failed to update status: " + (error.response?.data?.message || "Unknown error"));
+        }
+    };
+
+    const settleBalance = async (id) => {
+        try {
+            const response = await axios.patch(`/api/reservations/${id}/status`, { paymentStatus: 'paid', balanceDue: 0 });
+            if (response.data.success) {
+                setReservations(prev => prev.map(res => res._id === id ? { ...res, paymentStatus: 'paid', balanceDue: 0 } : res));
+            }
+        } catch (error) {
+            console.error("Error settling balance:", error);
+            alert("Failed to settle balance: " + (error.response?.data?.message || "Unknown error"));
         }
     };
 
@@ -146,38 +162,115 @@ const ReservationsAdmin = () => {
 
                             <h3 className="text-xl font-bold font-serif text-[#1e2a1b] mb-2">{res.name}</h3>
                             
-                            <div className="grid grid-cols-2 gap-3 text-xs text-stone-600 mb-4 font-medium">
+                            <div className="grid grid-cols-2 gap-2 text-xs text-stone-600 mb-3 font-medium">
                                 <span className="flex items-center gap-1.5"><Phone size={13} className="text-[#c2a677]" /> {res.phone}</span>
                                 <span className="flex items-center gap-1.5 truncate"><Mail size={13} className="text-[#c2a677]" /> {res.email}</span>
                                 <span className="flex items-center gap-1.5"><Calendar size={13} className="text-[#c2a677]" /> {res.date}</span>
                                 <span className="flex items-center gap-1.5"><Clock size={13} className="text-[#c2a677]" /> {res.startTime} ({res.duration}h)</span>
                                 <span className="flex items-center gap-1.5"><Users size={13} className="text-[#c2a677]" /> {res.guests} Guests</span>
-                                <span className="font-bold text-[#1e2a1b]">₹{res.totalAmount} <span className="text-[10px] uppercase font-normal text-stone-400">({res.paymentStatus})</span></span>
-                                {res.occasion && <span className="truncate col-span-2 text-stone-700">✨ {res.occasion}</span>}
+                                <span className="flex items-center gap-1.5 font-bold text-[#1e2a1b]">
+                                    {res.paymentMethod === 'cash' ? <Banknote size={13} className="text-emerald-700" /> : <CreditCard size={13} className="text-blue-700" />}
+                                    {res.paymentMethod === 'cash' ? 'Cash at Venue' : 'Online'} ({res.paymentPlan === 'half' ? '50% Adv' : 'Full'})
+                                </span>
+                                {res.occasion && <span className="truncate col-span-2 text-stone-700">✨ Occasion: {res.occasion}</span>}
+                            </div>
+
+                            {/* Decoration and Meals Badges */}
+                            <div className="space-y-1.5 mb-3 text-xs">
+                                <div className="flex items-center justify-between p-2 rounded-xl bg-[#FAF8F3] border border-[#ece7dc]">
+                                    <span className="flex items-center gap-1.5 text-stone-700 text-[11px] font-semibold">
+                                        <Sparkles size={13} className={res.hasDecoration ? 'text-amber-600' : 'text-stone-300'} />
+                                        Decoration: {res.hasDecoration ? '✨ Requested (+₹1,500)' : 'None'}
+                                    </span>
+                                    {res.hasDecoration && (
+                                        <span className="text-[10px] text-amber-900 bg-amber-100 px-2 py-0.5 rounded border border-amber-300 font-medium">
+                                            1h Early Setup Confirmed
+                                        </span>
+                                    )}
+                                </div>
+
+                                {res.mealPlan && res.mealPlan.length > 0 && (
+                                    <div className="flex items-center gap-1.5 p-2 rounded-xl bg-[#FAF8F3] border border-[#ece7dc]">
+                                        <Utensils size={13} className="text-[#c2a677] shrink-0" />
+                                        <div className="flex flex-wrap gap-1">
+                                            {res.mealPlan.map(m => (
+                                                <span key={m} className="text-[10px] bg-[#1e2a1b] text-white px-2 py-0.5 rounded-full capitalize">
+                                                    🍽️ {m}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Payment Summary */}
+                            <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200 text-xs mb-3 flex items-center justify-between">
+                                <div>
+                                    <span className="text-[9px] uppercase font-bold text-stone-400 block">TOTAL PACKAGE</span>
+                                    <span className="font-bold text-[#1e2a1b] text-sm">₹{res.totalAmount}</span>
+                                </div>
+                                {res.advanceAmount > 0 && (
+                                    <div>
+                                        <span className="text-[9px] uppercase font-bold text-stone-400 block">ADVANCE</span>
+                                        <span className="font-semibold text-emerald-700 text-xs">₹{res.advanceAmount}</span>
+                                    </div>
+                                )}
+                                {res.balanceDue > 0 && (
+                                    <div>
+                                        <span className="text-[9px] uppercase font-bold text-stone-400 block">DUE AT VENUE</span>
+                                        <span className="font-semibold text-amber-700 text-xs">₹{res.balanceDue}</span>
+                                    </div>
+                                )}
+                                <div>
+                                    <span className="text-[9px] uppercase font-bold text-stone-400 block">STATUS</span>
+                                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                        res.paymentStatus === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'
+                                    }`}>
+                                        {res.paymentStatus}
+                                    </span>
+                                </div>
                             </div>
 
                             {res.specialRequests && (
-                                <div className="bg-[#FAF8F3] border border-[#ece7dc] p-3 rounded-xl text-xs text-stone-600 italic mb-4 leading-relaxed">
+                                <div className="bg-[#FAF8F3] border border-[#ece7dc] p-2.5 rounded-xl text-xs text-stone-600 italic mb-3 leading-relaxed">
                                     "{res.specialRequests}"
                                 </div>
                             )}
 
-                            {res.status === 'pending' && (
-                                <div className="flex gap-3 pt-3 border-t border-[#ece7dc]">
+                            {/* Action Buttons */}
+                            <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-[#ece7dc]">
+                                {res.status === 'pending' && (
                                     <button 
                                         onClick={() => updateStatus(res._id, 'confirmed')}
-                                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-[#2d5a27] hover:bg-[#23471f] text-white text-xs font-semibold uppercase tracking-wider rounded-xl transition duration-200"
+                                        className="flex-1 min-w-[90px] flex items-center justify-center gap-1.5 py-2 bg-[#2d5a27] hover:bg-[#23471f] text-white text-xs font-semibold uppercase tracking-wider rounded-xl transition duration-200"
                                     >
-                                        <Check size={14} /> Confirm
+                                        <Check size={13} /> Confirm
                                     </button>
+                                )}
+                                {res.status !== 'cancelled' && (
                                     <button 
                                         onClick={() => updateStatus(res._id, 'cancelled')}
-                                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-stone-100 hover:bg-[#fdeeed] text-stone-700 hover:text-[#9a2c2c] border border-stone-200 text-xs font-semibold uppercase tracking-wider rounded-xl transition duration-200"
+                                        className="py-2 px-3 bg-stone-100 hover:bg-[#fdeeed] text-stone-700 hover:text-[#9a2c2c] border border-stone-200 text-xs font-semibold uppercase tracking-wider rounded-xl transition duration-200"
                                     >
-                                        <X size={14} /> Cancel
+                                        <X size={13} /> Cancel
                                     </button>
-                                </div>
-                            )}
+                                )}
+                                {(res.paymentStatus !== 'paid' || res.balanceDue > 0) && (
+                                    <button
+                                        onClick={() => settleBalance(res._id)}
+                                        className="py-2 px-3 bg-[#1e2a1b] hover:bg-[#2d3e29] text-white text-xs font-semibold uppercase tracking-wider rounded-xl flex items-center gap-1 transition"
+                                    >
+                                        <Banknote size={13} className="text-gold-accent" /> Settle Cash
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => sendReservationWhatsAppReceipt(res)}
+                                    className="py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold uppercase tracking-wider rounded-xl flex items-center gap-1 transition"
+                                    title="Send WhatsApp confirmation receipt"
+                                >
+                                    <MessageSquareShare size={13} /> WhatsApp
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>

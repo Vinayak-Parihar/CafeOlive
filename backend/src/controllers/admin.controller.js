@@ -10,7 +10,7 @@ const getDashboardStats = asyncHandler(async (req, res) => {
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
 
-    // 1. Total Orders
+    // 1. Total Orders (all-time)
     const totalOrders = await Order.countDocuments();
 
     // 2. Today's Orders
@@ -18,15 +18,24 @@ const getDashboardStats = asyncHandler(async (req, res) => {
         createdAt: { $gte: todayStart, $lte: todayEnd }
     });
 
-    // 3. Today's Online Payments (Assuming isPaid=true means online/successful payment for now, or check detailed status if available)
-    // Adjust logic if "online payment" implies specific payment method validation. 
-    // For now, based on request "Total number of online payments made today", I'll assume 'isPaid: true' counts.
+    // 3. Online Payments (all-time and today)
+    const totalOnlinePayments = await Order.countDocuments({
+        isPaid: true,
+        paymentMethod: { $nin: ['Cash', 'cash'] }
+    });
     const todayOnlinePayments = await Order.countDocuments({
         createdAt: { $gte: todayStart, $lte: todayEnd },
-        isPaid: true
+        isPaid: true,
+        paymentMethod: { $nin: ['Cash', 'cash'] }
     });
 
-    // 4. Today's Revenue
+    // 4. Cash Payments (today)
+    const todayCashPayments = await Order.countDocuments({
+        createdAt: { $gte: todayStart, $lte: todayEnd },
+        paymentMethod: 'Cash'
+    });
+
+    // 5. Today's Revenue
     const todayRevenueAgg = await Order.aggregate([
         {
             $match: {
@@ -43,7 +52,12 @@ const getDashboardStats = asyncHandler(async (req, res) => {
     ]);
     const todayRevenue = todayRevenueAgg.length > 0 ? todayRevenueAgg[0].totalRevenue : 0;
 
-    // 5. Order Status Breakdown
+    // 6. Live Services Scan (Kitchen, Floor, Unpaid)
+    const kitchenActive = await Order.countDocuments({ status: { $in: ['placed', 'preparing'] } });
+    const serviceFloorActive = await Order.countDocuments({ status: { $in: ['ready', 'served'] } });
+    const unpaidOrders = await Order.countDocuments({ paymentStatus: { $ne: 'paid' }, status: { $ne: 'cancelled' } });
+
+    // 7. Order Status Breakdown
     const statusBreakdown = await Order.aggregate([
         {
             $group: {
@@ -59,7 +73,7 @@ const getDashboardStats = asyncHandler(async (req, res) => {
         return acc;
     }, {});
 
-    // 6. Recent Sales & Orders Timeline for Graphs
+    // 8. Recent Sales & Orders Timeline for Graphs
     const timelineAgg = await Order.aggregate([
         {
             $group: {
@@ -90,8 +104,15 @@ const getDashboardStats = asyncHandler(async (req, res) => {
         new ApiResponce(200, {
             totalOrders,
             todayOrders,
+            totalOnlinePayments,
             todayOnlinePayments,
+            todayCashPayments,
             todayRevenue,
+            services: {
+                kitchen: kitchenActive,
+                serviceFloor: serviceFloorActive,
+                unpaidOrders: unpaidOrders
+            },
             statusBreakdown: formattedBreakdown,
             salesTimeline
         }, "Dashboard stats fetched successfully")
@@ -99,14 +120,20 @@ const getDashboardStats = asyncHandler(async (req, res) => {
 });
 
 const getPendingOrders = asyncHandler(async (req, res) => {
-    // Pending orders: Not completed, Not cancelled
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    // Return active kitchen/dining orders PLUS today's completed/paid orders so admin can see payment status
     const pendingOrders = await Order.find({
-        status: { $in: ['placed', 'preparing', 'ready', 'served'] } // Adjust based on what "pending" strictly means. Usually "placed" or "preparing".
-        // Request says "dropdown list of pending orders". I'll include active orders.
-    }).sort({ createdAt: -1 }); // Newest first
+        $or: [
+            { status: { $in: ['placed', 'preparing', 'ready', 'served'] } },
+            { createdAt: { $gte: todayStart } },
+            { paymentStatus: 'paid', updatedAt: { $gte: todayStart } }
+        ]
+    }).sort({ updatedAt: -1, createdAt: -1 }).limit(100);
 
     return res.status(200).json(
-        new ApiResponce(200, pendingOrders, "Pending orders fetched successfully")
+        new ApiResponce(200, pendingOrders, "Live dining and pending orders fetched successfully")
     );
 });
 

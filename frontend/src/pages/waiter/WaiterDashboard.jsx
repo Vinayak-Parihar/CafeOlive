@@ -6,12 +6,6 @@ const WaiterDashboard = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Payment Modal State
-    const [selectedOrder, setSelectedOrder] = useState(null);
-    const [paymentModalOpen, setPaymentModalOpen] = useState(false);
-    const [paymentMethod, setPaymentMethod] = useState('cash'); // 'cash' or 'online'
-    const [qrCodeUrl, setQrCodeUrl] = useState('/qrcode.png');
-
     const fetchOrders = async () => {
         setLoading(true);
         try {
@@ -38,29 +32,6 @@ const WaiterDashboard = () => {
             fetchOrders();
         } catch (error) {
             alert("Failed to update status");
-        }
-    };
-
-    const handlePaymentClick = (order) => {
-        setSelectedOrder(order);
-        setPaymentMethod(order.paymentMethod === 'Online' ? 'manual_online' : 'cash');
-        setPaymentModalOpen(true);
-    };
-
-    const confirmPayment = async () => {
-        if (!selectedOrder) return;
-
-        try {
-            await axios.patch(`/api/order/status/${selectedOrder._id}`, { 
-                status: 'completed',
-                paymentStatus: 'paid',
-                paymentMethod: paymentMethod === 'cash' ? 'Cash' : 'Online'
-            });
-            setPaymentModalOpen(false);
-            setSelectedOrder(null);
-            fetchOrders();
-        } catch (error) {
-            alert("Failed to complete payment");
         }
     };
 
@@ -192,92 +163,13 @@ const WaiterDashboard = () => {
                                     </button>
                                 )}
                                 {order.status === 'served' && (
-                                    <button
-                                        onClick={() => handlePaymentClick(order)}
-                                        className="w-full bg-[#1e2a1b] hover:bg-[#2d3e29] text-white font-semibold text-xs uppercase tracking-wider py-3 rounded-xl flex items-center justify-center gap-2 transition duration-200 shadow-xs"
-                                    >
-                                        <DollarSign size={15} /> Collect Payment
-                                    </button>
-                                )}
-                                {order.paymentStatus !== 'paid' && order.paymentMethod === 'Cash' && order.status !== 'served' && (
-                                    <button
-                                        onClick={() => handlePaymentClick(order)}
-                                        className="w-full bg-[#935a16] hover:bg-[#784912] text-white font-semibold text-xs uppercase tracking-wider py-2.5 rounded-xl flex items-center justify-center gap-2 transition duration-200 shadow-xs"
-                                    >
-                                        <Banknote size={15} /> Collect Cash (₹{order.totalAmount})
-                                    </button>
+                                    <div className="w-full py-2.5 px-3 rounded-xl bg-[#eaf3e8] border border-[#cbe4c7] text-[#245220] text-xs font-semibold flex items-center justify-center gap-1.5 text-center">
+                                        <CheckCircle size={14} /> Served to Table • Cashier Desk Handles Bill
+                                    </div>
                                 )}
                             </div>
                         </div>
                     ))}
-                </div>
-            )}
-
-            {/* Payment Modal */}
-            {paymentModalOpen && selectedOrder && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-8 border border-[#e8e2d5]">
-                        <div className="flex justify-between items-center mb-6 border-b border-[#ece7dc] pb-4">
-                            <h2 className="text-2xl font-serif font-bold text-[#1e2a1b]">Collect Settlement</h2>
-                            <button onClick={() => setPaymentModalOpen(false)} className="text-stone-400 hover:text-stone-700 p-1">
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <div className="text-center mb-6">
-                            <p className="text-stone-400 text-xs uppercase tracking-wider font-semibold">Total Amount Due</p>
-                            <p className="text-4xl font-serif font-bold text-[#1e2a1b] mt-1">₹{selectedOrder.totalAmount}</p>
-                            <p className="text-stone-500 text-xs mt-2">
-                                {(() => {
-                                    const table = selectedOrder.tableNumber;
-                                    const customer = selectedOrder.customerName || selectedOrder.guestDetails?.name;
-                                    const invalidValues = ['n/a', 'null', 'undefined', 'walk-in', 'unknown', 'takeaway'];
-                                    const isValidTable = table && !invalidValues.includes(String(table).toLowerCase().trim());
-                                    if (customer && isValidTable) {
-                                        return `${customer} · Table #${table}`;
-                                    }
-                                    if (customer) {
-                                        return `Customer: ${customer}`;
-                                    }
-                                    if (isValidTable) {
-                                        return `Table #${table}`;
-                                    }
-                                    return 'Customer';
-                                })()}
-                            </p>
-                        </div>
-
-                        {/* Payment Method Selector */}
-                        <div className="grid grid-cols-2 gap-3 mb-6">
-                            <button
-                                onClick={() => setPaymentMethod('cash')}
-                                className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition ${paymentMethod === 'cash'
-                                    ? 'border-[#1e2a1b] bg-[#FAF8F3] text-[#1e2a1b]'
-                                    : 'border-[#e8e2d5] hover:border-stone-400 text-stone-600'
-                                    }`}
-                            >
-                                <Banknote size={26} className="text-[#c2a677]" />
-                                <span className="font-semibold text-xs uppercase tracking-wider">Cash Settle</span>
-                            </button>
-                            <button
-                                onClick={() => setPaymentMethod('manual_online')}
-                                className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition ${paymentMethod === 'manual_online'
-                                    ? 'border-[#1e2a1b] bg-[#FAF8F3] text-[#1e2a1b]'
-                                    : 'border-[#e8e2d5] hover:border-stone-400 text-stone-600'
-                                    }`}
-                            >
-                                <CreditCard size={26} className="text-[#c2a677]" />
-                                <span className="font-semibold text-xs uppercase tracking-wider">Card / UPI</span>
-                            </button>
-                        </div>
-
-                        <button
-                            onClick={confirmPayment}
-                            className="w-full bg-[#1e2a1b] hover:bg-[#2d3e29] text-white font-semibold text-xs uppercase tracking-wider py-3.5 rounded-xl shadow-xs transition duration-200"
-                        >
-                            Confirm Settlement Received
-                        </button>
-                    </div>
                 </div>
             )}
         </div>

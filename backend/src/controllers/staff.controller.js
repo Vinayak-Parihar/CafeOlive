@@ -12,9 +12,9 @@ const addStaff = asyncHandler(async (req, res) => {
         throw new ApiError(400, "All fields are required");
     }
 
-    // Role Validation (Must be chef or waiter for this portal, though admin can theoretically add anyone)
-    if (!['chef', 'waiter', 'manager'].includes(role)) {
-        throw new ApiError(400, "Invalid role. Must be 'chef', 'waiter', or 'manager'.");
+    // Role Validation
+    if (!['chef', 'waiter', 'manager', 'cashier'].includes(role)) {
+        throw new ApiError(400, "Invalid role. Must be 'chef', 'waiter', 'cashier', or 'manager'.");
     }
 
     // Check Existence
@@ -50,7 +50,7 @@ const addStaff = asyncHandler(async (req, res) => {
 const getAllStaff = asyncHandler(async (req, res) => {
     // Fetch users where role is one of the staff roles
     const staff = await User.find({
-        role: { $in: ['chef', 'waiter', 'manager', 'admin'] }
+        role: { $in: ['chef', 'waiter', 'manager', 'cashier', 'admin'] }
     }).select("-password -refreshtoken");
 
     return res.status(200).json(

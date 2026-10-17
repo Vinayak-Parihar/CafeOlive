@@ -10,7 +10,7 @@ import {
     lookupReservation
 } from "../controllers/reservation.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
-import { verifyAdmin } from "../middlewares/admin.middleware.js";
+import { verifyAdmin, verifyStaff } from "../middlewares/admin.middleware.js";
 
 const router = express.Router();
 
@@ -22,9 +22,9 @@ router.post('/book', createPaymentOrder);
 router.post('/verify-and-confirm', verifyAndConfirm);
 router.get('/lookup', lookupReservation);
 
-// Admin dashboard routes
-router.get('/reservations/inquiry', verifyJWT, verifyAdmin, reservationInquiry);
-router.get('/', verifyJWT, verifyAdmin, getAllReservations);
-router.patch('/:id/status', verifyJWT, verifyAdmin, updateReservationStatus);
+// Staff dashboard routes - Hall permissions for all staff members (Admin, Manager, Cashier, Chef, Waiter)
+router.get('/reservations/inquiry', verifyJWT, verifyStaff, reservationInquiry);
+router.get('/', verifyJWT, verifyStaff, getAllReservations);
+router.patch('/:id/status', verifyJWT, verifyStaff, updateReservationStatus);
 
 export default router;

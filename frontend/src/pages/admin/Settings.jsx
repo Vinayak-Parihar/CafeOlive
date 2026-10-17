@@ -1,6 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
-import { CalendarDays, CheckCircle, Image as ImageIcon, Images, LayoutGrid, Loader2, Plus, RotateCcw, Trash2, Upload, Users, X } from 'lucide-react';
+import { 
+    CalendarDays, CheckCircle, Image as ImageIcon, Images, LayoutGrid, Loader2, Plus, RotateCcw, 
+    Trash2, Upload, Users, X, Phone, Mail, Clock, Sparkles, AlertTriangle, Utensils, CheckCircle2, 
+    MessageSquareShare, CreditCard, Banknote, Search, Check, RefreshCw, Film, PartyPopper, Calendar 
+} from 'lucide-react';
+import { sendReservationWhatsAppReceipt } from '../../utils/whatsappReceipt';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const MENU_ITEMS_PER_ROW_OPTIONS = [2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -13,7 +18,15 @@ const Settings = () => {
     const [message, setMessage] = useState({ type: '', text: '' });
     const [previews, setPreviews] = useState({});
     const previewsRef = useRef({});
-    const [activeTab, setActiveTab] = useState('reservations');
+    const [activeTab, setActiveTab] = useState('bookings');
+
+    // Customer Venue Bookings state
+    const [reservations, setReservations] = useState([]);
+    const [loadingReservations, setLoadingReservations] = useState(false);
+    const [bookingSearch, setBookingSearch] = useState('');
+    const [bookingStatusFilter, setBookingStatusFilter] = useState('all');
+    const [bookingSpaceFilter, setBookingSpaceFilter] = useState('all');
+    const [bookingPaymentFilter, setBookingPaymentFilter] = useState('all');
 
     // Add Hall state
     const [showAddHallModal, setShowAddHallModal] = useState(false);
@@ -72,9 +85,51 @@ const Settings = () => {
         }
     };
 
+    const fetchReservations = async () => {
+        setLoadingReservations(true);
+        try {
+            const response = await axios.get('/api/reservations');
+            if (response.data?.success) {
+                setReservations(response.data.data || []);
+            }
+        } catch (error) {
+            console.error("Failed to load customer reservations:", error);
+        } finally {
+            setLoadingReservations(false);
+        }
+    };
+
+    const handleUpdateReservationStatus = async (id, newStatus) => {
+        try {
+            const response = await axios.patch(`/api/reservations/${id}/status`, { status: newStatus });
+            if (response.data?.success) {
+                setReservations(prev => prev.map(res => res._id === id ? { ...res, status: newStatus } : res));
+                setMessage({ type: 'success', text: `Reservation marked as ${newStatus}.` });
+            }
+        } catch (error) {
+            setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to update reservation status.' });
+        }
+    };
+
+    const handleSettleReservationBalance = async (id) => {
+        try {
+            const response = await axios.patch(`/api/reservations/${id}/status`, { 
+                paymentStatus: 'paid', 
+                balanceDue: 0 
+            });
+            if (response.data?.success) {
+                setReservations(prev => prev.map(res => res._id === id ? { ...res, paymentStatus: 'paid', balanceDue: 0 } : res));
+                setMessage({ type: 'success', text: 'Reservation balance marked as paid and cleared.' });
+            }
+        } catch (error) {
+            setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to settle reservation balance.' });
+        }
+    };
+
     useEffect(() => {
         fetchMedia();
         fetchSiteSettings();
+        fetchReservations();
         return () => Object.values(previewsRef.current).forEach((url) => URL.revokeObjectURL(url));
     }, []);
 
@@ -259,8 +314,50 @@ const Settings = () => {
         }
     };
 
+    const getSpaceIcon = (type) => {
+        switch (type) {
+            case 'theatre': return <Film size={15} className="text-amber-600" />;
+            case 'partyHall1':
+            case 'partyHall2': return <PartyPopper size={15} className="text-purple-600" />;
+            default: return <CalendarDays size={15} className="text-[#c2a677]" />;
+        }
+    };
+
+    const getSpaceTitle = (type) => {
+        switch (type) {
+            case 'theatre': return 'Private Mini Theatre (Max 8)';
+            case 'partyHall1': return 'Bespoke Party Hall 1 (Max 50)';
+            case 'partyHall2': return 'Grand Celebration Hall 2 (Max 100)';
+            default: return 'Sanctuary Space';
+        }
+    };
+
+    const filteredReservations = useMemo(() => {
+        return reservations.filter(res => {
+            const matchStatus = bookingStatusFilter === 'all' || res.status === bookingStatusFilter;
+            const matchSpace = bookingSpaceFilter === 'all' || res.type === bookingSpaceFilter;
+            const matchPayment = bookingPaymentFilter === 'all' || 
+                (bookingPaymentFilter === 'cash' && res.paymentMethod === 'cash') ||
+                (bookingPaymentFilter === 'online' && res.paymentMethod !== 'cash');
+
+            if (!matchStatus || !matchSpace || !matchPayment) return false;
+
+            if (bookingSearch.trim()) {
+                const q = bookingSearch.toLowerCase();
+                const nameMatch = String(res.name || '').toLowerCase().includes(q);
+                const phoneMatch = String(res.phone || '').toLowerCase().includes(q);
+                const emailMatch = String(res.email || '').toLowerCase().includes(q);
+                const occasionMatch = String(res.occasion || '').toLowerCase().includes(q);
+                const idMatch = String(res._id || '').toLowerCase().includes(q);
+                return nameMatch || phoneMatch || emailMatch || occasionMatch || idMatch;
+            }
+            return true;
+        });
+    }, [reservations, bookingStatusFilter, bookingSpaceFilter, bookingPaymentFilter, bookingSearch]);
+
     const tabs = [
-        { key: 'reservations', label: 'Reservations', icon: CalendarDays, sections: ['reservations'], title: 'Reservation Page Images', description: 'Venue cards, booking banners, and confirmation imagery.' },
+        { key: 'bookings', label: 'Venue Bookings', icon: CalendarDays, sections: [], title: 'Customer Sanctuary Bookings & Data', description: 'Live customer bookings with full details: decoration rules, meals, and cash/online payments.' },
+        { key: 'reservations', label: 'Venue Spaces', icon: ImageIcon, sections: ['reservations'], title: 'Reservation Page Images', description: 'Venue cards, booking banners, and confirmation imagery.' },
         { key: 'gallery', label: 'Gallery', icon: Images, sections: ['gallery'], title: 'Gallery Page Images', description: 'Manage the public gallery collection and its individual images.' },
         { key: 'layout', label: 'Layout', icon: LayoutGrid, sections: [], title: 'Menu Page Layout', description: 'Control how the menu grid is arranged for customers.' }
     ];
@@ -320,6 +417,16 @@ const Settings = () => {
                             <p className="text-xs text-stone-500 mt-1">{selectedTab.description}</p>
                         </div>
                         <div className="flex items-center gap-2">
+                            {activeTab === 'bookings' && (
+                                <button
+                                    type="button"
+                                    onClick={fetchReservations}
+                                    disabled={loadingReservations}
+                                    className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#1e2a1b] hover:bg-[#2d3e29] text-white px-4 py-2.5 text-xs uppercase tracking-wider font-semibold transition duration-200 shadow-xs disabled:opacity-50"
+                                >
+                                    <RefreshCw size={13} className={loadingReservations ? 'animate-spin' : ''} /> Refresh Data
+                                </button>
+                            )}
                             {activeTab === 'reservations' && (
                                 <>
                                     <button
@@ -350,7 +457,344 @@ const Settings = () => {
                         </div>
                     </div>
 
-            {activeTab === 'layout' ? (
+            {activeTab === 'bookings' ? (
+                loadingReservations ? (
+                    <div className="flex justify-center py-24 bg-white rounded-2xl border border-[#e8e2d5]">
+                        <Loader2 className="animate-spin text-[#1e2a1b]" size={32} />
+                    </div>
+                ) : (
+                    <div className="space-y-6">
+                        {/* Quick KPI Stat Counters */}
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
+                            <div className="p-4 bg-white rounded-2xl border border-[#e8e2d5] shadow-xs">
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-stone-500 block">Total Bookings</span>
+                                <span className="text-2xl font-serif font-bold text-[#1e2a1b] block mt-1">{reservations.length}</span>
+                            </div>
+                            <div className="p-4 bg-white rounded-2xl border border-[#e8e2d5] shadow-xs">
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-800 block">Confirmed</span>
+                                <span className="text-2xl font-serif font-bold text-emerald-700 block mt-1">
+                                    {reservations.filter(r => r.status === 'confirmed').length}
+                                </span>
+                            </div>
+                            <div className="p-4 bg-white rounded-2xl border border-[#e8e2d5] shadow-xs">
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-amber-800 block">Pending</span>
+                                <span className="text-2xl font-serif font-bold text-amber-600 block mt-1">
+                                    {reservations.filter(r => r.status === 'pending').length}
+                                </span>
+                            </div>
+                            <div className="p-4 bg-white rounded-2xl border border-[#e8e2d5] shadow-xs">
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-purple-800 block">Cash at Venue</span>
+                                <span className="text-2xl font-serif font-bold text-purple-700 block mt-1">
+                                    {reservations.filter(r => r.paymentMethod === 'cash').length}
+                                </span>
+                            </div>
+                            <div className="p-4 bg-white rounded-2xl border border-[#e8e2d5] shadow-xs col-span-2 sm:col-span-1">
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-[#935a16] block">Total Package Value</span>
+                                <span className="text-2xl font-serif font-bold text-[#1e2a1b] block mt-1">
+                                    ₹{reservations.reduce((sum, r) => sum + (r.totalAmount || 0), 0).toLocaleString()}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Filter and Search Bar */}
+                        <div className="p-5 bg-white rounded-2xl border border-[#e8e2d5] shadow-xs space-y-4">
+                            <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+                                <div className="relative w-full sm:w-80">
+                                    <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                                    <input
+                                        type="text"
+                                        value={bookingSearch}
+                                        onChange={(e) => setBookingSearch(e.target.value)}
+                                        placeholder="Search name, phone, email, occasion..."
+                                        className="w-full pl-9 pr-4 py-2 rounded-xl border border-[#e8e2d5] bg-[#FAF8F3] text-xs focus:outline-none focus:border-[#c2a677]"
+                                    />
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                                    <select
+                                        value={bookingSpaceFilter}
+                                        onChange={(e) => setBookingSpaceFilter(e.target.value)}
+                                        className="bg-[#FAF8F3] border border-[#e8e2d5] rounded-xl px-3 py-2 text-xs font-medium text-stone-700 focus:outline-none focus:border-[#c2a677]"
+                                    >
+                                        <option value="all">All Sanctuaries</option>
+                                        <option value="theatre">Mini Theatre (Max 8)</option>
+                                        <option value="partyHall1">Party Hall 1 (Max 50)</option>
+                                        <option value="partyHall2">Party Hall 2 (Max 100)</option>
+                                    </select>
+
+                                    <select
+                                        value={bookingStatusFilter}
+                                        onChange={(e) => setBookingStatusFilter(e.target.value)}
+                                        className="bg-[#FAF8F3] border border-[#e8e2d5] rounded-xl px-3 py-2 text-xs font-medium text-stone-700 focus:outline-none focus:border-[#c2a677]"
+                                    >
+                                        <option value="all">All Statuses</option>
+                                        <option value="confirmed">Confirmed</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="cancelled">Cancelled</option>
+                                    </select>
+
+                                    <select
+                                        value={bookingPaymentFilter}
+                                        onChange={(e) => setBookingPaymentFilter(e.target.value)}
+                                        className="bg-[#FAF8F3] border border-[#e8e2d5] rounded-xl px-3 py-2 text-xs font-medium text-stone-700 focus:outline-none focus:border-[#c2a677]"
+                                    >
+                                        <option value="all">All Payment Methods</option>
+                                        <option value="online">Online Payment</option>
+                                        <option value="cash">Cash at Venue</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Bookings Card List */}
+                        {filteredReservations.length === 0 ? (
+                            <div className="text-center py-20 bg-white rounded-2xl border border-[#e8e2d5] text-stone-500">
+                                <CalendarDays size={40} className="mx-auto mb-2 opacity-30 text-stone-400" />
+                                <p className="font-serif text-base">No customer reservations found matching your criteria.</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                                {filteredReservations.map((res) => {
+                                    const isPaid = res.paymentStatus === 'paid';
+                                    const isCash = res.paymentMethod === 'cash';
+                                    const isHalf = res.paymentPlan === 'half';
+
+                                    return (
+                                        <div
+                                            key={res._id}
+                                            className={`p-6 bg-white rounded-3xl border shadow-xs transition duration-200 flex flex-col justify-between ${
+                                                res.status === 'confirmed'
+                                                    ? 'border-emerald-200 border-l-4 border-l-emerald-700'
+                                                    : res.status === 'cancelled'
+                                                        ? 'border-red-200 border-l-4 border-l-red-600'
+                                                        : 'border-amber-200 border-l-4 border-l-amber-600'
+                                            }`}
+                                        >
+                                            <div className="space-y-4">
+                                                {/* Card Header */}
+                                                <div className="flex items-center justify-between pb-3 border-b border-[#ece7dc]">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-8 h-8 rounded-full bg-[#FAF8F3] border border-[#e8e2d5] flex items-center justify-center">
+                                                            {getSpaceIcon(res.type)}
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-xs font-bold text-[#1e2a1b] block">
+                                                                {getSpaceTitle(res.type)}
+                                                            </span>
+                                                            <span className="text-[10px] font-mono text-stone-400 block">
+                                                                ID: #{res._id.slice(-6).toUpperCase()}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${
+                                                            res.status === 'confirmed'
+                                                                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                                                                : res.status === 'cancelled'
+                                                                    ? 'bg-red-50 text-red-800 border-red-200'
+                                                                    : 'bg-amber-50 text-amber-800 border-amber-200'
+                                                        }`}>
+                                                            {res.status}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Customer Profile (Step 6) */}
+                                                <div className="bg-[#FAF8F3] p-3.5 rounded-2xl border border-[#ece7dc] space-y-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="font-serif font-bold text-sm text-[#1e2a1b]">
+                                                            {res.name}
+                                                        </span>
+                                                        {res.occasion && (
+                                                            <span className="text-[10px] font-semibold text-[#935a16] bg-[#fef7ea] px-2.5 py-0.5 rounded-full border border-[#f5dfb8]">
+                                                                ✨ {res.occasion}
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-stone-600">
+                                                        <a
+                                                            href={`tel:${res.phone}`}
+                                                            className="flex items-center gap-1.5 text-[#1e2a1b] hover:text-[#c2a677] transition font-medium"
+                                                        >
+                                                            <Phone size={12} className="text-[#c2a677]" /> {res.phone}
+                                                        </a>
+                                                        <a
+                                                            href={`mailto:${res.email}`}
+                                                            className="flex items-center gap-1.5 text-stone-500 hover:text-[#1e2a1b] transition truncate"
+                                                        >
+                                                            <Mail size={12} className="text-[#c2a677]" /> {res.email}
+                                                        </a>
+                                                    </div>
+
+                                                    {res.specialRequests && (
+                                                        <p className="text-[11px] text-stone-600 italic bg-white p-2 rounded-xl border border-[#e8e2d5] leading-relaxed">
+                                                            "{res.specialRequests}"
+                                                        </p>
+                                                    )}
+                                                </div>
+
+                                                {/* Date, Time & Guest Count (Steps 2, 3, 4, 5) */}
+                                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                                                    <div className="p-2.5 rounded-xl bg-linen/30 border border-[#ece7dc]">
+                                                        <span className="text-[9px] uppercase tracking-wider text-stone-400 block font-bold">DATE</span>
+                                                        <span className="font-semibold text-stone-800 mt-0.5 block">{res.date}</span>
+                                                    </div>
+                                                    <div className="p-2.5 rounded-xl bg-linen/30 border border-[#ece7dc]">
+                                                        <span className="text-[9px] uppercase tracking-wider text-stone-400 block font-bold">START TIME</span>
+                                                        <span className="font-semibold text-stone-800 mt-0.5 block">{res.startTime}</span>
+                                                    </div>
+                                                    <div className="p-2.5 rounded-xl bg-linen/30 border border-[#ece7dc]">
+                                                        <span className="text-[9px] uppercase tracking-wider text-stone-400 block font-bold">DURATION</span>
+                                                        <span className="font-semibold text-stone-800 mt-0.5 block">{res.duration} Hour(s)</span>
+                                                    </div>
+                                                    <div className="p-2.5 rounded-xl bg-linen/30 border border-[#ece7dc]">
+                                                        <span className="text-[9px] uppercase tracking-wider text-stone-400 block font-bold">GUESTS</span>
+                                                        <span className="font-semibold text-stone-800 mt-0.5 block">{res.guests} Guests</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Decoration & Setup Policy (Step 7) */}
+                                                <div className="p-3 rounded-2xl border text-xs flex items-center justify-between gap-3 bg-[#FAF8F3] border-[#ece7dc]">
+                                                    <div className="flex items-center gap-2">
+                                                        <Sparkles size={15} className={res.hasDecoration ? 'text-amber-600' : 'text-stone-300'} />
+                                                        <div>
+                                                            <span className="font-semibold text-stone-800 block text-[11px]">
+                                                                Hall Decoration: {res.hasDecoration ? '✨ Requested (+₹1,500)' : 'Not Included'}
+                                                            </span>
+                                                            {res.hasDecoration && (
+                                                                <span className="text-[10px] text-amber-900 block font-light">
+                                                                    ⚠️ Customer confirmed 1-hour early setup schedule
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                                                        res.hasDecoration
+                                                            ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                                            : 'bg-stone-100 text-stone-500'
+                                                    }`}>
+                                                        {res.hasDecoration ? '+₹1,500' : '₹0'}
+                                                    </span>
+                                                </div>
+
+                                                {/* Catering & Meal Plan (Step 8) */}
+                                                <div className="p-3 rounded-2xl border text-xs bg-[#FAF8F3] border-[#ece7dc] space-y-1.5">
+                                                    <div className="flex items-center gap-1.5 text-stone-500 text-[10px] uppercase font-bold tracking-wider">
+                                                        <Utensils size={12} className="text-[#c2a677]" /> Catering & Meal Plan
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {res.mealPlan && res.mealPlan.length > 0 ? (
+                                                            res.mealPlan.map(meal => (
+                                                                <span
+                                                                    key={meal}
+                                                                    className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#1e2a1b] text-white capitalize shadow-2xs"
+                                                                >
+                                                                    🍽️ {meal} Service
+                                                                </span>
+                                                            ))
+                                                        ) : (
+                                                            <span className="text-[11px] text-stone-400 italic">No catering included</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Payment & Billing Breakdown (Step 9) */}
+                                                <div className="p-3.5 rounded-2xl bg-stone-50/80 border border-stone-200 text-xs space-y-2">
+                                                    <div className="flex items-center justify-between pb-1.5 border-b border-stone-200">
+                                                        <span className="flex items-center gap-1.5 font-bold text-stone-700">
+                                                            {isCash ? (
+                                                                <Banknote size={14} className="text-emerald-700" />
+                                                            ) : (
+                                                                <CreditCard size={14} className="text-blue-700" />
+                                                            )}
+                                                            {isCash ? '💵 Cash at Venue' : '💳 Online Payment (Razorpay)'}
+                                                        </span>
+                                                        <span className="text-[10px] font-bold text-stone-600 bg-white px-2 py-0.5 rounded-md border border-stone-200">
+                                                            {isHalf ? '50% Advance Plan' : '100% Full Payment'}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-3 gap-2 pt-1 text-[11px]">
+                                                        <div>
+                                                            <span className="text-stone-400 block text-[9px] uppercase font-bold">TOTAL PACKAGE</span>
+                                                            <span className="font-bold text-stone-800 text-sm">₹{res.totalAmount}</span>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-stone-400 block text-[9px] uppercase font-bold">ADVANCE PAID</span>
+                                                            <span className="font-bold text-emerald-700 text-sm">₹{res.advanceAmount || 0}</span>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-stone-400 block text-[9px] uppercase font-bold">REMAINING AT VENUE</span>
+                                                            <span className={`font-bold text-sm ${res.balanceDue > 0 ? 'text-amber-700' : 'text-stone-400'}`}>
+                                                                ₹{res.balanceDue || 0}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between pt-1 border-t border-stone-200 text-[10px]">
+                                                        <span className="text-stone-500">Settlement Status:</span>
+                                                        <span className={`font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                                            isPaid
+                                                                ? 'bg-emerald-100 text-emerald-800'
+                                                                : 'bg-amber-100 text-amber-900'
+                                                        }`}>
+                                                            {isPaid ? 'PAID & SETTLED ✓' : 'PENDING BALANCE'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Action Buttons */}
+                                            <div className="flex flex-wrap items-center gap-2 pt-4 mt-4 border-t border-[#ece7dc]">
+                                                {res.status === 'pending' && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleUpdateReservationStatus(res._id, 'confirmed')}
+                                                        className="flex-1 min-w-[100px] py-2 px-3 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition shadow-xs"
+                                                    >
+                                                        <Check size={13} /> Confirm
+                                                    </button>
+                                                )}
+
+                                                {res.status !== 'cancelled' && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleUpdateReservationStatus(res._id, 'cancelled')}
+                                                        className="py-2 px-3 rounded-xl border border-red-200 text-red-700 hover:bg-red-50 text-xs font-bold uppercase tracking-wider transition"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                )}
+
+                                                {(!isPaid || res.balanceDue > 0) && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleSettleReservationBalance(res._id)}
+                                                        className="flex-1 min-w-[120px] py-2 px-3 rounded-xl bg-[#1e2a1b] hover:bg-[#2d3e29] text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition shadow-xs"
+                                                    >
+                                                        <Banknote size={13} className="text-gold-accent" /> Settle Cash
+                                                    </button>
+                                                )}
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => sendReservationWhatsAppReceipt(res)}
+                                                    className="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition shadow-xs"
+                                                    title="Send official reservation receipt on WhatsApp"
+                                                >
+                                                    <MessageSquareShare size={13} /> WhatsApp
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                )
+            ) : activeTab === 'layout' ? (
                 layoutLoading ? (
                     <div className="flex justify-center py-20 bg-white rounded-2xl border border-[#e8e2d5]"><Loader2 className="animate-spin text-[#1e2a1b]" size={32} /></div>
                 ) : (

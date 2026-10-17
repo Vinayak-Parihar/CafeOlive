@@ -51,6 +51,36 @@ const reservationSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    hasDecoration: {
+        type: Boolean,
+        default: false
+    },
+    decorationAgreement: {
+        type: Boolean,
+        default: false
+    },
+    mealPlan: {
+        type: [String],
+        default: []
+    },
+    paymentPlan: {
+        type: String,
+        enum: ['full', 'half'],
+        default: 'full'
+    },
+    advanceAmount: {
+        type: Number,
+        default: 0
+    },
+    balanceDue: {
+        type: Number,
+        default: 0
+    },
+    paymentMethod: {
+        type: String,
+        enum: ['online', 'cash'],
+        default: 'online'
+    },
     paymentStatus: {
         type: String,
         enum: ['pending', 'paid', 'failed'],

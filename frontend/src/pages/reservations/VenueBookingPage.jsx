@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { ManagedImage, usePublicMedia } from '../../utils/mediaUtils';
-import { Film, PartyPopper, ArrowLeft, ArrowRight, Minus, Plus, CalendarDays, Clock, Check, Sparkles } from 'lucide-react';
+import { Film, PartyPopper, ArrowLeft, ArrowRight, Minus, Plus, CalendarDays, Clock, Check, Sparkles, AlertTriangle, Utensils, CheckCircle2, CreditCard, Banknote } from 'lucide-react';
 
 const GUEST_LIMITS = {
     theatre: { min: 2, max: 8 },
@@ -121,7 +121,16 @@ const VenueBookingPage = () => {
     const [email, setEmail] = useState('');
     const [occasion, setOccasion] = useState('');
     const [specialRequests, setSpecialRequests] = useState('');
+    const [hasDecoration, setHasDecoration] = useState(false);
+    const [decorationAgreement, setDecorationAgreement] = useState(false);
+    const [mealPlan, setMealPlan] = useState([]);
+    const [paymentPlan, setPaymentPlan] = useState('full'); // 'full' or 'half'
+    const [paymentMethod, setPaymentMethod] = useState('online'); // 'online' or 'cash'
     const [placingBooking, setPlacingBooking] = useState(false);
+
+    const toggleMeal = (meal) => {
+        setMealPlan(prev => prev.includes(meal) ? prev.filter(m => m !== meal) : [...prev, meal]);
+    };
 
     const zoneDetails = {
         theatre: {
@@ -204,7 +213,11 @@ const VenueBookingPage = () => {
     }, [bookedRanges, activeDuration, selectedDate]);
 
     const hourlyRate = rates[selectedZone] || (selectedZone === 'theatre' ? 1200 : selectedZone === 'partyHall2' ? 2800 : 1500);
-    const totalAmount = hourlyRate * activeDuration;
+    const baseTotal = hourlyRate * activeDuration;
+    const decorationCost = hasDecoration ? 1500 : 0;
+    const totalAmount = baseTotal + decorationCost;
+    const payableAmount = paymentPlan === 'half' ? Math.round(totalAmount / 2) : totalAmount;
+    const balanceDue = totalAmount - payableAmount;
     const endTimeDisplay = getEndTime(startTime, activeDuration);
 
     const handleGuestsChange = (val) => {
@@ -219,6 +232,11 @@ const VenueBookingPage = () => {
             return;
         }
 
+        if (hasDecoration && !decorationAgreement) {
+            alert('Please tick the checkbox to agree that hall decoration requires booking 1 hour early for setup.');
+            return;
+        }
+
         setPlacingBooking(true);
         try {
             const payload = {
@@ -227,12 +245,23 @@ const VenueBookingPage = () => {
                 date: selectedDate,
                 startTime,
                 duration: activeDuration,
-                guests, occasion, specialRequests
+                guests, occasion, specialRequests,
+                hasDecoration,
+                decorationAgreement,
+                mealPlan,
+                paymentPlan,
+                paymentMethod
             };
 
             const orderRes = await axios.post('/api/reservations/create-payment-order', payload);
             if (!orderRes.data.success) {
                 alert('Failed to initiate booking payment.');
+                return;
+            }
+
+            // Direct cash payment reservation confirmed
+            if (orderRes.data.data?.isCash) {
+                navigate(`/reservations/confirmation/${orderRes.data.data.reservation._id}`);
                 return;
             }
 
@@ -590,6 +619,239 @@ const VenueBookingPage = () => {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Step 7: Hall Decoration & Setup Policy */}
+                        <div className="bg-white p-6 sm:p-7 rounded-3xl border border-[#e8e4d8] space-y-4 shadow-sm">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold tracking-widest uppercase text-olive-deep block">
+                                    7. Hall Decoration & Setup
+                                </span>
+                                <span className="text-[11px] font-bold text-gold-accent bg-[#f8f5ee] px-2.5 py-0.5 rounded-full border border-[#ece4d0]">
+                                    +₹1,500
+                                </span>
+                            </div>
+
+                            <label className="flex items-start gap-3 p-4 rounded-2xl bg-linen/40 border border-[#e2dcd0] cursor-pointer hover:border-[#1e2a1b]/40 transition select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={hasDecoration}
+                                    onChange={(e) => {
+                                        setHasDecoration(e.target.checked);
+                                        if (!e.target.checked) setDecorationAgreement(false);
+                                    }}
+                                    className="mt-1 w-4 h-4 rounded text-olive-deep focus:ring-olive-deep accent-[#1e2a1b]"
+                                />
+                                <div>
+                                    <span className="text-sm font-semibold text-olive-deep block">
+                                        Include Premium Hall Decoration
+                                    </span>
+                                    <span className="text-xs text-olive-muted block mt-0.5 font-light">
+                                        Artisanal balloon styling, celebratory backdrop, table styling, and ambient illumination.
+                                    </span>
+                                </div>
+                            </label>
+
+                            {/* Warning and Agreement Checkbox (Required if decoration is requested) */}
+                            {hasDecoration && (
+                                <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-300 text-amber-950 space-y-3 animate-fadeIn">
+                                    <div className="flex items-center gap-2 font-bold text-xs text-amber-900">
+                                        <AlertTriangle size={16} className="text-amber-700 shrink-0" />
+                                        <span>Mandatory Decoration Setup Notice</span>
+                                    </div>
+                                    <p className="text-[11px] text-amber-900/90 leading-relaxed font-normal">
+                                        <strong>⚠️ Preparation Rule:</strong> If you want to decorate the hall, you must book <strong>1 hour early</strong> to allow our decorator team enough time to finish the setup before your guests arrive.
+                                    </p>
+                                    <label className="flex items-start gap-2.5 pt-1 cursor-pointer select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={decorationAgreement}
+                                            onChange={(e) => setDecorationAgreement(e.target.checked)}
+                                            className="mt-0.5 w-4 h-4 rounded text-amber-900 focus:ring-amber-800 accent-[#b45309]"
+                                        />
+                                        <span className="text-xs font-semibold text-amber-950">
+                                            I agree and confirm that hall decoration requires 1-hour early setup booking. *
+                                        </span>
+                                    </label>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Step 8: Dining & Refreshments (Meal Plan) */}
+                        <div className="bg-white p-6 sm:p-7 rounded-3xl border border-[#e8e4d8] space-y-4 shadow-sm">
+                            <span className="text-xs font-bold tracking-widest uppercase text-olive-deep block">
+                                8. Catering & Meal Plan (Optional)
+                            </span>
+                            <p className="text-xs text-olive-muted font-light">
+                                Select any food & beverage services to include for your gathering:
+                            </p>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                {[
+                                    { id: 'lunch', label: 'Lunch Service', desc: 'Curated 3-course midday dining' },
+                                    { id: 'dinner', label: 'Dinner Banquet', desc: 'Evening artisanal spread & mains' },
+                                    { id: 'refreshments', label: 'Refreshments & Tea', desc: 'Artisanal bites, coffee & mocktails' }
+                                ].map((meal) => {
+                                    const checked = mealPlan.includes(meal.id);
+                                    return (
+                                        <label
+                                            key={meal.id}
+                                            onClick={() => toggleMeal(meal.id)}
+                                            className={`p-4 rounded-2xl border cursor-pointer transition select-none flex flex-col justify-between ${
+                                                checked
+                                                    ? 'bg-[#1e2a1b] text-white border-[#1e2a1b] shadow-xs'
+                                                    : 'bg-linen/30 border-[#e2dcd0] text-stone-700 hover:border-stone-400'
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between mb-2">
+                                                <Utensils size={16} className={checked ? 'text-gold-accent' : 'text-stone-400'} />
+                                                <input
+                                                    type="checkbox"
+                                                    checked={checked}
+                                                    readOnly
+                                                    className="w-4 h-4 accent-gold-accent"
+                                                />
+                                            </div>
+                                            <div>
+                                                <span className="text-xs font-bold block">{meal.label}</span>
+                                                <span className={`text-[10px] block mt-1 leading-tight ${checked ? 'text-stone-300' : 'text-stone-400'}`}>
+                                                    {meal.desc}
+                                                </span>
+                                            </div>
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Step 9: Payment Choice (Cash vs Online & Full vs Half Payment) */}
+                        <div className="bg-white p-6 sm:p-7 rounded-3xl border border-[#e8e4d8] space-y-5 shadow-sm">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold tracking-widest uppercase text-olive-deep block">
+                                    9. Payment Method & Plan
+                                </span>
+                                <span className="text-[11px] font-semibold text-olive-muted">
+                                    {paymentMethod === 'online' ? 'Instant Online Gateway' : 'Pay at Venue Counter'}
+                                </span>
+                            </div>
+
+                            {/* Payment Method (Online vs Cash) */}
+                            <div>
+                                <label className="text-[11px] font-bold tracking-wider uppercase text-olive-deep block mb-2">
+                                    Payment Method
+                                </label>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <label
+                                        onClick={() => setPaymentMethod('online')}
+                                        className={`p-4 rounded-2xl border cursor-pointer transition select-none flex items-start gap-3.5 ${
+                                            paymentMethod === 'online'
+                                                ? 'bg-[#1e2a1b] text-white border-[#1e2a1b] shadow-md'
+                                                : 'bg-linen/30 border-[#e2dcd0] text-stone-700 hover:border-stone-400'
+                                        }`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="paymentMethod"
+                                            checked={paymentMethod === 'online'}
+                                            onChange={() => setPaymentMethod('online')}
+                                            className="mt-1 w-4 h-4 accent-gold-accent"
+                                        />
+                                        <div className="flex-1">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-xs font-bold">Online Payment</span>
+                                                <CreditCard size={16} className={paymentMethod === 'online' ? 'text-gold-accent' : 'text-stone-400'} />
+                                            </div>
+                                            <span className={`text-[11px] block leading-tight ${paymentMethod === 'online' ? 'text-stone-300' : 'text-stone-500'}`}>
+                                                UPI, Google Pay, PhonePe, Cards & NetBanking via Razorpay.
+                                            </span>
+                                        </div>
+                                    </label>
+
+                                    <label
+                                        onClick={() => setPaymentMethod('cash')}
+                                        className={`p-4 rounded-2xl border cursor-pointer transition select-none flex items-start gap-3.5 ${
+                                            paymentMethod === 'cash'
+                                                ? 'bg-[#1e2a1b] text-white border-[#1e2a1b] shadow-md'
+                                                : 'bg-linen/30 border-[#e2dcd0] text-stone-700 hover:border-stone-400'
+                                        }`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="paymentMethod"
+                                            checked={paymentMethod === 'cash'}
+                                            onChange={() => setPaymentMethod('cash')}
+                                            className="mt-1 w-4 h-4 accent-gold-accent"
+                                        />
+                                        <div className="flex-1">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-xs font-bold">Pay in Cash at Venue</span>
+                                                <Banknote size={16} className={paymentMethod === 'cash' ? 'text-gold-accent' : 'text-stone-400'} />
+                                            </div>
+                                            <span className={`text-[11px] block leading-tight ${paymentMethod === 'cash' ? 'text-stone-300' : 'text-stone-500'}`}>
+                                                Pay directly in cash at Café Olive counter on your event day.
+                                            </span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            {/* Payment Plan (Full vs Half Payment) */}
+                            <div className="pt-2 border-t border-[#ece7db]">
+                                <label className="text-[11px] font-bold tracking-wider uppercase text-olive-deep block mb-2">
+                                    Payment Amount Plan
+                                </label>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <label
+                                        onClick={() => setPaymentPlan('full')}
+                                        className={`p-4 rounded-2xl border cursor-pointer transition select-none flex items-start gap-3 ${
+                                            paymentPlan === 'full'
+                                                ? 'bg-[#FAF8F3] border-[#1e2a1b] ring-2 ring-[#1e2a1b]'
+                                                : 'bg-linen/30 border-[#e2dcd0] text-stone-600 hover:border-stone-400'
+                                        }`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="paymentPlan"
+                                            checked={paymentPlan === 'full'}
+                                            onChange={() => setPaymentPlan('full')}
+                                            className="mt-1 w-4 h-4 accent-[#1e2a1b]"
+                                        />
+                                        <div>
+                                            <span className="text-xs font-bold text-olive-deep block">
+                                                Full Payment (100%)
+                                            </span>
+                                            <span className="text-[11px] text-olive-muted block mt-0.5">
+                                                {paymentMethod === 'online' ? `Pay ₹${totalAmount} now online.` : `Pay ₹${totalAmount} total in cash.`} Complete settlement upfront.
+                                            </span>
+                                        </div>
+                                    </label>
+
+                                    <label
+                                        onClick={() => setPaymentPlan('half')}
+                                        className={`p-4 rounded-2xl border cursor-pointer transition select-none flex items-start gap-3 ${
+                                            paymentPlan === 'half'
+                                                ? 'bg-emerald-50/70 border-emerald-600 ring-2 ring-emerald-600'
+                                                : 'bg-linen/30 border-[#e2dcd0] text-stone-600 hover:border-stone-400'
+                                        }`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="paymentPlan"
+                                            checked={paymentPlan === 'half'}
+                                            onChange={() => setPaymentPlan('half')}
+                                            className="mt-1 w-4 h-4 accent-emerald-700"
+                                        />
+                                        <div>
+                                            <span className="text-xs font-bold text-emerald-950 block">
+                                                Half Payment (50% Advance)
+                                            </span>
+                                            <span className="text-[11px] text-emerald-800/80 block mt-0.5">
+                                                {paymentMethod === 'online' ? `Pay ₹${payableAmount} advance deposit now.` : `Pay ₹${payableAmount} advance deposit in cash.`} Balance ₹{balanceDue} payable on event day.
+                                            </span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Right Sticky Summary Column */}
@@ -641,16 +903,48 @@ const VenueBookingPage = () => {
                                     <span className="tracking-widest uppercase text-stone-400">Guests</span>
                                     <span className="font-semibold text-stone-200">{guests} Guests</span>
                                 </div>
+                                {hasDecoration && (
+                                    <div className="flex justify-between py-0.5 text-gold-accent font-semibold">
+                                        <span className="tracking-widest uppercase">Decoration</span>
+                                        <span>+₹1,500</span>
+                                    </div>
+                                )}
+                                {mealPlan.length > 0 && (
+                                    <div className="flex justify-between py-0.5">
+                                        <span className="tracking-widest uppercase text-stone-400">Meals</span>
+                                        <span className="font-semibold text-stone-200 capitalize">{mealPlan.join(', ')}</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between py-0.5">
+                                    <span className="tracking-widest uppercase text-stone-400">Payment Method</span>
+                                    <span className="font-semibold text-gold-accent">
+                                        {paymentMethod === 'cash' ? '💵 Cash at Venue' : '💳 Online (UPI / Card)'}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between py-0.5">
+                                    <span className="tracking-widest uppercase text-stone-400">Payment Plan</span>
+                                    <span className="font-semibold text-emerald-400">
+                                        {paymentPlan === 'half' ? '50% Advance' : 'Full (100%)'}
+                                    </span>
+                                </div>
                             </div>
 
                             <div className="border-t border-stone-700/60 pt-4 space-y-2">
                                 <div className="flex justify-between text-xs text-stone-400">
-                                    <span className="tracking-widest uppercase">Base Rate</span>
-                                    <span>₹{hourlyRate}/hr × {activeDuration}h</span>
+                                    <span className="tracking-widest uppercase">Total Package</span>
+                                    <span>₹{totalAmount}</span>
                                 </div>
+                                {paymentPlan === 'half' && (
+                                    <div className="flex justify-between text-xs text-stone-400">
+                                        <span className="tracking-widest uppercase">Remaining At Venue</span>
+                                        <span>₹{balanceDue}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between items-baseline pt-1">
-                                    <span className="text-xs tracking-widest uppercase font-bold text-gold-accent">Total Amount</span>
-                                    <span className="font-serif text-3xl font-bold text-white">₹{totalAmount}</span>
+                                    <span className="text-xs tracking-widest uppercase font-bold text-gold-accent">
+                                        {paymentPlan === 'half' ? 'Payable Deposit (50%)' : 'Total Amount'}
+                                    </span>
+                                    <span className="font-serif text-3xl font-bold text-white">₹{payableAmount}</span>
                                 </div>
                             </div>
 
@@ -660,12 +954,22 @@ const VenueBookingPage = () => {
                                 disabled={placingBooking || !startTime}
                                 className="w-full bg-[#3C5B3E] hover:bg-[#496E4C] active:bg-[#253B27] disabled:opacity-50 text-white py-4 px-6 rounded-2xl font-bold text-xs tracking-[0.15em] uppercase flex items-center justify-center gap-2 transition duration-200 shadow-lg group"
                             >
-                                <span>{placingBooking ? 'Processing...' : 'Verify & Pay Reservation'}</span>
+                                <span>
+                                    {placingBooking
+                                        ? 'Processing...'
+                                        : paymentMethod === 'cash'
+                                            ? `Confirm Booking (Pay ₹${payableAmount} in Cash)`
+                                            : `Verify & Pay ₹${payableAmount} Online (${paymentPlan === 'half' ? '50% Advance' : 'Full Payment'})`
+                                    }
+                                </span>
                                 <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
                             </button>
 
                             <p className="text-[10px] tracking-wider text-stone-400 text-center font-light">
-                                ⚡ 100% secure transaction with Razorpay. Free cancellation 24h prior.
+                                {paymentMethod === 'cash'
+                                    ? '💵 Your slot will be reserved immediately. Settle in cash at the counter.'
+                                    : '⚡ 100% secure transaction with Razorpay. Free cancellation 24h prior.'
+                                }
                             </p>
                         </div>
                     </div>

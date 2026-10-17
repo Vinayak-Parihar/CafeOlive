@@ -24,6 +24,7 @@ import Settings from './pages/admin/Settings';
 import ReviewsManagement from './pages/admin/ReviewsManagement';
 import ReservationsAdmin from './pages/admin/ReservationsAdmin';
 import InquiriesAdmin from './pages/admin/InquiriesAdmin';
+import CashierBillingPage from './pages/admin/CashierBillingPage';
 
 function App() {
   return (
@@ -51,6 +52,7 @@ function App() {
           <Route path="/admin/inquiries" element={<InquiriesAdmin />} />
           <Route path="/admin/kitchen" element={<ChefDashboard />} />
           <Route path="/admin/service" element={<WaiterDashboard />} />
+          <Route path="/admin/billing" element={<CashierBillingPage />} />
           <Route path="/admin/take-order" element={<MenuPage />} />
         </Route>
       </Routes>

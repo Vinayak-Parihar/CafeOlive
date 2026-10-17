@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import {
     LayoutDashboard, PlusCircle, LogOut, Menu, Users, ChefHat,
-    Coffee, X, Settings as SettingsIcon, Calendar, MessageSquare, Star, Sparkles
+    Coffee, X, Settings as SettingsIcon, Calendar, MessageSquare, Star, Sparkles, Receipt
 } from 'lucide-react';
 import axios from 'axios';
 import ArtisanalCupMotif from '../components/ArtisanalCupMotif';
@@ -53,9 +53,12 @@ const AdminLayout = () => {
     }
 
     const isAdmin = user?.role === 'admin';
-    const canManageSettings = ['admin', 'manager'].includes(user?.role);
+    const canManageSettings = ['admin', 'manager', 'cashier'].includes(user?.role);
     const isChef = user?.role === 'chef' || isAdmin;
     const isWaiter = user?.role === 'waiter' || isAdmin;
+    const isCashier = ['admin', 'manager', 'cashier'].includes(user?.role);
+    // Hall & Venue booking access granted to all staff members: Admin, Manager, Receiver (Cashier), Kitchen (Chef), Servant (Waiter)
+    const canViewHallReservations = ['admin', 'manager', 'cashier', 'chef', 'waiter'].includes(user?.role);
 
     const isActive = (path) => location.pathname === path;
 
@@ -171,17 +174,31 @@ const AdminLayout = () => {
                         </>
                     )}
 
+                    {isCashier && (
+                        <Link
+                            to="/admin/billing"
+                            onClick={() => setIsSidebarOpen(false)}
+                            className={navItemClass('/admin/billing')}
+                        >
+                            <Receipt size={18} />
+                            Billing Desk
+                        </Link>
+                    )}
+
+                    {/* Hall & Sanctuary Reservations - Visible to all staff members (Admin, Manager, Cashier, Chef, Waiter) */}
+                    {canViewHallReservations && (
+                        <Link
+                            to="/admin/reservations"
+                            onClick={() => setIsSidebarOpen(false)}
+                            className={navItemClass('/admin/reservations')}
+                        >
+                            <Calendar size={18} />
+                            Reservations
+                        </Link>
+                    )}
+
                     {isAdmin && (
                         <>
-                            <Link
-                                to="/admin/reservations"
-                                onClick={() => setIsSidebarOpen(false)}
-                                className={navItemClass('/admin/reservations')}
-                            >
-                                <Calendar size={18} />
-                                Reservations
-                            </Link>
-
                             <Link
                                 to="/admin/inquiries"
                                 onClick={() => setIsSidebarOpen(false)}

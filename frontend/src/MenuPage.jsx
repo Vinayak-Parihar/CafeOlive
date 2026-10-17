@@ -173,12 +173,12 @@ const MenuPage = () => {
     const handleNameSubmit = (e) => {
         e.preventDefault();
         const trimmedName = custName.trim();
-        const trimmedPhone = custPhone.trim();
+        const trimmedPhone = custPhone.replace(/\D/g, '').slice(0, 10);
         if (!trimmedName) {
             setNameError('Please enter your name');
             return;
         }
-        if (!trimmedPhone || trimmedPhone.length < 10) {
+        if (!trimmedPhone || trimmedPhone.length !== 10) {
             setNameError('Please enter a valid 10-digit phone number');
             return;
         }
@@ -537,17 +537,69 @@ const MenuPage = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[11px] font-bold uppercase tracking-wider text-olive-deep block mb-1">
-                                        Phone Number *
-                                    </label>
-                                    <input
-                                        type="tel"
-                                        required
-                                        placeholder="10-digit mobile number"
-                                        value={custPhone}
-                                        onChange={(e) => setCustPhone(e.target.value)}
-                                        className="w-full px-4 py-3 rounded-xl border border-[#d8d3c5] text-sm focus:outline-none focus:ring-2 focus:ring-olive-deep"
-                                    />
+                                    <div className="flex justify-between items-center mb-1">
+                                        <label className="text-[11px] font-bold uppercase tracking-wider text-olive-deep">
+                                            Phone Number *
+                                        </label>
+                                        <span className={`text-[11px] font-mono font-semibold ${
+                                            custPhone.length === 10
+                                                ? 'text-emerald-700 font-bold'
+                                                : 'text-stone-400'
+                                        }`}>
+                                            {custPhone.length === 10 ? '✓ 10/10 Digits' : `${custPhone.length}/10 Digits`}
+                                        </span>
+                                    </div>
+                                    <div className="relative flex items-center rounded-xl border border-[#d8d3c5] bg-white overflow-hidden focus-within:ring-2 focus-within:ring-olive-deep focus-within:border-transparent">
+                                        <span className="px-3.5 py-3 bg-[#FAF8F3] border-r border-[#d8d3c5] text-xs font-bold text-stone-600 select-none">
+                                            +91
+                                        </span>
+                                        <input
+                                            type="tel"
+                                            required
+                                            inputMode="numeric"
+                                            maxLength={10}
+                                            pattern="[0-9]{10}"
+                                            placeholder="98765 43210"
+                                            value={custPhone}
+                                            onKeyDown={(e) => {
+                                                // Allow control keys (backspace, delete, tab, arrows, copy/paste)
+                                                if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'].includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                    return;
+                                                }
+                                                // Block any non-digit
+                                                if (!/^[0-9]$/.test(e.key)) {
+                                                    e.preventDefault();
+                                                    return;
+                                                }
+                                                // Hard block if already 10 digits
+                                                if (custPhone.length >= 10) {
+                                                    e.preventDefault();
+                                                }
+                                            }}
+                                            onPaste={(e) => {
+                                                e.preventDefault();
+                                                const pasted = e.clipboardData.getData('text');
+                                                const clean = pasted.replace(/\D/g, '').slice(0, 10);
+                                                setCustPhone(clean);
+                                                if (nameError) setNameError('');
+                                            }}
+                                            onInput={(e) => {
+                                                const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                if (e.target.value !== clean) {
+                                                    e.target.value = clean;
+                                                }
+                                            }}
+                                            onChange={(e) => {
+                                                const numericVal = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                setCustPhone(numericVal);
+                                                if (nameError) setNameError('');
+                                            }}
+                                            className="w-full px-3.5 py-3 text-sm focus:outline-none tracking-widest font-mono text-olive-deep placeholder:tracking-normal placeholder:font-sans"
+                                        />
+                                    </div>
+                                    <p className="text-[10px] text-stone-400 mt-1">
+                                        Enter exactly 10 digits mobile number (numbers only)
+                                    </p>
                                 </div>
                                 <div className="flex gap-2 pt-2">
                                     <button

@@ -9,7 +9,8 @@ import {
     createBillPayment,
     verifyBillPayment,
     updateBillPaymentMethod,
-    settleBillSession
+    settleBillSession,
+    getCashierBillingSessions
 } from "../controllers/order.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -47,7 +48,10 @@ router.route("/waiter").get(getWaiterOrders);
 // Update Status (All staff)
 router.route("/status/:orderId").patch(updateOrderStatus);
 
-// Settle full bill session (Waiter / Admin)
+// Cashier & Billing sessions (Cashier & Admin)
+router.route("/billing/sessions").get(getCashierBillingSessions);
+
+// Settle full bill session (Cashier / Waiter / Admin)
 router.route("/bill/:billSessionId/settle").post(settleBillSession);
 
 export default router;

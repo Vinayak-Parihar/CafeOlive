@@ -1,54 +1,23 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'motion/react';
 import {
     ShoppingBag, TrendingUp, DollarSign, Clock, RefreshCw,
     CheckCircle2, Phone, Sparkles, PieChart, BarChart3,
-    ArrowUpRight, Activity
+    ArrowUpRight, Activity, Banknote, CreditCard, ChefHat, Coffee
 } from 'lucide-react';
 
-// Animated Number Counter Component (counts from 1 to target value at a relaxed, elegant pace)
-const CountUp = ({ value, duration = 2400, prefix = '', suffix = '' }) => {
+// Real Live Number Component - Direct, rock-solid, and immediate without fake rolling numbers
+const CountUp = ({ value, prefix = '', suffix = '' }) => {
     const numericValue = typeof value === 'string'
         ? parseInt(value.replace(/[^0-9]/g, ''), 10) || 0
         : (typeof value === 'number' ? value : 0);
 
-    const [displayVal, setDisplayVal] = useState(numericValue > 0 ? 1 : 0);
-
-    useEffect(() => {
-        if (numericValue <= 0) {
-            setDisplayVal(0);
-            return;
-        }
-
-        let startTimestamp = null;
-        const startVal = 1;
-        let animationFrameId;
-        const adjustedDuration = Math.max(duration, 2200);
-
-        const step = (timestamp) => {
-            if (!startTimestamp) startTimestamp = timestamp;
-            const progress = Math.min((timestamp - startTimestamp) / adjustedDuration, 1);
-            // Steady, elegant ease-out so every number is clearly visible
-            const easeProgress = 1 - Math.pow(1 - progress, 2.2);
-            const current = Math.floor(startVal + (numericValue - startVal) * easeProgress);
-            setDisplayVal(current);
-
-            if (progress < 1) {
-                animationFrameId = requestAnimationFrame(step);
-            } else {
-                setDisplayVal(numericValue);
-            }
-        };
-
-        animationFrameId = requestAnimationFrame(step);
-        return () => cancelAnimationFrame(animationFrameId);
-    }, [numericValue, duration]);
-
     return (
         <span>
             {prefix}
-            {displayVal.toLocaleString()}
+            {numericValue.toLocaleString()}
             {suffix}
         </span>
     );
@@ -567,6 +536,7 @@ const AdminDashboard = () => {
     const [pendingOrders, setPendingOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeMetric, setActiveMetric] = useState('orders');
+    const [orderFilter, setOrderFilter] = useState('all'); // 'all', 'cash', 'paid'
 
     const fetchData = async () => {
         try {
@@ -585,20 +555,28 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         fetchData();
-        const interval = setInterval(fetchData, 5000);
+        const interval = setInterval(fetchData, 4000);
         return () => clearInterval(interval);
     }, []);
 
     const handleAdminSettle = async (order, method) => {
         try {
-            await axios.patch(`/api/order/status/${order._id}`, {
-                status: 'completed',
-                paymentStatus: 'paid',
-                paymentMethod: method
-            });
+            if (order.billSessionId) {
+                await axios.post(`/api/order/bill/${order.billSessionId}/settle`, {
+                    paymentMethod: method
+                });
+            } else {
+                await axios.patch(`/api/order/status/${order._id}`, {
+                    status: 'completed',
+                    paymentStatus: 'paid',
+                    paymentMethod: method
+                });
+            }
+            toast.success(`Payment settled as ${method} for Table #${order.tableNumber || '01'}`);
             fetchData();
         } catch (error) {
             console.error("Error settling payment:", error);
+            toast.error("Failed to settle payment");
         }
     };
 
@@ -614,7 +592,7 @@ const AdminDashboard = () => {
     return (
         <div className="flex flex-col xl:flex-row gap-8 h-full">
             {/* Main Stats Area */}
-            <div className="flex-1 space-y-8">
+            <div className="flex-1 space-y-6">
                 {/* Header Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#ece7dc]">
                     <div>
@@ -635,7 +613,7 @@ const AdminDashboard = () => {
                     </button>
                 </div>
 
-                {/* Stats Cards Grid with Animated Number Counting */}
+                {/* Stats Cards Grid with Live Data */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <StatCard
                         title="Total Orders"
@@ -651,8 +629,8 @@ const AdminDashboard = () => {
                     />
                     <StatCard
                         title="Online Payments"
-                        rawValue={stats?.todayOnlinePayments || 0}
-                        icon={<DollarSign size={20} />}
+                        rawValue={stats?.totalOnlinePayments ?? stats?.todayOnlinePayments ?? 0}
+                        icon={<CreditCard size={20} />}
                         badge="UPI & Card"
                     />
                     <StatCard
@@ -663,6 +641,32 @@ const AdminDashboard = () => {
                         badge="Gross"
                         highlight
                     />
+                </div>
+
+                {/* Live Real-Time Restaurant Services Scan Bar */}
+                <div className="bg-white p-3.5 rounded-2xl border border-[#e8e2d5] shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2 text-stone-600 font-semibold uppercase tracking-wider text-[11px]">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span>Live Service Scan:</span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className="px-3 py-1 rounded-xl bg-orange-50 border border-orange-200 text-orange-900 font-semibold flex items-center gap-1.5">
+                            <ChefHat size={14} className="text-orange-600" />
+                            Kitchen Prep: <strong>{stats?.services?.kitchen || 0}</strong>
+                        </span>
+                        <span className="px-3 py-1 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 font-semibold flex items-center gap-1.5">
+                            <Coffee size={14} className="text-blue-600" />
+                            Floor Service: <strong>{stats?.services?.serviceFloor || 0}</strong>
+                        </span>
+                        <span className="px-3 py-1 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-semibold flex items-center gap-1.5">
+                            <Banknote size={14} className="text-amber-600" />
+                            Cash To Collect: <strong>{pendingOrders.filter(o => o.paymentMethod === 'Cash' && o.paymentStatus !== 'paid' && !o.isPaid).length}</strong>
+                        </span>
+                        <span className="px-3 py-1 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 font-semibold flex items-center gap-1.5">
+                            <Clock size={14} className="text-purple-600" />
+                            Unpaid Bills: <strong>{stats?.services?.unpaidOrders || 0}</strong>
+                        </span>
+                    </div>
                 </div>
 
                 {/* Visual Analytics & Graphs Row */}
@@ -710,22 +714,75 @@ const AdminDashboard = () => {
                 </div>
             </div>
 
-            {/* Right Column: Live Pending Orders */}
+            {/* Right Column: Live Dining & Pending Orders */}
             <div className="w-full xl:w-96 bg-white p-6 rounded-3xl border border-[#e8e2d5] shadow-sm flex flex-col max-h-[calc(100vh-120px)] overflow-hidden">
-                <div className="flex items-center justify-between pb-4 border-b border-[#ece7dc] mb-4">
-                    <div className="flex items-center gap-2">
-                        <Clock size={18} className="text-[#c2a677]" />
-                        <h3 className="font-serif text-xl font-bold text-[#1e2a1b]">
-                            Pending Orders
-                        </h3>
+                <div className="pb-3 border-b border-[#ece7dc] mb-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Clock size={18} className="text-[#c2a677]" />
+                            <h3 className="font-serif text-xl font-bold text-[#1e2a1b]">
+                                Dining Orders
+                            </h3>
+                        </div>
+                        <span className="px-2.5 py-0.5 rounded-full bg-[#f5f3ee] text-[#1e2a1b] text-xs font-bold">
+                            <CountUp value={
+                                orderFilter === 'cash'
+                                    ? pendingOrders.filter(o => o.paymentMethod === 'Cash' && o.paymentStatus !== 'paid' && !o.isPaid).length
+                                    : orderFilter === 'paid'
+                                    ? pendingOrders.filter(o => o.paymentStatus === 'paid' || o.isPaid).length
+                                    : pendingOrders.length
+                            } />
+                        </span>
                     </div>
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#f5f3ee] text-[#1e2a1b] text-xs font-bold">
-                        <CountUp value={pendingOrders.length} />
-                    </span>
+
+                    {/* Filter Tabs */}
+                    <div className="flex items-center gap-1.5 text-[11px] overflow-x-auto pb-1">
+                        <button
+                            type="button"
+                            onClick={() => setOrderFilter('all')}
+                            className={`px-3 py-1 rounded-full font-semibold transition shrink-0 ${
+                                orderFilter === 'all'
+                                    ? 'bg-[#1e2a1b] text-white shadow-xs'
+                                    : 'bg-[#FAF8F3] text-stone-600 hover:bg-stone-200'
+                            }`}
+                        >
+                            All ({pendingOrders.length})
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setOrderFilter('cash')}
+                            className={`px-3 py-1 rounded-full font-semibold transition shrink-0 flex items-center gap-1 ${
+                                orderFilter === 'cash'
+                                    ? 'bg-amber-700 text-white shadow-xs'
+                                    : 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100'
+                            }`}
+                        >
+                            💵 Cash ({pendingOrders.filter(o => o.paymentMethod === 'Cash' && o.paymentStatus !== 'paid' && !o.isPaid).length})
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setOrderFilter('paid')}
+                            className={`px-3 py-1 rounded-full font-semibold transition shrink-0 flex items-center gap-1 ${
+                                orderFilter === 'paid'
+                                    ? 'bg-emerald-700 text-white shadow-xs'
+                                    : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
+                            }`}
+                        >
+                            ✓ Paid ({pendingOrders.filter(o => o.paymentStatus === 'paid' || o.isPaid).length})
+                        </button>
+                    </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto space-y-3.5 pr-1">
-                    {pendingOrders.map(order => {
+                    {pendingOrders
+                        .filter(order => {
+                            const isPaid = order.paymentStatus === 'paid' || order.isPaid;
+                            const isCash = order.paymentMethod === 'Cash' && !isPaid;
+                            if (orderFilter === 'cash') return isCash;
+                            if (orderFilter === 'paid') return isPaid;
+                            return true;
+                        })
+                        .map(order => {
                         const table = order.tableNumber;
                         const customer = order.customerName || order.guestDetails?.name;
                         const invalidValues = ['n/a', 'null', 'undefined', 'walk-in', 'unknown', 'takeaway'];
@@ -736,11 +793,17 @@ const AdminDashboard = () => {
                         else if (customer) titleDisplay = customer;
                         else if (isValidTable) titleDisplay = `Table #${table}`;
 
-                        const isPaid = order.paymentStatus === 'paid';
+                        const isPaid = order.paymentStatus === 'paid' || order.isPaid;
                         const isCashRequested = order.paymentMethod === 'Cash';
 
                         return (
-                            <div key={order._id} className="bg-[#FAF8F3] p-4 rounded-2xl border border-[#e8e2d5] space-y-2.5">
+                            <div key={order._id} className={`p-4 rounded-2xl border space-y-2.5 transition ${
+                                isPaid
+                                    ? 'bg-[#f4faf2] border-emerald-200'
+                                    : isCashRequested
+                                    ? 'bg-[#fef9ee] border-amber-300'
+                                    : 'bg-[#FAF8F3] border-[#e8e2d5]'
+                            }`}>
                                 <div className="flex justify-between items-start gap-2">
                                     <div>
                                         <h4 className="font-serif font-bold text-[#1e2a1b] text-sm">
@@ -764,48 +827,84 @@ const AdminDashboard = () => {
                                     </span>
                                 </div>
 
-                                <div className="text-[11px] space-y-0.5 pt-1 border-t border-[#ece7dc]">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-stone-500">Payment:</span>
-                                        <span className={`font-semibold ${
-                                            isPaid
-                                                ? 'text-emerald-700'
-                                                : isCashRequested
-                                                ? 'text-amber-800'
-                                                : 'text-stone-700'
-                                        }`}>
-                                            {isPaid
-                                                ? `✓ Paid (${order.paymentMethod || 'Online'})`
-                                                : isCashRequested
-                                                ? '💵 Cash Requested'
-                                                : '💳 Online Pending'}
-                                        </span>
+                                {order.items && order.items.length > 0 && (
+                                    <div className="text-[11px] text-stone-600 border-t border-[#ece7dc] pt-1.5 space-y-0.5">
+                                        {order.items.map((item, idx) => (
+                                            <div key={idx} className="flex justify-between">
+                                                <span>{item.quantity}x {item.name}</span>
+                                                <span className="text-stone-400">₹{item.price * item.quantity}</span>
+                                            </div>
+                                        ))}
                                     </div>
+                                )}
+
+                                {/* Payment Status Display */}
+                                <div className="pt-2 border-t border-[#ece7dc] space-y-2">
+                                    {isPaid ? (
+                                        <div className="p-2.5 rounded-xl bg-emerald-100/70 border border-emerald-300 text-emerald-950 text-xs flex items-center justify-between">
+                                            <div className="flex items-center gap-1.5 font-bold">
+                                                <CheckCircle2 size={15} className="text-emerald-700 shrink-0" />
+                                                <span>Payment Complete</span>
+                                            </div>
+                                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white text-emerald-800 border border-emerald-200">
+                                                {order.paymentMethod || 'Online'}
+                                            </span>
+                                        </div>
+                                    ) : isCashRequested ? (
+                                        <div className="p-2.5 rounded-xl bg-amber-100/70 border border-amber-300 text-amber-950 text-xs space-y-1.5">
+                                            <div className="flex items-center justify-between font-bold">
+                                                <span className="flex items-center gap-1.5 text-amber-900">
+                                                    <Banknote size={15} className="text-amber-700 shrink-0" />
+                                                    Customer is giving Cash
+                                                </span>
+                                                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
+                                                    Cash
+                                                </span>
+                                            </div>
+                                            <div className="text-[11px] text-amber-800">
+                                                Please collect <strong className="text-amber-950 font-bold">₹{order.totalAmount}</strong> in cash at Table #{table || '01'}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleAdminSettle(order, 'Cash')}
+                                                className="w-full py-2 px-3 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-[11px] font-bold uppercase tracking-wider transition shadow-xs flex items-center justify-center gap-1.5 mt-1"
+                                            >
+                                                <CheckCircle2 size={13} /> Confirm Cash Received
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between items-center text-xs">
+                                                <span className="text-stone-500">Payment:</span>
+                                                <span className="font-semibold text-stone-700 flex items-center gap-1">
+                                                    <CreditCard size={12} /> Online / UPI Pending
+                                                </span>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleAdminSettle(order, 'Cash')}
+                                                    className="py-2 px-2 rounded-xl bg-white hover:bg-emerald-700 hover:text-white text-emerald-800 border border-emerald-300 text-[11px] font-bold uppercase tracking-wider transition"
+                                                >
+                                                    ✓ Cash Paid
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleAdminSettle(order, 'Online')}
+                                                    className="py-2 px-2 rounded-xl bg-[#1e2a1b] hover:bg-[#253723] text-white text-[11px] font-bold uppercase tracking-wider transition"
+                                                >
+                                                    ✓ Online Paid
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {order.createdAt && (
-                                        <div className="text-[10px] text-stone-400">
+                                        <div className="text-[10px] text-stone-400 text-right">
                                             Placed: {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </div>
                                     )}
                                 </div>
-
-                                {!isPaid && (
-                                    <div className="grid grid-cols-2 gap-2 pt-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => handleAdminSettle(order, 'Cash')}
-                                            className="py-2 px-2 rounded-xl bg-white hover:bg-emerald-700 hover:text-white text-emerald-800 border border-emerald-300 text-[11px] font-bold uppercase tracking-wider transition"
-                                        >
-                                            ✓ Cash Paid
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleAdminSettle(order, 'Online')}
-                                            className="py-2 px-2 rounded-xl bg-[#1e2a1b] hover:bg-[#253723] text-white text-[11px] font-bold uppercase tracking-wider transition"
-                                        >
-                                            ✓ Online Paid
-                                        </button>
-                                    </div>
-                                )}
                             </div>
                         );
                     })}
@@ -813,7 +912,7 @@ const AdminDashboard = () => {
                     {pendingOrders.length === 0 && (
                         <div className="text-center py-12 text-stone-400 text-xs">
                             <CheckCircle2 size={32} className="mx-auto mb-2 text-stone-300" />
-                            All pending orders settled.
+                            No dining orders right now.
                         </div>
                     )}
                 </div>

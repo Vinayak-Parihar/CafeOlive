@@ -148,6 +148,7 @@ const StaffManagement = () => {
                             >
                                 <option value="waiter">Service (Waiter)</option>
                                 <option value="chef">Kitchen (Chef)</option>
+                                <option value="cashier">Cashier (Billing Desk)</option>
                                 <option value="manager">Manager</option>
                             </select>
                         </div>
@@ -196,6 +197,7 @@ const StaffManagement = () => {
                                                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                                                         staff.role === 'admin' ? 'bg-[#FAF8F3] text-[#1e2a1b] border-[#1e2a1b]' :
                                                         staff.role === 'chef' ? 'bg-[#eaf3e8] text-[#245220] border-[#cbe4c7]' :
+                                                        staff.role === 'cashier' ? 'bg-[#f4efe6] text-[#784e1b] border-[#e2d5be]' :
                                                         staff.role === 'waiter' ? 'bg-[#eef2f6] text-[#2c4766] border-[#d3dfed]' :
                                                         'bg-[#fef7ea] text-[#935a16] border-[#f5dfb8]'
                                                     }`}>
