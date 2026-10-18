@@ -25,6 +25,8 @@ import ReviewsManagement from './pages/admin/ReviewsManagement';
 import ReservationsAdmin from './pages/admin/ReservationsAdmin';
 import InquiriesAdmin from './pages/admin/InquiriesAdmin';
 import CashierBillingPage from './pages/admin/CashierBillingPage';
+import TablesManagement from './pages/admin/TablesManagement';
+import CustomerScanRegister from './pages/customer/CustomerScanRegister';
 
 function App() {
   return (
@@ -40,11 +42,14 @@ function App() {
           <Route path="/reservations/confirmation/:id" element={<ReservationConfirmationPage />} />
           <Route path="/reservations/inquiry" element={<ReservationInquiryPage />} />
           <Route path="/bill" element={<BillPage />} />
+          <Route path="/scan" element={<CustomerScanRegister />} />
+          <Route path="/menu/auth" element={<CustomerScanRegister />} />
         </Route>
         <Route path="/admin" element={<AdminLogin />} />
         <Route element={<AdminLayout />}>
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/add-menu" element={<AddMenuSection />} />
+          <Route path="/admin/tables" element={<TablesManagement />} />
           <Route path="/admin/staff" element={<StaffManagement />} />
           <Route path="/admin/settings" element={<Settings />} />
           <Route path="/admin/reviews" element={<ReviewsManagement />} />

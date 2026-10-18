@@ -31,9 +31,7 @@ const Footer = () => {
                 <div>
                     <h4 className="text-soft-gold font-[Playfair_Display] text-lg font-semibold mb-6">Reservations</h4>
                     <ul className="space-y-3 font-[Montserrat] text-sm text-gray-300">
-                        <li><Link to="/reservations/theatre" className="hover:text-soft-gold transition duration-200">Private Mini Theatre</Link></li>
-                        <li><Link to="/reservations/party-hall-1" className="hover:text-soft-gold transition duration-200">Party Hall 1</Link></li>
-                        <li><Link to="/reservations/party-hall-2" className="hover:text-soft-gold transition duration-200">Party Hall 2</Link></li>
+                        <li><Link to="/reservations/booking?zone=theatre" className="hover:text-soft-gold transition duration-200">Private Mini Theatre</Link></li>
                         <li><Link to="/reservations/inquiry" className="hover:text-soft-gold transition duration-200">General Inquiry</Link></li>
                     </ul>
                 </div>

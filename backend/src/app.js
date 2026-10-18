@@ -24,6 +24,7 @@ import reviewRouter from "./routes/review.routes.js";
 import reservationRouter from "./routes/reservation.routes.js";
 import inquiryRouter from "./routes/inquiry.routes.js";
 import homeRouter from "./routes/home.routes.js";
+import tableRouter from "./routes/table.routes.js";
 
 //route declaration 
 app.use("/api/users", userRouter)
@@ -35,6 +36,7 @@ app.use("/api/reviews", reviewRouter);
 app.use("/api/reservations", reservationRouter);
 app.use("/api/inquiries", inquiryRouter);
 app.use("/api/home", homeRouter);
+app.use("/api/tables", tableRouter);
 
 app.use((req, res, next) => {
   console.log(`Request received: ${req.method} ${req.url}`);

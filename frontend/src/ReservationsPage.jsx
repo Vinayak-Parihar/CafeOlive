@@ -5,6 +5,9 @@ import { ManagedImage, usePublicMediaList } from './utils/mediaUtils';
 import ReservationLookup from './components/ReservationLookup';
 import Reveal from './components/motion/Reveal';
 
+const THEATRE_FALLBACK = 'https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&fit=crop&w=1200&q=80';
+const HALL_FALLBACK = 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80';
+
 const DEFAULT_SPACES = [
     {
         id: 'reservation-theatre',
@@ -15,35 +18,9 @@ const DEFAULT_SPACES = [
         capacityText: 'Up to 8 Guests',
         url: '/reservations/booking?zone=theatre',
         imageKey: 'reservation-theatre',
-        fallbackImage: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&fit=crop&w=1200&q=80',
+        fallbackImage: THEATRE_FALLBACK,
         desc: 'Intimate private screening lounge with acoustic insulation, 4K projection, plush recliners, and sit-in food menu.',
         features: ['4K Laser Projection', 'Dedicated Host', 'Custom Soundscape', 'Tasting Menus']
-    },
-    {
-        id: 'reservation-party-hall-1',
-        zone: 'partyHall1',
-        badge: 'Most Popular',
-        title: 'Hall 1 (The Grand Atrium)',
-        rateText: 'From ₹1,500/hr',
-        capacityText: 'Up to 50 Guests',
-        url: '/reservations/booking?zone=partyHall1',
-        imageKey: 'reservation-party-hall-1',
-        fallbackImage: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80',
-        desc: 'Sunlit botanical hall with arched ceilings, modular banquet seating, dedicated culinary staging counter, and ambient illumination.',
-        features: ['Up to 50 guests', 'Dedicated host', 'Audio system setup', 'Ambient lighting']
-    },
-    {
-        id: 'reservation-party-hall-2',
-        zone: 'partyHall2',
-        badge: 'Grand Celebrations',
-        title: 'Hall 2 (The Heritage Ballroom)',
-        rateText: 'From ₹2,800/hr',
-        capacityText: 'Up to 100 Guests',
-        url: '/reservations/booking?zone=partyHall2',
-        imageKey: 'reservation-party-hall-2',
-        fallbackImage: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=80',
-        desc: 'Spacious double-height banquet hall designed for grand banquets, wedding receptions, and milestone celebrations with private hearth kitchen.',
-        features: ['Up to 100 guests', 'Full AV setup', 'Private banquet bar', 'Custom staging']
     }
 ];
 
@@ -55,7 +32,8 @@ const ReservationsPage = () => {
             (item) => item.section === 'reservations' &&
                       item.imageKey !== 'reservation-confirmation' &&
                       item.imageKey !== 'reservation-venue-booking' &&
-                      item.isEnabled !== false
+                      item.isEnabled !== false &&
+                      item.isDeleted !== true
         );
 
         if (!venueItems.length) {
@@ -108,7 +86,7 @@ const ReservationsPage = () => {
                 url: bookingUrl,
                 imageKey: item.imageKey,
                 imageUrl: item.imageUrl,
-                fallbackImage: isTheatre ? DEFAULT_SPACES[0].fallbackImage : DEFAULT_SPACES[1].fallbackImage,
+                fallbackImage: isTheatre ? THEATRE_FALLBACK : HALL_FALLBACK,
                 desc,
                 features
             };
@@ -133,7 +111,7 @@ const ReservationsPage = () => {
                 </Reveal>
 
                 {/* Sanctuaries Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-16">
+                <div className={`grid gap-8 pb-16 ${spaces.length === 1 ? 'max-w-xl mx-auto' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
                     {spaces.map((space) => (
                         <article
                             key={space.id}

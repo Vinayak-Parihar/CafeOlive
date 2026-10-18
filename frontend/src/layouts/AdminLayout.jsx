@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import {
     LayoutDashboard, PlusCircle, LogOut, Menu, Users, ChefHat,
-    Coffee, X, Settings as SettingsIcon, Calendar, MessageSquare, Star, Sparkles, Receipt
+    Coffee, X, Settings as SettingsIcon, Calendar, MessageSquare, Star, Sparkles, Receipt, QrCode
 } from 'lucide-react';
 import axios from 'axios';
 import ArtisanalCupMotif from '../components/ArtisanalCupMotif';
@@ -59,6 +59,8 @@ const AdminLayout = () => {
     const isCashier = ['admin', 'manager', 'cashier'].includes(user?.role);
     // Hall & Venue booking access granted to all staff members: Admin, Manager, Receiver (Cashier), Kitchen (Chef), Servant (Waiter)
     const canViewHallReservations = ['admin', 'manager', 'cashier', 'chef', 'waiter'].includes(user?.role);
+    // Table & QR code ordering management granted to all staff members: Admin, Manager, Kitchen (Chef), Waiter, Cashier
+    const canManageTables = ['admin', 'manager', 'cashier', 'chef', 'waiter'].includes(user?.role);
 
     const isActive = (path) => location.pathname === path;
 
@@ -194,6 +196,18 @@ const AdminLayout = () => {
                         >
                             <Calendar size={18} />
                             Reservations
+                        </Link>
+                    )}
+
+                    {/* Tables & QR Code Ordering - Visible to all staff members (Admin, Manager, Kitchen/Chef, Waiter, Cashier) */}
+                    {canManageTables && (
+                        <Link
+                            to="/admin/tables"
+                            onClick={() => setIsSidebarOpen(false)}
+                            className={navItemClass('/admin/tables')}
+                        >
+                            <QrCode size={18} />
+                            Tables & QR Codes
                         </Link>
                     )}
 

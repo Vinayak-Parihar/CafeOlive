@@ -159,7 +159,8 @@ const LandingPage = () => {
             item => item.section === 'reservations' &&
                     item.imageKey !== 'reservation-confirmation' &&
                     item.imageKey !== 'reservation-venue-booking' &&
-                    item.isEnabled !== false
+                    item.isEnabled !== false &&
+                    item.isDeleted !== true
         );
 
         if (!items.length) {
@@ -172,15 +173,6 @@ const LandingPage = () => {
                     url: '/reservations/booking?zone=theatre',
                     icon: Film,
                     capacity: 'Up to 8 Guests'
-                },
-                {
-                    id: 'partyHalls',
-                    title: 'Bespoke Party Halls',
-                    desc: 'Host elegant gatherings, birthday celebrations, anniversaries, and private dinners with custom banquet menus.',
-                    imageUrl: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80',
-                    url: '/reservations/booking?zone=partyHall1',
-                    icon: PartyPopper,
-                    capacity: 'Up to 50 Guests'
                 }
             ];
         }
@@ -605,7 +597,7 @@ const LandingPage = () => {
                     </p>
                 </Reveal>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className={`grid gap-8 ${venueHalls.length === 1 ? 'max-w-xl mx-auto' : 'grid-cols-1 md:grid-cols-2'}`}>
                     {venueHalls.map((hall, idx) => {
                         const Icon = hall.icon;
                         return (
