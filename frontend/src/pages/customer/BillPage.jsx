@@ -5,10 +5,10 @@ import toast from 'react-hot-toast';
 import {
     Coffee, CheckCircle2, ArrowLeft, RefreshCw,
     CreditCard, Banknote, Clock, ChevronDown, ChevronUp,
-    Receipt, Utensils, MessageSquareShare
+    Receipt, Utensils, MessageSquareShare, Download, FileText
 } from 'lucide-react';
 import { getBillSession, clearBillSessionCookie } from '../../utils/sessionUtils';
-import { sendWhatsAppReceipt } from '../../utils/whatsappReceipt';
+import { sendWhatsAppReceipt, sendPdfBillToWhatsApp, downloadBillPdf } from '../../utils/whatsappReceipt';
 
 const loadRazorpayScript = () =>
     new Promise((resolve) => {
@@ -269,23 +269,43 @@ const BillPage = () => {
         }
     };
 
-    const handleSendWhatsApp = () => {
+    const getBillParams = () => {
         const phone = billData?.customerPhone || session?.customerPhone || billData?.orders?.[0]?.customerPhone;
         const allItems = billData?.orders?.flatMap(o => o.items || []) || [];
-        const ok = sendWhatsAppReceipt({
+        return {
             customerPhone: phone,
             customerName: billData?.customerName || session?.customerName || 'Valued Guest',
             tableNumber: billData?.tableNumber || session?.tableNumber || '01',
             items: allItems,
             totalAmount: billData?.grandTotal || 0,
             paymentMethod: billData?.orders?.[0]?.paymentMethod || (selectedMethod === 'cash' ? 'Cash' : 'Online (Razorpay)'),
-            paymentStatus: billData?.sessionPaid || paymentState === 'success' ? 'paid' : 'pending'
-        });
-        if (!ok) {
-            toast.error("Phone number not found in session");
-        } else {
+            paymentStatus: billData?.sessionPaid || paymentState === 'success' ? 'paid' : 'pending',
+            billSessionId: session?.billSessionId || billData?.billSessionId || ''
+        };
+    };
+
+    const handleSendWhatsApp = async () => {
+        const params = getBillParams();
+        try {
+            const res = await sendPdfBillToWhatsApp(params);
+            if (res.aborted) return;
+            if (res.method === 'share') {
+                toast.success("PDF Bill shared to WhatsApp!");
+            } else {
+                toast.success("PDF Bill downloaded & WhatsApp chat opened!");
+            }
+        } catch (err) {
+            console.error("PDF WhatsApp share error:", err);
+            // Fallback to text WhatsApp
+            sendWhatsAppReceipt(params);
             toast.success("Opening WhatsApp bill!");
         }
+    };
+
+    const handleDownloadPdf = () => {
+        const params = getBillParams();
+        downloadBillPdf(params);
+        toast.success("PDF Bill downloaded!");
     };
 
     if (!session) {
@@ -320,13 +340,23 @@ const BillPage = () => {
                     <h1 className="text-2xl font-serif font-semibold text-olive-deep">Bill Settled!</h1>
                     <p className="text-olive-muted text-xs leading-relaxed">{paymentMessage}</p>
 
-                    <button
-                        type="button"
-                        onClick={handleSendWhatsApp}
-                        className="w-full py-3.5 px-4 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition"
-                    >
-                        <MessageSquareShare size={15} /> Send Bill to WhatsApp
-                    </button>
+                    <div className="flex flex-col gap-2 w-full">
+                        <button
+                            type="button"
+                            onClick={handleSendWhatsApp}
+                            className="w-full py-3.5 px-4 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition"
+                        >
+                            <MessageSquareShare size={15} /> Send PDF Bill on WhatsApp
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={handleDownloadPdf}
+                            className="w-full py-3 px-4 rounded-full border border-stone-300 hover:bg-stone-50 text-stone-700 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition"
+                        >
+                            <Download size={15} /> Download PDF Receipt
+                        </button>
+                    </div>
 
                     <Link
                         to="/menu"
@@ -533,33 +563,78 @@ const BillPage = () => {
                                     <CreditCard size={15} />
                                     {paymentState === 'processing' ? 'Opening Razorpay...' : `Pay ₹${billData?.grandTotal || 0} Online Now`}
                                 </button>
+                                <div className="flex items-center justify-center gap-3 pt-1 text-[11px]">
+                                    <button
+                                        type="button"
+                                        onClick={handleSendWhatsApp}
+                                        className="text-emerald-700 hover:text-emerald-800 font-semibold flex items-center gap-1 transition"
+                                    >
+                                        <MessageSquareShare size={13} /> Send PDF Bill on WhatsApp
+                                    </button>
+                                    <span className="text-stone-300">•</span>
+                                    <button
+                                        type="button"
+                                        onClick={handleDownloadPdf}
+                                        className="text-stone-600 hover:text-stone-900 font-semibold flex items-center gap-1 transition"
+                                    >
+                                        <Download size={13} /> Download PDF
+                                    </button>
+                                </div>
                                 <p className="text-[10px] text-center text-stone-400">
                                     Secured via Razorpay (UPI, Google Pay, PhonePe, Cards)
                                 </p>
                             </div>
                         ) : (
-                            <div className="p-3.5 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-xs space-y-1 mt-2">
-                                <div className="font-bold flex items-center gap-1.5 text-amber-950">
-                                    <Banknote size={15} className="text-amber-700" />
-                                    <span>Cash Payment Chosen</span>
+                            <div className="space-y-2 mt-2">
+                                <div className="p-3.5 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-xs space-y-1">
+                                    <div className="font-bold flex items-center gap-1.5 text-amber-950">
+                                        <Banknote size={15} className="text-amber-700" />
+                                        <span>Cash Payment Chosen</span>
+                                    </div>
+                                    <p className="text-[11px] text-amber-800 leading-relaxed">
+                                        Admin & staff have been notified that you are paying ₹{billData?.grandTotal || 0} in cash. Please hand over cash to your server or counter.
+                                    </p>
                                 </div>
-                                <p className="text-[11px] text-amber-800 leading-relaxed">
-                                    Admin & staff have been notified that you are paying ₹{billData?.grandTotal || 0} in cash. Please hand over cash to your server or counter.
-                                </p>
+                                <div className="flex items-center justify-center gap-3 pt-1 text-[11px]">
+                                    <button
+                                        type="button"
+                                        onClick={handleSendWhatsApp}
+                                        className="text-emerald-700 hover:text-emerald-800 font-semibold flex items-center gap-1 transition"
+                                    >
+                                        <MessageSquareShare size={13} /> Send PDF Bill on WhatsApp
+                                    </button>
+                                    <span className="text-stone-300">•</span>
+                                    <button
+                                        type="button"
+                                        onClick={handleDownloadPdf}
+                                        className="text-stone-600 hover:text-stone-900 font-semibold flex items-center gap-1 transition"
+                                    >
+                                        <Download size={13} /> Download PDF
+                                    </button>
+                                </div>
                             </div>
                         )
                     ) : (
-                        <div className="space-y-2 mt-2">
+                        <div className="space-y-2.5 mt-2">
                             <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-2xl text-xs text-center font-medium">
                                 ✓ Bill Settled & Paid. Thank you for dining with us!
                             </div>
-                            <button
-                                type="button"
-                                onClick={handleSendWhatsApp}
-                                className="w-full py-3 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition"
-                            >
-                                <MessageSquareShare size={15} /> Get Bill on WhatsApp
-                            </button>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <button
+                                    type="button"
+                                    onClick={handleSendWhatsApp}
+                                    className="w-full py-3 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition"
+                                >
+                                    <MessageSquareShare size={15} /> Send PDF on WhatsApp
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleDownloadPdf}
+                                    className="w-full py-3 rounded-full border border-stone-300 hover:bg-stone-50 text-stone-700 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition"
+                                >
+                                    <Download size={15} /> Download PDF
+                                </button>
+                            </div>
                         </div>
                     )}
                 </section>

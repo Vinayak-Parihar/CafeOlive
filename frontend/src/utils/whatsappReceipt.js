@@ -1,3 +1,5 @@
+export { generateBillPdf, downloadBillPdf, sendPdfBillToWhatsApp } from './pdfBillGenerator.js';
+
 /**
  * WhatsApp Receipt Generator for Cafe Olive
  * Generates and opens an official digital WhatsApp receipt without requiring API keys.

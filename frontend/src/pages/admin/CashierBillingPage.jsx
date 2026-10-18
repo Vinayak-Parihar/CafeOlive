@@ -4,9 +4,9 @@ import toast from 'react-hot-toast';
 import {
     Receipt, Banknote, CreditCard, RefreshCw, CheckCircle2,
     Search, Printer, Phone, Clock, ChevronDown, ChevronUp,
-    Utensils, AlertCircle, Sparkles, QrCode, X, ArrowRight, MessageSquareShare, Calendar
+    Utensils, AlertCircle, Sparkles, QrCode, X, ArrowRight, MessageSquareShare, Calendar, Download, FileText
 } from 'lucide-react';
-import { sendWhatsAppReceipt } from '../../utils/whatsappReceipt';
+import { sendWhatsAppReceipt, sendPdfBillToWhatsApp, downloadBillPdf } from '../../utils/whatsappReceipt';
 
 const CashierBillingPage = () => {
     const [sessions, setSessions] = useState([]);
@@ -115,12 +115,8 @@ const CashierBillingPage = () => {
             }
             toast.success(`Payment settled as ${method} for Table #${session.tableNumber}`);
             if (session.customerPhone) {
-                sendWhatsAppReceipt({
-                    customerPhone: session.customerPhone,
-                    customerName: session.customerName,
-                    tableNumber: session.tableNumber,
-                    items: session.items,
-                    totalAmount: session.grandTotal,
+                handleSendPdfWhatsApp({
+                    ...session,
                     paymentMethod: method,
                     paymentStatus: 'paid'
                 });
@@ -142,6 +138,56 @@ const CashierBillingPage = () => {
 
     const triggerBrowserPrint = () => {
         window.print();
+    };
+
+    // WhatsApp PDF & Download handlers
+    const handleSendPdfWhatsApp = async (session) => {
+        if (!session) return;
+        try {
+            const res = await sendPdfBillToWhatsApp({
+                customerPhone: session.customerPhone,
+                customerName: session.customerName,
+                tableNumber: session.tableNumber,
+                items: session.items,
+                totalAmount: session.grandTotal,
+                paymentMethod: session.paymentMethod || 'Cash',
+                paymentStatus: session.paymentStatus || 'pending',
+                billSessionId: session.billSessionId || session._id || ''
+            });
+            if (res.aborted) return;
+            if (res.method === 'share') {
+                toast.success(`PDF Bill shared for Table #${session.tableNumber}!`);
+            } else {
+                toast.success(`PDF Bill downloaded & WhatsApp opened for Table #${session.tableNumber}!`);
+            }
+        } catch (err) {
+            console.error("PDF WhatsApp share error:", err);
+            sendWhatsAppReceipt({
+                customerPhone: session.customerPhone,
+                customerName: session.customerName,
+                tableNumber: session.tableNumber,
+                items: session.items,
+                totalAmount: session.grandTotal,
+                paymentMethod: session.paymentMethod || 'Cash',
+                paymentStatus: session.paymentStatus || 'pending'
+            });
+            toast.success("Opening WhatsApp bill!");
+        }
+    };
+
+    const handleDownloadPdfBill = (session) => {
+        if (!session) return;
+        downloadBillPdf({
+            customerPhone: session.customerPhone,
+            customerName: session.customerName,
+            tableNumber: session.tableNumber,
+            items: session.items,
+            totalAmount: session.grandTotal,
+            paymentMethod: session.paymentMethod || 'Cash',
+            paymentStatus: session.paymentStatus || 'pending',
+            billSessionId: session.billSessionId || session._id || ''
+        });
+        toast.success(`Downloaded PDF Bill for Table #${session.tableNumber}!`);
     };
 
     if (loading) {
@@ -636,23 +682,20 @@ const CashierBillingPage = () => {
 
                                             <button
                                                 type="button"
-                                                onClick={() => {
-                                                    const ok = sendWhatsAppReceipt({
-                                                        customerPhone: session.customerPhone,
-                                                        customerName: session.customerName,
-                                                        tableNumber: session.tableNumber,
-                                                        items: session.items,
-                                                        totalAmount: session.grandTotal,
-                                                        paymentMethod: session.paymentMethod || 'Pending',
-                                                        paymentStatus: session.paymentStatus
-                                                    });
-                                                    if (!ok) toast.error("Customer phone number not found");
-                                                    else toast.success("Opening WhatsApp bill!");
-                                                }}
-                                                title="Send Bill via WhatsApp"
+                                                onClick={() => handleSendPdfWhatsApp(session)}
+                                                title="Send PDF Bill via WhatsApp"
                                                 className="p-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 transition"
                                             >
                                                 <MessageSquareShare size={16} />
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDownloadPdfBill(session)}
+                                                title="Download PDF Bill"
+                                                className="p-3 rounded-xl bg-stone-50 hover:bg-stone-100 border border-[#d8d3c5] text-stone-700 transition"
+                                            >
+                                                <Download size={16} />
                                             </button>
 
                                             <button
@@ -672,22 +715,19 @@ const CashierBillingPage = () => {
                                             <div className="flex items-center gap-1.5">
                                                 <button
                                                     type="button"
-                                                    onClick={() => {
-                                                        const ok = sendWhatsAppReceipt({
-                                                            customerPhone: session.customerPhone,
-                                                            customerName: session.customerName,
-                                                            tableNumber: session.tableNumber,
-                                                            items: session.items,
-                                                            totalAmount: session.grandTotal,
-                                                            paymentMethod: session.paymentMethod || 'Paid',
-                                                            paymentStatus: 'paid'
-                                                        });
-                                                        if (!ok) toast.error("Customer phone number not found");
-                                                        else toast.success("Opening WhatsApp bill!");
-                                                    }}
+                                                    onClick={() => handleSendPdfWhatsApp(session)}
                                                     className="py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-xs font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-1.5 transition"
+                                                    title="Send PDF Bill on WhatsApp"
                                                 >
-                                                    <MessageSquareShare size={14} /> WhatsApp
+                                                    <MessageSquareShare size={14} /> WhatsApp PDF
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDownloadPdfBill(session)}
+                                                    className="py-2 px-3 rounded-xl bg-stone-50 hover:bg-stone-100 border border-[#d8d3c5] text-xs font-bold uppercase tracking-wider text-stone-700 flex items-center gap-1.5 transition"
+                                                    title="Download PDF Invoice"
+                                                >
+                                                    <Download size={14} /> PDF
                                                 </button>
                                                 <button
                                                     type="button"
@@ -888,25 +928,23 @@ const CashierBillingPage = () => {
                             </div>
                         </div>
 
-                        <button
-                            type="button"
-                            onClick={() => {
-                                const ok = sendWhatsAppReceipt({
-                                    customerPhone: printModal.session.customerPhone,
-                                    customerName: printModal.session.customerName,
-                                    tableNumber: printModal.session.tableNumber,
-                                    items: printModal.session.items,
-                                    totalAmount: printModal.session.grandTotal,
-                                    paymentMethod: printModal.session.paymentMethod || 'Paid',
-                                    paymentStatus: printModal.session.paymentStatus
-                                });
-                                if (!ok) toast.error("Customer phone number not found");
-                                else toast.success("Opening WhatsApp bill!");
-                            }}
-                            className="w-full py-3 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs transition"
-                        >
-                            <MessageSquareShare size={15} /> Send Bill on Customer's WhatsApp
-                        </button>
+                        <div className="space-y-2">
+                            <button
+                                type="button"
+                                onClick={() => handleSendPdfWhatsApp(printModal.session)}
+                                className="w-full py-3 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs transition"
+                            >
+                                <MessageSquareShare size={15} /> Send PDF Bill on Customer's WhatsApp
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => handleDownloadPdfBill(printModal.session)}
+                                className="w-full py-2.5 rounded-full border border-stone-300 hover:bg-stone-50 text-stone-700 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition"
+                            >
+                                <Download size={14} /> Download PDF Invoice
+                            </button>
+                        </div>
 
                         <div className="flex gap-2 pt-1">
                             <button
