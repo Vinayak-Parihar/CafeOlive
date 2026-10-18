@@ -12,7 +12,7 @@ import {
 } from "../controllers/menu.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { verifyAdmin, verifyAdminOrManager } from "../middlewares/admin.middleware.js";
-import { upload } from "../middlewares/multer..middeleware.js";
+import { upload } from "../middlewares/multer.middleware.js";
 
 const router = Router();
 

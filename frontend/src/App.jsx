@@ -27,6 +27,7 @@ import InquiriesAdmin from './pages/admin/InquiriesAdmin';
 import CashierBillingPage from './pages/admin/CashierBillingPage';
 import TablesManagement from './pages/admin/TablesManagement';
 import CustomerScanRegister from './pages/customer/CustomerScanRegister';
+import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
   return (
@@ -60,6 +61,8 @@ function App() {
           <Route path="/admin/billing" element={<CashierBillingPage />} />
           <Route path="/admin/take-order" element={<MenuPage />} />
         </Route>
+        {/* Custom 404 Catch-All */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </MotionConfig>
   );

@@ -12,7 +12,10 @@ app.use(cors({
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(cookieParser());
-app.use(express.static("public"))
+app.use(express.static("public"));
+
+import { sanitizeInputs } from "./middlewares/sanitize.middleware.js";
+app.use(sanitizeInputs);
 
 //routes
 import userRouter from './routes/user.routes.js'
@@ -26,8 +29,19 @@ import inquiryRouter from "./routes/inquiry.routes.js";
 import homeRouter from "./routes/home.routes.js";
 import tableRouter from "./routes/table.routes.js";
 
-//route declaration 
-app.use("/api/users", userRouter)
+import { ApiError } from "./utils/ApiError.js";
+import { errorHandler } from "./middlewares/error.middleware.js";
+
+// Request logger middleware
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV !== "test") {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  }
+  next();
+});
+
+// Route declarations
+app.use("/api/users", userRouter);
 app.use("/api/menu", menuRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/staff", staffRouter);
@@ -38,14 +52,12 @@ app.use("/api/inquiries", inquiryRouter);
 app.use("/api/home", homeRouter);
 app.use("/api/tables", tableRouter);
 
+// Catch-all 404 for unhandled API routes
 app.use((req, res, next) => {
-  console.log(`Request received: ${req.method} ${req.url}`);
-  next();
+  next(new ApiError(404, `Route not found: ${req.method} ${req.originalUrl}`));
 });
 
-
-
-import { errorHandler } from "./middlewares/error.middleware.js";
+// Centralized error handling middleware
 app.use(errorHandler);
 
 export default app; 
