@@ -2,4 +2,5 @@
 import { fileURLToPath } from "node:url";
 
 process.chdir(fileURLToPath(new URL("./backend", import.meta.url)));
-await import("./backend/src/index.js");
+// no top-level await: Hostinger's LiteSpeed loads this file via require()
+import("./backend/src/index.js");
