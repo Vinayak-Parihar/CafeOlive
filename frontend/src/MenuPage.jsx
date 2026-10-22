@@ -337,9 +337,9 @@ const MenuPage = () => {
                                 >
                                     <div className="space-y-1.5 sm:space-y-3">
                                         <div className="relative w-full aspect-square sm:aspect-[4/3] rounded-xl sm:rounded-2xl overflow-hidden bg-stone-100">
-                                            {item.imageUrl ? (
+                                            {item.image ? (
                                                 <img
-                                                    src={item.imageUrl}
+                                                    src={item.image}
                                                     alt={item.name}
                                                     loading="lazy"
                                                     className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
