@@ -18,7 +18,7 @@ console.log(`Frontend directory: ${frontendDir}`);
 // 1. Ensure frontend dependencies are installed
 if (!fs.existsSync(path.join(frontendDir, 'node_modules'))) {
   console.log('Installing frontend dependencies...');
-  execSync('npm install', { cwd: frontendDir, stdio: 'inherit' });
+  execSync('npm install --include=dev', { cwd: frontendDir, stdio: 'inherit' });
 }
 
 // 2. Build frontend using Vite

@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const app = express();
 
@@ -51,6 +53,13 @@ app.use("/api/reservations", reservationRouter);
 app.use("/api/inquiries", inquiryRouter);
 app.use("/api/home", homeRouter);
 app.use("/api/tables", tableRouter);
+
+// Serve the built frontend (single-host deploy); non-API GETs fall back to the SPA
+const frontendDist = fileURLToPath(new URL("../../frontend/dist", import.meta.url));
+app.use(express.static(frontendDist));
+app.get(/^(?!\/api\/).*/, (req, res, next) => {
+  res.sendFile(path.join(frontendDist, "index.html"), (err) => err && next());
+});
 
 // Catch-all 404 for unhandled API routes
 app.use((req, res, next) => {
